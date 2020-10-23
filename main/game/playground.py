@@ -1,9 +1,9 @@
 from game.players import player
 
 
-class Playfield(object):
-    def __init__(self, playfield: [int, int], players : [player]):
-        self.playfield = playfield
+class Playground(object):
+    def __init__(self, cordinateystem: [int, int], players : [player]):
+        self.cordinatesystem = cordinateystem
         self.players = players
 
 
