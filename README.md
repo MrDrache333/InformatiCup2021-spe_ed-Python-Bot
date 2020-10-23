@@ -18,6 +18,6 @@ __Abgabe:__ *17.01.2021*
 ## Gruppen Mitglieder
 __Denis Groeneveld__
 
-__Keno Oelrichs Garcia__
+__Keno Oelrichs García__
 
-__Max Stargard__
+__Max Stargardt__
