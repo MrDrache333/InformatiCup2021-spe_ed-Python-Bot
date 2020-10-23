@@ -141,10 +141,13 @@ def drawGrid(w, rows, surface):
 
 
 def redrawWindow(surface):
-    global rows, width, s, snack
+    global rows, width, players, snack
     surface.fill((0, 0, 0))
-    s.draw(surface)
-    snack.draw(surface)
+    for player in players:
+        player.draw(surface)
+        pass
+    #player1.draw(surface)
+    #snack.draw(surface)
     drawGrid(width, rows, surface)
     pygame.display.update()
 
@@ -174,13 +177,29 @@ def message_box(subject, content):
         pass
 
 
+def createRandomColor():
+    """Creates a random RGB (int, int int) color"""
+    return random.randint(0, 255), random.randint(0, 255), random.randint(0, 255)
+
+def createRandomPosition(rows: int, column: int):
+    """Creates a random Position in within the given :param rows and :param column and returns it as (int, int)"""
+    x = random.randrange(rows)
+    y = random.randrange(column)
+    return x, y
+
 def main():
-    global width, rows, s, snack
+    global width, rows, players, player1, player2, player3, player4, snack
     width = 500
     rows = 20
+    players = []
+
+    for i in range(4):
+        player = snake(createRandomColor(), createRandomPosition(rows, rows))
+        players.append(player)
+        pass
+
     win = pygame.display.set_mode((width, width))
-    s = snake((255, 0, 0), (10, 10))
-    snack = cube(randomSnack(rows, s), color=(0, 255, 0))
+
     flag = True
 
     clock = pygame.time.Clock()
@@ -188,18 +207,18 @@ def main():
     while flag:
         pygame.time.delay(50)
         clock.tick(10)
-        s.move()
-        if s.body[0].pos == snack.pos:
-            s.addCube()
-            snack = cube(randomSnack(rows, s), color=(0, 255, 0))
+        #player1.move()
+        #if player1.body[0].pos == snack.pos:
+         #   player1.addCube()
+          #  snack = cube(randomSnack(rows, player1), color=(0, 255, 0))
 
-        for x in range(len(s.body)):
-            if s.body[x].pos in list(map(lambda z: z.pos, s.body[x + 1:])):
-                print('Score: ', len(s.body))
+        """for x in range(len(player1.body)):
+            if player1.body[x].pos in list(map(lambda z: z.pos, player1.body[x + 1:])):
+                print('Score: ', len(player1.body))
                 message_box('You Lost!', 'Play again...')
-                s.reset((10, 10))
+                player1.reset((10, 10))
                 break
-
+"""
         redrawWindow(win)
 
     pass
