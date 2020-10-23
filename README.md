@@ -13,3 +13,11 @@ __Infos:__ [Umsetzung und Bewertung](https://github.com/InformatiCup/InformatiCu
 __Anmeldeschluss:__ *30.11.2020*
 
 __Abgabe:__ *17.01.2021*
+
+
+## Gruppen Mitglieder
+__Denis Groeneveld__
+
+__Keno Oelrichs Garcia__
+
+__Max Stargard__
