@@ -1,40 +1,35 @@
 import pygame
 
+
 class Playfield(object):
 
-
-    def __init__(self, pixelWidth, pixelHeight, rows, columns):
+    def __init__(self, pixelWidth: int, pixelHeight: int, rows: int, columns: int):
+        """Initilizes the Playfield while creating a pygame display"""
         self.pixelWidth = pixelWidth
         self.pixelHeight = pixelHeight
         self.rows = rows
         self.columns = columns
+        self.surface = pygame.display.set_mode((self.pixelWidth, self.pixelHeight))
 
-
-    def createGameWindow(self):
-        """creates the internal pygame display"""
-        pygame.display.set_mode((self.pixelWidth, self.pixelHeight))
-
-
-    def drawGrid(self, surface):
+    def drawGrid(self):
         """Draws the lines representing the playfield"""
-        spaceBetweenVerticalLines = self.pixelWidth // self.rows
-        spaceBetweenHorizontaleLines = self.pixelHeight // self.columns
+        spaceBetweenVerticalLines = self.pixelWidth // self.columns
+        spaceBetweenHorizontalLines = self.pixelHeight // self.rows
 
-        #Draw horizontale lines
+        # Draw horizontal lines
         x = 0
-        for i in range(self.columns):
-            x = x + spaceBetweenHorizontaleLines
-            pygame.draw.line(surface, (255, 255, 255), (x, 0), (x, self.pixelWidth))
-
-        #Draws vertical lines
-        y = 0
         for i in range(self.rows):
-            y = y + spaceBetweenVerticalLines
-            pygame.draw.line(surface, (255, 255, 255), (y, 0), (y, self.pixelHeight))
-        pass
+            x = x + spaceBetweenHorizontalLines
+            pygame.draw.line(self.surface, (255, 255, 255), (0, x), (self.pixelWidth, x))
 
-    def updateWindow(self, surface):
+        # Draws vertical lines
+        y = 0
+        for i in range(self.columns):
+            y = y + spaceBetweenVerticalLines
+            pygame.draw.line(self.surface, (255, 255, 255), (y, 0), (y, self.pixelHeight))
+
+    def updateWindow(self):
         """updates the playfield accordingly to (i dont know yet...)"""
-        self.drawGrid(surface)-
+        self.surface.fill((0, 0, 0))
+        self.drawGrid()
         pygame.display.update()
-        pass

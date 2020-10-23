@@ -4,33 +4,8 @@ import random
 import pygame
 import tkinter as tk
 from tkinter import messagebox
-import gameGraphic.playerGraphic.snake as snake
-
-
-def redrawWindow(surface):
-    global rows, width, players, snack
-    surface.fill((0, 0, 0))
-    for player in players:
-        player.draw(surface)
-        pass
-    #player1.draw(surface)
-    #snack.draw(surface)
-    drawGrid(width, rows, surface)
-    pygame.display.update()
-
-
-def randomSnack(rows, item):
-    positions = item.body
-
-    while True:
-        x = random.randrange(rows)
-        y = random.randrange(rows)
-        if len(list(filter(lambda z: z.pos == (x, y), positions))) > 0:
-            continue
-        else:
-            break
-
-    return (x, y)
+from win32api import GetSystemMetrics
+from gameGraphic.playgroundGraphic import playgroundGraphic
 
 
 def message_box(subject, content):
@@ -55,38 +30,42 @@ def createRandomPosition(rows: int, column: int):
     return x, y
 
 def main():
-    global width, rows, players, player1, player2, player3, player4, snack
-    width = 500
-    rows = 20
-    players = []
+    global pixelWidth, pixelHeight, rows, columns
 
-    for i in range(4):
-        player = snake.snake(createRandomColor(), createRandomPosition(rows, rows))
-        players.append(player)
-        pass
+    pixelWidth = GetSystemMetrics(0)//2
+    pixelHeight = GetSystemMetrics(1)//2
 
-    win = pygame.display.set_mode((width, width))
+    rows = 20#int(input("Anzahl der Zeilen eingeben: "))
+    columns = 30#int(input("Anzahl der Spalten eingeben: "))
 
-    flag = True
+    playfield = playgroundGraphic.Playfield(pixelWidth, pixelHeight, rows, columns)
 
-    clock = pygame.time.Clock()
+    playfield.updateWindow()
 
-    while flag:
-        pygame.time.delay(50)
-        clock.tick(10)
-        #player1.move()
-        #if player1.body[0].pos == snack.pos:
-         #   player1.addCube()
-          #  snack = cube(randomSnack(rows, player1), color=(0, 255, 0))
+    pygame.time.delay(10000)
 
-        """for x in range(len(player1.body)):
-            if player1.body[x].pos in list(map(lambda z: z.pos, player1.body[x + 1:])):
-                print('Score: ', len(player1.body))
-                message_box('You Lost!', 'Play again...')
-                player1.reset((10, 10))
-                break
-"""
-        redrawWindow(win)
+
+
+
+   # flag = True
+#
+ #   clock = pygame.time.Clock()
+#
+ #   while flag:
+  #      pygame.time.delay(50)
+   #     clock.tick(10)
+    #    #player1.move()
+     #   #if player1.body[0].pos == snack.pos:
+      #   #   player1.addCube()
+       #   #  snack = cube(randomSnack(rows, player1), color=(0, 255, 0))
+#
+ #       for x in range(len(player1.body)):
+  #          if player1.body[x].pos in list(map(lambda z: z.pos, player1.body[x + 1:])):
+   #             print('Score: ', len(player1.body))
+    #            message_box('You Lost!', 'Play again...')
+     #           player1.reset((10, 10))
+      #          break
+
 
     pass
 

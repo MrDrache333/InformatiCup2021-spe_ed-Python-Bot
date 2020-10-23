@@ -11,7 +11,7 @@ class cube(object):
         self.dirny = 0
 
     def move(self, dirnx, dirny):
-        """Moves the Cube 'Self' accordingly to dirnx and dirny"""
+        """Moves the Cube accordingly to dirnx and dirny"""
         self.dirnx = dirnx
         self.dirny = dirny
         self.pos = (self.pos[0] + self.dirnx, self.pos[1] + self.dirny)
