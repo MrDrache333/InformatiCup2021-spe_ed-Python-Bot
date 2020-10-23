@@ -1,4 +1,5 @@
-import json
+from game.player import player
+
 
 class JsonInterpreter(object):
 
@@ -9,4 +10,18 @@ class JsonInterpreter(object):
         pass
 
 
+def getPlayersFromLoadedJson(file):
+    players = []
 
+    for p in file[0]['players']:
+        players.append(player(p,  # player ID
+                              file[0]['players'][p]['x'],  # player X coordinate
+                              file[0]['players'][p]['y'],  # player Y coordinate
+                              file[0]['players'][p]['direction'],  # player moving direction
+                              file[0]['players'][p]['active'],  # whether player is alive
+                              file[0]['players'][p]['speed']))  # speed of player
+    return players
+
+
+def getCellsFromLoadedJson(file):
+    return file[0]['cells']
