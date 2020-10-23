@@ -4,9 +4,11 @@ class cube(object):
     rows = 20
     pixelWidth = 500
 
-    def __init__(self, start, color : (int, int, int), dirnx=1, dirny=0):
+    def __init__(self, start, color : (int, int, int), rows, columns, dirnx=1, dirny=0):
         self.pos = start
         self.color = color
+        self.rows = rows
+        self.columns = columns
         self.dirnx = 1
         self.dirny = 0
 

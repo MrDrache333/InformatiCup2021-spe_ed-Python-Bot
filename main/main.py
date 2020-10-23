@@ -35,14 +35,15 @@ def main():
     pixelWidth = GetSystemMetrics(0)//2
     pixelHeight = GetSystemMetrics(1)//2
 
-    rows = 20#int(input("Anzahl der Zeilen eingeben: "))
-    columns = 30#int(input("Anzahl der Spalten eingeben: "))
+    rows = 10#int(input("Anzahl der Zeilen eingeben: "))
+    columns = 14#int(input("Anzahl der Spalten eingeben: "))
 
     playfield = playgroundGraphic.Playfield(pixelWidth, pixelHeight, rows, columns)
 
     playfield.updateWindow()
 
-    pygame.time.delay(10000)
+    pygame.time.delay(5000)
+
 
 
 
