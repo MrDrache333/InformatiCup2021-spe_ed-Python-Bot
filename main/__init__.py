@@ -3,7 +3,7 @@ import json
 
 import websockets as websockets
 
-from game.playground import Playground
+from main.game.playground import Playground
 from main.networking.json import jsonInterpreter
 
 
@@ -12,7 +12,6 @@ class Game:
     def __init__(self, url, key):
         self.URL = url
         self.KEY = key
-        self.playGround = Playground()
 
     async def play(self):
         async with websockets.connect(f"{self.URL}?key={self.KEY}") as websocket:
@@ -24,10 +23,9 @@ class Game:
 
             players = jsonInterpreter.getPlayersFromLoadedJson(state)
 
-
             print(jsonInterpreter.getCellsFromLoadedJson(state))
-        # TODO Draw
-            #self.playGround.draw(state["cells"])
+            # TODO Draw
+            # self.playGround.draw(state["cells"])
 
             # If not own Bot break
             own_player = state["players"][str(state["you"])]
