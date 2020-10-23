@@ -4,6 +4,7 @@ import json
 import websockets as websockets
 
 from game.playground import Playground
+from main.networking.json import jsonInterpreter
 
 
 class Game:
@@ -21,8 +22,12 @@ class Game:
             state = json.loads(state_json)
             print("<", state)
 
-            # TODO Draw
-            self.playGround.draw(state["cells"])
+            players = jsonInterpreter.getPlayersFromLoadedJson(state)
+
+
+            print(jsonInterpreter.getCellsFromLoadedJson(state))
+        # TODO Draw
+            #self.playGround.draw(state["cells"])
 
             # If not own Bot break
             own_player = state["players"][str(state["you"])]
@@ -37,6 +42,6 @@ class Game:
             await websocket.send(action_json)
 
 
-game = Game()
+game = Game("wss://msoll.de/spe_ed", "72ILGT3YVIW5DV2UR3L5E6VCMFB6TJPR6LAX2ZLGMYGRQSVTW2C4G4E2")
 
 asyncio.get_event_loop().run_until_complete(game.play())

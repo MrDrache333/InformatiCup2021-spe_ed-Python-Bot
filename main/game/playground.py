@@ -1,4 +1,4 @@
-from game.players import player
+from game.player import player
 
 
 class Playground(object):
