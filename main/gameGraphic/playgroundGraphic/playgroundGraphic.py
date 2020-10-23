@@ -18,15 +18,15 @@ class Playfield(object):
 
         # Draw horizontal lines
         x = 0
-        for i in range(self.rows):
-            x = x + spaceBetweenHorizontalLines
+        for i in range(self.rows+1):
             pygame.draw.line(self.surface, (255, 255, 255), (0, x), (self.pixelWidth, x))
+            x = x + spaceBetweenHorizontalLines
 
         # Draws vertical lines
         y = 0
-        for i in range(self.columns):
-            y = y + spaceBetweenVerticalLines
+        for i in range(self.columns+1):
             pygame.draw.line(self.surface, (255, 255, 255), (y, 0), (y, self.pixelHeight))
+            y = y + spaceBetweenVerticalLines
 
     def updateWindow(self):
         """updates the playfield accordingly to (i dont know yet...)"""
