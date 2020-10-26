@@ -3,8 +3,9 @@ import json
 
 import websockets as websockets
 
-from main.game.playground import Playground
-from main.networking.json import jsonInterpreter
+from game.Playground import Playground
+from game.graphic.PlaygroundPresenter import PlaygroundPresenter
+from networking.json.JsonInterpreter import JsonInterpreter
 
 
 class Game:
@@ -14,6 +15,10 @@ class Game:
         self.KEY = key
 
     async def play(self):
+        interpreter = JsonInterpreter()
+        playground = Playground()
+        playgroundPresenter = PlaygroundPresenter()
+
         async with websockets.connect(f"{self.URL}?key={self.KEY}") as websocket:
             print("Waiting for initial state...", flush=True)
         while True:
@@ -21,9 +26,15 @@ class Game:
             state = json.loads(state_json)
             print("<", state)
 
-            players = jsonInterpreter.getPlayersFromLoadedJson(state)
+            #update playground
+            playground.coordinateSystem = interpreter.getCellsFromLoadedJson(state)
+            playground.players = interpreter.getPlayersFromLoadedJson(state)
 
-            print(jsonInterpreter.getCellsFromLoadedJson(state))
+            #update playgroundPresenter and shown display
+            playgroundPresenter.playground = playground
+
+            #print(interpreter.getCellsFromLoadedJson(state))
+
             # TODO Draw
             # self.playGround.draw(state["cells"])
 
