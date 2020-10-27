@@ -15,9 +15,6 @@ class Game:
         self.KEY = key
 
     async def play(self):
-        interpreter = JsonInterpreter()
-        playground = Playground()
-        playgroundPresenter = PlaygroundPresenter()
 
         async with websockets.connect(f"{self.URL}?key={self.KEY}") as websocket:
             print("Waiting for initial state...", flush=True)
@@ -26,17 +23,15 @@ class Game:
             state = json.loads(state_json)
             print("<", state)
 
-            #update playground
-            playground.coordinateSystem = interpreter.getCellsFromLoadedJson(state)
-            playground.players = interpreter.getPlayersFromLoadedJson(state)
 
-            #update playgroundPresenter and shown display
-            playgroundPresenter.playground = playground
+            interpreter = JsonInterpreter()
+            playground = Playground(interpreter.getCellsFromLoadedJson(state), interpreter.getPlayersFromLoadedJson(state))
+            playgroundPresenter = PlaygroundPresenter(playground)
+
 
             #print(interpreter.getCellsFromLoadedJson(state))
 
-            # TODO Draw
-            # self.playGround.draw(state["cells"])
+
 
             # If not own Bot break
             own_player = state["players"][str(state["you"])]
