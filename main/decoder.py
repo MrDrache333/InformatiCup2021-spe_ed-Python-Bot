@@ -1,5 +1,11 @@
 import json
 
+import pygame
+
+from game.Playground import Playground
+from game.graphic.PlaygroundPresenter import PlaygroundPresenter
+from networking.json.JsonInterpreter import JsonInterpreter
+
 with open('spe_ed-1603447830516.json') as f:
     data = json.load(f)
 
@@ -18,3 +24,15 @@ for p in data[0]['players']:
 
 for c in data[0]['cells']:
     print(c)
+
+
+"""
+interpreter = JsonInterpreter()
+playground = Playground(interpreter.getCellsFromLoadedJson(data), interpreter.getPlayersFromLoadedJson(data))
+playgroundPresenter = PlaygroundPresenter(playground)
+clock = pygame.time.Clock()
+while True :
+    pygame.time.delay(50)
+    clock.tick(10)
+    playgroundPresenter.updateGameField()
+"""

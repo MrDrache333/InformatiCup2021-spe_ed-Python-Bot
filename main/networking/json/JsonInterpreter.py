@@ -3,13 +3,13 @@ from game.player.Player import Player
 
 class JsonInterpreter(object):
 
-    def __init__(self, file):
-        self.file = file
+    def __init__(self):
+        pass
 
-    def getCellsFromLoadedJson(file):
+    def getCellsFromLoadedJson(self, file):
         return file[0]['cells']
 
-    def getPlayersFromLoadedJson(file):
+    def getPlayersFromLoadedJson(self, file):
         players = []
 
         for p in file[0]['players']:
