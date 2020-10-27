@@ -20,8 +20,8 @@ class PlaygroundPresenter(object):
 
     def __init__(self, playground: Playground):
         self.playground = playground
-        self.displayWidth = tkinter.Tk().winfo_screenwidth() // 2
         self.displayHeight = tkinter.Tk().winfo_screenheight() // 2
+        self.displayWidth = tkinter.Tk().winfo_screenwidth() // 2
         self.gameWindow = pygame.display.set_mode((self.displayWidth, self.displayHeight))
 
         self.generateGameField()
@@ -30,7 +30,10 @@ class PlaygroundPresenter(object):
         self.updateGameField()
         pygame.display.flip()
 
+        #setting title and favicon
         pygame.display.set_caption("Spe_ed")
+
+        pygame.display.set_icon(pygame.image.load("Lightning_McQueen.png"))
 
         running = True
         while running:
