@@ -27,6 +27,22 @@ class PlaygroundPresenter(object):
         self.generateGameField()
 
     def generateGameField(self):
+        self.updateGameField()
+        pygame.display.flip()
+
+        pygame.display.set_caption("Spe_ed")
+
+        running = True
+        while running:
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    running = False
+                    pygame.quit()
+
+
+
+
+    def updateGameField(self):
         """Draws rectangles in different colors to different players"""
         #fill screen with a white blankspace
 
@@ -58,11 +74,6 @@ class PlaygroundPresenter(object):
             currentYOfCube += heightOfCube
 
         pygame.display.update()
-
-
-    def updateGameField(self):
-        self.gameWindow.fill((0, 0, 0))
-        self.generateGameField()
 
 
 class Rectangle(object):
