@@ -26,7 +26,7 @@ for c in data[0]['cells']:
     print(c)
 
 
-"""
+
 interpreter = JsonInterpreter()
 playground = Playground(interpreter.getCellsFromLoadedJson(data), interpreter.getPlayersFromLoadedJson(data))
 playgroundPresenter = PlaygroundPresenter(playground)
@@ -35,4 +35,3 @@ while True :
     pygame.time.delay(50)
     clock.tick(10)
     playgroundPresenter.updateGameField()
-"""
