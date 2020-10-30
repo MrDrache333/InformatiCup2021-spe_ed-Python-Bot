@@ -3,6 +3,11 @@ import logging
 from game.player.DirectionOfLooking import DirectionOfLooking
 
 
+def killPlayer(player):
+    print("Player: " + str(player.id) + " died at X: " + str(player.x) + " and Y: " + str(player.y))
+    player.die()
+
+
 class Playground(object):
 
     def __init__(self, coordinateSystem, players):
@@ -22,13 +27,13 @@ class Playground(object):
             # create walls where the player moved
             # move on to the next player
 
-            if (player.active):
+            if player.active:
                 xCoordinateOfPlayer = player.x
                 yCoordinateOfPlayer = player.y
                 speedOfPlayer = player.speed
                 directionOfPlayer = player.directionOfLooking
 
-                #draws a line for each speed point
+                # draws a line for each speed point
                 for speed in range(speedOfPlayer):
                     if directionOfPlayer == DirectionOfLooking.LEFT:
                         xCoordinateOfPlayer -= 1
@@ -39,14 +44,14 @@ class Playground(object):
                     elif directionOfPlayer == DirectionOfLooking.DOWN:
                         yCoordinateOfPlayer += 1
 
-                    if turn == 6 and speedOfPlayer >= 3 and speed+1 != speedOfPlayer and speed+1 >= speedOfPlayer -2:
+                    if turn == 6 and 3 <= speedOfPlayer != speed + 1 and speed + 1 >= speedOfPlayer - 2:
                         logging.debug("Ima skip dat field")
                     else:
                         # determine whether player would collide with a wall
                         # determine whether coordinates are within coordinatesystem
                         if (0 <= xCoordinateOfPlayer < len(self.coordinateSystem[0]) and
                                 0 <= yCoordinateOfPlayer < len(self.coordinateSystem)):
-                            if (self.coordinateSystem[yCoordinateOfPlayer][xCoordinateOfPlayer] == 0):
+                            if self.coordinateSystem[yCoordinateOfPlayer][xCoordinateOfPlayer] == 0:
                                 # Player did not collide with wall
 
                                 # update player coords
@@ -57,12 +62,9 @@ class Playground(object):
                                 self.coordinateSystem[yCoordinateOfPlayer][xCoordinateOfPlayer] = int(player.id)
                                 # TODO draw walls where the player moved
                             else:
-                                self.killPlayer(player)
+                                killPlayer(player)
                                 break
                         else:
-                            self.killPlayer(player)
+                            killPlayer(player)
                             break
 
-    def killPlayer(self, player):
-        print("Player: " + str(player.id) + " died at X: " + str(player.x) + " and Y: " + str(player.y))
-        player.die()

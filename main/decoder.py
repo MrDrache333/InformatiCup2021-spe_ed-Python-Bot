@@ -4,7 +4,7 @@ import pygame
 
 from game.Playground import Playground
 from game.graphic.PlaygroundPresenter import PlaygroundPresenter
-from networking.json.JsonInterpreter import JsonInterpreter
+from networking.JsonInterpreter import JsonInterpreter
 
 with open('spe_ed-1603447830516.json') as f:
     data = json.load(f)
@@ -30,9 +30,15 @@ playground = Playground(interpreter.getCellsFromLoadedJson(data), interpreter.ge
 playgroundPresenter = PlaygroundPresenter(playground)
 clock = pygame.time.Clock()
 running = True
+turn = 1
 while running:
-    clock.tick(20)
-    playground.movePlayer()
+    #pygame.time.delay(500//60)
+    clock.tick(1000//800)
+    playground.movePlayer(turn)
+    if turn == 6:
+        turn = 1
+    else:
+        turn +=1
     playgroundPresenter.playground = playground
     playgroundPresenter.updateGameField()
     for event in pygame.event.get():
