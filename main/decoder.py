@@ -31,8 +31,7 @@ playgroundPresenter = PlaygroundPresenter(playground)
 clock = pygame.time.Clock()
 running = True
 while running:
-    #pygame.time.delay(500//60)
-    clock.tick(1000//60)
+    clock.tick(20)
     playground.movePlayer()
     playgroundPresenter.playground = playground
     playgroundPresenter.updateGameField()

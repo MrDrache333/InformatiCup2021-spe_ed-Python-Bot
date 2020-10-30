@@ -55,9 +55,6 @@ class PlaygroundPresenter(object):
 
             for i2 in range(len(self.playground.coordinateSystem[i])):
 
-                isCubeFilled = "placeholder"
-
-                # determine whether the Cube will be filled or not
                 if self.playground.coordinateSystem[i][i2] != 0:
                     # draw cube with correct color
                     pygame.draw.rect(self.gameWindow,
