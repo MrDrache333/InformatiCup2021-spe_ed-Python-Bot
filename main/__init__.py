@@ -3,7 +3,7 @@ import json
 
 import websockets as websockets
 
-from game.Playground import Playground
+import game.Playground
 from game.graphic.PlaygroundPresenter import PlaygroundPresenter
 from networking.json.JsonInterpreter import JsonInterpreter
 
