@@ -22,30 +22,38 @@ class Playground(object):
 
             if (player.active):
                 xCoordinateOfPlayer = player.x
-                yCoodinateOfPlayer = player.y
+                yCoordinateOfPlayer = player.y
                 speedOfPlayer = player.speed
                 directionOfPlayer = player.directionOfLooking
 
                 if directionOfPlayer == DirectionOfLooking.LEFT:
                     xCoordinateOfPlayer -= speedOfPlayer
                 elif directionOfPlayer == DirectionOfLooking.UP:
-                    yCoodinateOfPlayer -= speedOfPlayer
+                    yCoordinateOfPlayer -= speedOfPlayer
                 elif directionOfPlayer == DirectionOfLooking.RIGHT:
                     xCoordinateOfPlayer += speedOfPlayer
                 elif directionOfPlayer == DirectionOfLooking.DOWN:
-                    yCoodinateOfPlayer += speedOfPlayer
+                    yCoordinateOfPlayer += speedOfPlayer
 
                 # determine whether player would collide with a wall
                 # determine whether coordinates are within coordinatesystem
-                if (xCoordinateOfPlayer <= len(self.coordinateSystem[0]) and yCoodinateOfPlayer <= len(
-                        self.coordinateSystem)):
-                    if self.coordinateSystem[xCoordinateOfPlayer][yCoodinateOfPlayer] == 0:
+                if (0 <= xCoordinateOfPlayer < len(self.coordinateSystem[0]) and
+                        0 <= yCoordinateOfPlayer < len(self.coordinateSystem)):
+                    if (self.coordinateSystem[yCoordinateOfPlayer][xCoordinateOfPlayer] == 0):
                         # Player did not collide with wall
 
                         # update player coords
                         player.x = xCoordinateOfPlayer
-                        player.y = yCoodinateOfPlayer
+                        player.y = yCoordinateOfPlayer
 
                         # update coordinate system
-                        self.coordinateSystem[xCoordinateOfPlayer][yCoodinateOfPlayer] = player.id
+                        self.coordinateSystem[yCoordinateOfPlayer][xCoordinateOfPlayer] = int(player.id)
                         # TODO draw walls where the player moved
+                    else:
+                        self.killPlayer(player)
+                else:
+                    self.killPlayer(player)
+
+    def killPlayer(self, player):
+        print("Player: " + str(player.id) + " died at X: " + str(player.x) + " and Y: " + str(player.y))
+        player.die()
