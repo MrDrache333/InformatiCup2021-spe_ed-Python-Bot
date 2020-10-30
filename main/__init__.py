@@ -2,10 +2,10 @@ import asyncio
 import json
 
 import websockets as websockets
+from JsonInterpreter import JsonInterpreter
 
-import game.Playground
+from game.Playground import Playground
 from game.graphic.PlaygroundPresenter import PlaygroundPresenter
-from networking.json.JsonInterpreter import JsonInterpreter
 
 
 class Game:
@@ -18,12 +18,13 @@ class Game:
 
         async with websockets.connect(f"{self.URL}?key={self.KEY}") as websocket:
             print("Waiting for initial state...", flush=True)
+        interpreter = JsonInterpreter()
+
         while True:
             state_json = await websocket.recv()
             state = json.loads(state_json)
             print("<", state)
 
-            interpreter = JsonInterpreter()
             playground = Playground(interpreter.getCellsFromLoadedJson(state),
                                     interpreter.getPlayersFromLoadedJson(state))
             playgroundPresenter = PlaygroundPresenter(playground)
