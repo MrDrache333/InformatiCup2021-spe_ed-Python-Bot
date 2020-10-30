@@ -23,15 +23,12 @@ class Game:
             state = json.loads(state_json)
             print("<", state)
 
-
             interpreter = JsonInterpreter()
-            playground = Playground(interpreter.getCellsFromLoadedJson(state), interpreter.getPlayersFromLoadedJson(state))
+            playground = Playground(interpreter.getCellsFromLoadedJson(state),
+                                    interpreter.getPlayersFromLoadedJson(state))
             playgroundPresenter = PlaygroundPresenter(playground)
 
-
-            #print(interpreter.getCellsFromLoadedJson(state))
-
-
+            # print(interpreter.getCellsFromLoadedJson(state))
 
             # If not own Bot break
             own_player = state["players"][str(state["you"])]

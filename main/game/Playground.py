@@ -1,5 +1,4 @@
 from game.player.DirectionOfLooking import DirectionOfLooking
-from game.player.Player import Player
 
 
 class Playground(object):
@@ -27,20 +26,20 @@ class Playground(object):
                 speedOfPlayer = player.speed
                 directionOfPlayer = player.directionOfLooking
 
-                if (directionOfPlayer == DirectionOfLooking.LEFT):
+                if directionOfPlayer == DirectionOfLooking.LEFT:
                     xCoordinateOfPlayer -= speedOfPlayer
-                elif (directionOfPlayer == DirectionOfLooking.UP):
+                elif directionOfPlayer == DirectionOfLooking.UP:
                     yCoodinateOfPlayer -= speedOfPlayer
-                elif (directionOfPlayer == DirectionOfLooking.RIGHT):
+                elif directionOfPlayer == DirectionOfLooking.RIGHT:
                     xCoordinateOfPlayer += speedOfPlayer
-                elif (directionOfPlayer == DirectionOfLooking.DOWN):
+                elif directionOfPlayer == DirectionOfLooking.DOWN:
                     yCoodinateOfPlayer += speedOfPlayer
 
                 # determine whether player would collide with a wall
                 # determine whether coordinates are within coordinatesystem
                 if (xCoordinateOfPlayer <= len(self.coordinateSystem[0]) and yCoodinateOfPlayer <= len(
                         self.coordinateSystem)):
-                    if (self.coordinateSystem[xCoordinateOfPlayer][yCoodinateOfPlayer] == 0):
+                    if self.coordinateSystem[xCoordinateOfPlayer][yCoodinateOfPlayer] == 0:
                         # Player did not collide with wall
 
                         # update player coords
