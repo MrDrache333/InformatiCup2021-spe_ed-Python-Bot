@@ -20,7 +20,3 @@ class JsonInterpreter(object):
                                   file[0]['players'][p]['active'],  # whether player is alive
                                   file[0]['players'][p]['speed']))  # speed of player
         return players
-
-
-
-

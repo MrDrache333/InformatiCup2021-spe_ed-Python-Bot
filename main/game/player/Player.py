@@ -1,5 +1,8 @@
+import logging
+import sys
+
 from game.player.DirectionOfLooking import DirectionOfLooking
-import logging, sys
+
 logging.basicConfig(stream=sys.stderr, level=logging.DEBUG)
 
 
@@ -13,27 +16,28 @@ class Player(object):
         self.speed = speed
 
     def turnDirectionOfLooking(self, directionOfLooking: DirectionOfLooking):
-        if(directionOfLooking%2 == self.directionOfLooking%2) :
-            logging.debug('Cant change direction, reason: Input direction is in opposite or same direction as previous one ')
-        else :
+        if directionOfLooking.value % 2 == self.directionOfLooking.value % 2:
+            logging.debug(
+                'Cant change direction, reason: Input direction is in opposite or same direction as previous one ')
+        else:
             self.directionOfLooking = directionOfLooking
 
     def speedUp(self):
-        if(self.speed == 10) :
+        if self.speed == 10:
             logging.debug('Cant accelerate, reason: I Am Speed! (Speed = 10)')
-        else :
+        else:
             self.speed += 1
 
     def speedDown(self):
-        if(self.speed == 1) :
+        if self.speed == 1:
             logging.debug('Cant decelerate, reason: Don\'t stop me now! (Speed =1 )')
-        else :
+        else:
             self.speed -= 1
 
     def updatePlayer(self, id: int, x: int, y: int, directionOfLooking: DirectionOfLooking, active: bool, speed: int):
-        if(id != self.id) :
+        if id != self.id:
             logging.debug('No matching ID of player')
-        else :
+        else:
             self.x = x
             self.y = y
             self.directionOfLooking = directionOfLooking
