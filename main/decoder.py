@@ -29,9 +29,14 @@ interpreter = JsonInterpreter()
 playground = Playground(interpreter.getCellsFromLoadedJson(data), interpreter.getPlayersFromLoadedJson(data))
 playgroundPresenter = PlaygroundPresenter(playground)
 clock = pygame.time.Clock()
-while True:
-    pygame.time.delay(50)
-    ## clock.tick(10)
+running = True
+while running:
+    #pygame.time.delay(500//60)
+    clock.tick(1000//60)
     playground.movePlayer()
     playgroundPresenter.playground = playground
     playgroundPresenter.updateGameField()
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+            running = False
+            pygame.quit()

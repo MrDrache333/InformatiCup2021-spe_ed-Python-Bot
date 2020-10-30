@@ -22,26 +22,20 @@ class PlaygroundPresenter(object):
     def __init__(self, playground: Playground):
         self.playground = playground
         self.displayHeight = tkinter.Tk().winfo_screenheight() // 2
-        self.displayWidth = tkinter.Tk().winfo_screenwidth() // 2
+        self.displayWidth = tkinter.Tk().winfo_screenheight() // 2#tkinter.Tk().winfo_screenwidth() // 2
         self.gameWindow = pygame.display.set_mode((self.displayWidth, self.displayHeight))
 
         self.generateGameField()
 
     def generateGameField(self):
         self.updateGameField()
-        pygame.display.flip()
+        #pygame.display.flip()
 
         # setting title and favicon
         pygame.display.set_caption("Spe_ed")
 
         pygame.display.set_icon(pygame.image.load("Lightning_McQueen.png"))
 
-        running = True
-        while running:
-            for event in pygame.event.get():
-                if event.type == pygame.QUIT:
-                    running = False
-                    pygame.quit()
 
     def updateGameField(self):
         """Draws rectangles in different colors to different players"""
@@ -66,7 +60,9 @@ class PlaygroundPresenter(object):
                 # determine whether the Cube will be filled or not
                 if self.playground.coordinateSystem[i][i2] != 0:
                     # draw cube with correct color
-                    pygame.draw.rect(self.gameWindow, playerColors[self.playground.coordinateSystem[i][i2]],
+                    pygame.draw.rect(self.gameWindow,
+                                     playerColors[
+                                         self.playground.coordinateSystem[i][i2]],
                                      (currentXOfCube, currentYOfCube, widthOfCube, heightOfCube))
 
                 currentXOfCube += widthOfCube
@@ -74,4 +70,4 @@ class PlaygroundPresenter(object):
             currentXOfCube = 0
             currentYOfCube += heightOfCube
 
-        pygame.display.update()
+        pygame.display.flip()

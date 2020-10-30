@@ -43,3 +43,7 @@ class Player(object):
             self.directionOfLooking = directionOfLooking
             self.active = active
             self.speed = speed
+
+    def die(self):
+        self.speed = 0
+        self.active = False
