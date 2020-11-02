@@ -4,6 +4,7 @@ import pygame
 
 from game.Playground import Playground
 from game.graphic.PlaygroundPresenter import PlaygroundPresenter
+from game.player.DirectionOfLooking import DirectionOfLooking
 from networking.JsonInterpreter import JsonInterpreter
 
 with open('spe_ed-1603447830516.json') as f:
@@ -31,14 +32,40 @@ playgroundPresenter = PlaygroundPresenter(playground)
 clock = pygame.time.Clock()
 running = True
 turn = 1
+
+# Den eigenen Spieler heraussuchen
+ownPlayer = None
+for player in playground.players:
+    if player.id == '1':
+        ownPlayer = player
+        break
+if ownPlayer is None:
+    exit("Invalid Players")
+
 while running:
-    #pygame.time.delay(500//60)
-    clock.tick(1000//800)
+    # pygame.time.delay(500//60)
+    clock.tick(1000 // 800)
+
+    # Benutzereingabe prüfen
+    keys = pygame.key.get_pressed()
+    if keys[pygame.K_UP]:
+        ownPlayer.turnDirectionOfLooking(DirectionOfLooking.UP)
+    elif keys[pygame.K_DOWN]:
+        ownPlayer.turnDirectionOfLooking(DirectionOfLooking.DOWN)
+    elif keys[pygame.K_LEFT]:
+        ownPlayer.turnDirectionOfLooking(DirectionOfLooking.LEFT)
+    elif keys[pygame.K_RIGHT]:
+        ownPlayer.turnDirectionOfLooking(DirectionOfLooking.RIGHT)
+    elif keys[pygame.K_RSHIFT]:
+        ownPlayer.speedUp()
+    elif keys[pygame.K_RCTRL]:
+        ownPlayer.speedDown()
+
     playground.movePlayer(turn)
     if turn == 6:
         turn = 1
     else:
-        turn +=1
+        turn += 1
     playgroundPresenter.playground = playground
     playgroundPresenter.updateGameField()
     for event in pygame.event.get():
