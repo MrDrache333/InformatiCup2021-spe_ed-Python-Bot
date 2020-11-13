@@ -15,8 +15,8 @@ class Playground(object):
         self.players = players
 
     def lookInInStraightLine(self, player, direction: DirectionOfLooking, howFarToLook) -> int:
-        """Returns how far away a wall is within a given range the range :param howFarToLook in the direction defined by :param
-            direction. Returns -1 if there is no wall within the given Range"""
+        """Returns how far away a wall is within a given range the range :param howFarToLook in the direction defined
+        by :param direction. Returns -1 if there is no wall within the given Range """
         nextX, nextY = direction.value
         currentX, currentY = player.x, player.y
 
@@ -24,12 +24,13 @@ class Playground(object):
             currentX += nextX
             currentY += nextY
 
-            #out of range
-            if(currentX < 0 or currentY < 0 or currentX >= len(self.coordinateSystem[0]) or currentY >= len(self.coordinateSystem)): #46 x 75
-                return i+1
+            # out of range
+            if (currentX < 0 or currentY < 0 or currentX >= len(self.coordinateSystem[0]) or currentY >= len(
+                    self.coordinateSystem)):  # 46 x 75
+                return i + 1
             else:
-                if(self.coordinateSystem[currentY][currentX] != 0) :
-                    return i+1
+                if self.coordinateSystem[currentY][currentX] != 0:
+                    return i + 1
         return -1
 
     def countBlocksInStraightLine(self, player, direction: DirectionOfLooking) -> int:
@@ -43,17 +44,16 @@ class Playground(object):
             currentY += nextY
 
             # check if out of range
-            if (currentX < 0 or currentY < 0 or currentX >= len(self.coordinateSystem[0]) or currentY >= len(self.coordinateSystem)):  # 46 x 75
+            if (currentX < 0 or currentY < 0 or currentX >= len(self.coordinateSystem[0]) or currentY >= len(
+                    self.coordinateSystem)):  # 46 x 75
                 blockIsFree = False
             else:
-                if (self.coordinateSystem[currentY][currentX] != 0):
+                if self.coordinateSystem[currentY][currentX] != 0:
                     blockIsFree = False
                 else:
                     blocksFree += 1
         print("[" + str(player.id) + "] Free Blocks towards " + direction.name + ": " + str(blocksFree))
         return blocksFree
-
-
 
     def movePlayer(self, turn):
         for player in self.players:
@@ -100,4 +100,3 @@ class Playground(object):
                         else:
                             killPlayer(player)
                             break
-
