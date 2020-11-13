@@ -2,10 +2,10 @@ import json
 
 import pygame
 
+from JsonInterpreter import JsonInterpreter
 from game.Playground import Playground
 from game.graphic.PlaygroundPresenter import PlaygroundPresenter
 from game.player.DirectionOfLooking import DirectionOfLooking
-from networking.JsonInterpreter import JsonInterpreter
 
 with open('spe_ed-1603447830516.json') as f:
     data = json.load(f)
@@ -28,7 +28,7 @@ for c in data[0]['cells']:
 
 interpreter = JsonInterpreter()
 playground = Playground(interpreter.getCellsFromLoadedJson(data), interpreter.getPlayersFromLoadedJson(data))
-playgroundPresenter = PlaygroundPresenter(playground)
+playgroundPresenter = PlaygroundPresenter(playground, width, height)
 clock = pygame.time.Clock()
 running = True
 turn = 1
@@ -44,7 +44,8 @@ if ownPlayer is None:
 
 while running:
     # pygame.time.delay(500//60)
-    clock.tick(1000 // 800)
+    #clock.tick(1000 // 800)
+    clock.tick(1000 // 200)
 
     # Benutzereingabe prüfen
     keys = pygame.key.get_pressed()
@@ -60,6 +61,9 @@ while running:
         ownPlayer.speedUp()
     elif keys[pygame.K_RCTRL]:
         ownPlayer.speedDown()
+
+    ownPlayer.tryToSurvive(playground)
+
 
     playground.movePlayer(turn)
     if turn == 6:
