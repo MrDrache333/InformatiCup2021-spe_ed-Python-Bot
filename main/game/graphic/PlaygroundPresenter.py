@@ -1,6 +1,7 @@
 import tkinter
 
 import pygame
+from mss import mss
 
 from game.Playground import Playground
 
@@ -9,7 +10,11 @@ class PlaygroundPresenter(object):
     # Defining Constants
     global playerColors
     global blockwidth
-    blockwidth = 10
+    sct = mss()
+    if sct.monitors[1]["width"] >= 2560:
+        blockwidth = 15
+    else:
+        blockwidth = 10
     # Defining PlayerColors
     playerColors = {
         0: (255, 255, 255),  # white / no player
