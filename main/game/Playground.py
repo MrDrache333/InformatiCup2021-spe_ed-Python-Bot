@@ -2,17 +2,25 @@ import logging
 
 from game.player.DirectionOfLooking import DirectionOfLooking
 
-
 def killPlayer(player):
     print("Player: " + str(player.id) + " died at X: " + str(player.x) + " and Y: " + str(player.y))
     player.die()
 
 
 class Playground(object):
-
     def __init__(self, coordinateSystem, players):
         self.coordinateSystem = coordinateSystem
         self.players = players
+        self.turn = 0
+
+    def addTurn(self):
+        if self.turn == 6:
+            self.turn = 1
+        else:
+            self.turn += 1
+
+    def getTurn(self):
+        return self.turn
 
     def lookInInStraightLine(self, player, direction: DirectionOfLooking, howFarToLook) -> int:
         """Returns how far away a wall is within a given range the range :param howFarToLook in the direction defined by :param
@@ -46,16 +54,17 @@ class Playground(object):
             if (currentX < 0 or currentY < 0 or currentX >= len(self.coordinateSystem[0]) or currentY >= len(self.coordinateSystem)):  # 46 x 75
                 blockIsFree = False
             else:
-                if (self.coordinateSystem[currentY][currentX] != 0):
-                    blockIsFree = False
-                else:
+                if self.turn == 6 and player.speed != (blocksFree + 1) and (blocksFree + 1) <= (player.speed - 2):
                     blocksFree += 1
+                else:
+                    if self.coordinateSystem[currentY][currentX] != 0:
+                        blockIsFree = False
+                    else:
+                        blocksFree += 1
         print("[" + str(player.id) + "] Free Blocks towards " + direction.name + ": " + str(blocksFree))
         return blocksFree
 
-
-
-    def movePlayer(self, turn):
+    def movePlayer(self):
         for player in self.players:
             # read speed,direction, position and activity of player
             # determine whether player would colide with a wall
@@ -78,7 +87,7 @@ class Playground(object):
                     yCoordinateOfPlayer += nextY
 
                     #   6. turn & not the last move position (head) &
-                    if turn == 6 and speedOfPlayer != speed + 1 and (speed + 1) <= (speedOfPlayer - 2):
+                    if self.turn == 6 and speedOfPlayer != (speed + 1) and (speed + 1) <= (speedOfPlayer - 2):
                         logging.debug("Ima skip dat field (Speed:" + str(speedOfPlayer) + ")")
                     else:
                         # determine whether player would collide with a wall
@@ -100,4 +109,4 @@ class Playground(object):
                         else:
                             killPlayer(player)
                             break
-
+        self.addTurn()

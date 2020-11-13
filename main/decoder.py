@@ -34,7 +34,6 @@ playground = Playground(interpreter.getCellsFromLoadedJson(data), interpreter.ge
 playgroundPresenter = PlaygroundPresenter(playground, width, height)
 clock = pygame.time.Clock()
 running = True
-turn = 1
 
 # Den eigenen Spieler heraussuchen
 ownPlayer = None
@@ -47,8 +46,8 @@ if ownPlayer is None:
 
 while running:
     # pygame.time.delay(500//60)
-    clock.tick(1000 // 800)
-    #clock.tick(1000 // 200)
+    #clock.tick(1000 // 800)
+    clock.tick(1000 // 400)
 
     # Benutzereingabe prüfen
     keys = pygame.key.get_pressed()
@@ -72,11 +71,7 @@ while running:
         player.tryToSurvive(playground)
     #ownPlayer.tryToSurvive(playground)
 
-    playground.movePlayer(turn)
-    if turn == 6:
-        turn = 1
-    else:
-        turn += 1
+    playground.movePlayer()
     playgroundPresenter.playground = playground
     playgroundPresenter.updateGameField()
     for event in pygame.event.get():

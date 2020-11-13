@@ -52,12 +52,10 @@ class Player(object):
     def tryToSurvive(self, playground):
         if self.active:
 
-            #check if someone tries to block you off
 
-            #Fallback, check if front is empty, if not, try to change dir
-            if(playground.countBlocksInStraightLine(self, self.directionOfLooking) < self.speed):
-                print("[" + self.id + "] Directory im facing is occupied")
-
+            #if(playground.countBlocksInStraightLine(self, self.directionOfLooking) < self.speed):
+                #print("[" + self.id + "] Directory im facing is occupied")
+            if True:
                 freeBlocks = [playground.countBlocksInStraightLine(self, DirectionOfLooking.UP),
                               playground.countBlocksInStraightLine(self, DirectionOfLooking.RIGHT),
                               playground.countBlocksInStraightLine(self, DirectionOfLooking.DOWN),
