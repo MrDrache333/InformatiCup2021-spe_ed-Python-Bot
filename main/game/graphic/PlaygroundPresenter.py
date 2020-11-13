@@ -8,6 +8,8 @@ from game.Playground import Playground
 class PlaygroundPresenter(object):
     # Defining Constants
     global playerColors
+    global blockwidth
+    blockwidth = 10
     # Defining PlayerColors
     playerColors = {
         0: (255, 255, 255),  # white / no player
@@ -21,8 +23,8 @@ class PlaygroundPresenter(object):
 
     def __init__(self, playground: Playground, width, height):
         self.playground = playground
-        self.displayWidth = width * 15
-        self.displayHeight = height * 15
+        self.displayWidth = width * blockwidth
+        self.displayHeight = height * blockwidth
         self.gameWindow = pygame.display.set_mode((self.displayWidth, self.displayHeight))
         self.generateGameField()
 
@@ -33,12 +35,12 @@ class PlaygroundPresenter(object):
 
         x = 0
         y = 0
-        for i in range(int(self.displayWidth/15)):
-            x += 15
+        for i in range(int(self.displayWidth/blockwidth)):
+            x += blockwidth
             pygame.draw.line(self.gameWindow, white, (x, 0), (x, self.displayHeight))
 
-        for l in range(int(self.displayHeight/15)):
-            y += 15
+        for l in range(int(self.displayHeight/blockwidth)):
+            y += blockwidth
             pygame.draw.line(self.gameWindow, white, (0, y), (self.displayWidth, y))
 
         # pygame.display.flip()

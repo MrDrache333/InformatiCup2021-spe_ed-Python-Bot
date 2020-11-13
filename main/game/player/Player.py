@@ -60,6 +60,7 @@ class Player(object):
             print("I try to turn Right")
             self.turnDirectionOfLooking(DirectionOfLooking.RIGHT)
         elif playground.coordinateSystem[yCoordinateOfPlayer+1][xCoordinateOfPlayer] == 0 and self.directionOfLooking != DirectionOfLooking.DOWN and (0 <= xCoordinateOfPlayer < len(playground.coordinateSystem[0]) and 0 <= yCoordinateOfPlayer+1 < len(playground.coordinateSystem)):
+            #List out of bound
             print("I try to turn Down")
             self.turnDirectionOfLooking(DirectionOfLooking.DOWN)
         elif playground.coordinateSystem[yCoordinateOfPlayer-1][xCoordinateOfPlayer] == 0 and self.directionOfLooking != DirectionOfLooking.UP and (0 <= xCoordinateOfPlayer < len(playground.coordinateSystem[0]) and 0 <= yCoordinateOfPlayer-1 < len(playground.coordinateSystem)):
