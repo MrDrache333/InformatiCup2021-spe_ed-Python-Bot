@@ -23,8 +23,8 @@ class Playground(object):
         return self.turn
 
     def lookInInStraightLine(self, player, direction: DirectionOfLooking, howFarToLook) -> int:
-        """Returns how far away a wall is within a given range the range :param howFarToLook in the direction defined by :param
-            direction. Returns -1 if there is no wall within the given Range"""
+        """Returns how far away a wall is within a given range the range :param howFarToLook in the direction defined
+        by :param direction. Returns -1 if there is no wall within the given Range """
         nextX, nextY = direction.value
         currentX, currentY = player.x, player.y
 
