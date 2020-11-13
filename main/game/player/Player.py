@@ -47,3 +47,52 @@ class Player(object):
     def die(self):
         self.speed = 0
         self.active = False
+
+    def turnToSurvive(self, playground):
+        xCoordinateOfPlayer = self.x
+        yCoordinateOfPlayer = self.y
+
+
+        if playground.coordinateSystem[yCoordinateOfPlayer][xCoordinateOfPlayer-1] == 0 and self.directionOfLooking != DirectionOfLooking.LEFT and (0 <= xCoordinateOfPlayer-1 < len(playground.coordinateSystem[0]) and 0 <= yCoordinateOfPlayer < len(playground.coordinateSystem)):
+            print("I try to turn Left")
+            self.turnDirectionOfLooking(DirectionOfLooking.LEFT)
+        elif playground.coordinateSystem[yCoordinateOfPlayer][xCoordinateOfPlayer+1] == 0 and self.directionOfLooking != DirectionOfLooking.RIGHT and (0 <= xCoordinateOfPlayer+1 < len(playground.coordinateSystem[0]) and 0 <= yCoordinateOfPlayer < len(playground.coordinateSystem)):
+            print("I try to turn Right")
+            self.turnDirectionOfLooking(DirectionOfLooking.RIGHT)
+        elif playground.coordinateSystem[yCoordinateOfPlayer+1][xCoordinateOfPlayer] == 0 and self.directionOfLooking != DirectionOfLooking.DOWN and (0 <= xCoordinateOfPlayer < len(playground.coordinateSystem[0]) and 0 <= yCoordinateOfPlayer+1 < len(playground.coordinateSystem)):
+            print("I try to turn Down")
+            self.turnDirectionOfLooking(DirectionOfLooking.DOWN)
+        elif playground.coordinateSystem[yCoordinateOfPlayer-1][xCoordinateOfPlayer] == 0 and self.directionOfLooking != DirectionOfLooking.UP and (0 <= xCoordinateOfPlayer < len(playground.coordinateSystem[0]) and 0 <= yCoordinateOfPlayer-1 < len(playground.coordinateSystem)):
+            print("I try to turn Up")
+            self.turnDirectionOfLooking(DirectionOfLooking.UP)
+        else:
+            print("nowhere to run")
+
+    def tryToSurvive(self, playground):
+        if self.active:
+            #check 4 positions as far as speed amount
+            xCoordinateOfPlayer = self.x
+            yCoordinateOfPlayer = self.y
+
+            if self.directionOfLooking == DirectionOfLooking.LEFT:
+                xCoordinateOfPlayer -= 1
+            elif self.directionOfLooking == DirectionOfLooking.UP:
+                yCoordinateOfPlayer -= 1
+            elif self.directionOfLooking == DirectionOfLooking.RIGHT:
+                xCoordinateOfPlayer += 1
+            elif self.directionOfLooking == DirectionOfLooking.DOWN:
+                yCoordinateOfPlayer += 1
+
+            if 0 <= xCoordinateOfPlayer < len(playground.coordinateSystem[0]) and 0 <= yCoordinateOfPlayer < len(playground.coordinateSystem):
+                # within coordinate system
+
+                if playground.coordinateSystem[yCoordinateOfPlayer][xCoordinateOfPlayer] == 0:
+                    #Player did not collide with wall
+                    pass
+                else:
+                    print("i'm gonna die")
+                    self.turnToSurvive(playground)
+            else:
+                print("i'm gonna die")
+                self.turnToSurvive(playground)
+
