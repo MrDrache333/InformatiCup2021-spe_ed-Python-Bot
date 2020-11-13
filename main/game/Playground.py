@@ -14,10 +14,46 @@ class Playground(object):
         self.coordinateSystem = coordinateSystem
         self.players = players
 
-    def lookInInStraightLine(self, player, direction, howFarToLook) -> bool:  # TODO make direction ENUM
-        """Returns whether something is within the range :param howFarToLook in the direction defined by :param
-            direction """
-        pass
+    def lookInInStraightLine(self, player, direction: DirectionOfLooking, howFarToLook) -> int:
+        """Returns how far away a wall is within a given range the range :param howFarToLook in the direction defined by :param
+            direction. Returns -1 if there is no wall within the given Range"""
+        nextX, nextY = direction.value
+        currentX, currentY = player.x, player.y
+
+        for i in range(howFarToLook):
+            currentX += nextX
+            currentY += nextY
+
+            #out of range
+            if(currentX < 0 or currentY < 0 or currentX >= len(self.coordinateSystem[0]) or currentY >= len(self.coordinateSystem)): #46 x 75
+                return i+1
+            else:
+                if(self.coordinateSystem[currentY][currentX] != 0) :
+                    return i+1
+        return -1
+
+    def countBlocksInStraightLine(self, player, direction: DirectionOfLooking) -> int:
+        nextX, nextY = direction.value
+        currentX, currentY = player.x, player.y
+
+        blockIsFree = True
+        blocksFree = 0
+        while blockIsFree:
+            currentX += nextX
+            currentY += nextY
+
+            # check if out of range
+            if (currentX < 0 or currentY < 0 or currentX >= len(self.coordinateSystem[0]) or currentY >= len(self.coordinateSystem)):  # 46 x 75
+                blockIsFree = False
+            else:
+                if (self.coordinateSystem[currentY][currentX] != 0):
+                    blockIsFree = False
+                else:
+                    blocksFree += 1
+        print("[" + str(player.id) + "] Free Blocks towards " + direction.name + ": " + str(blocksFree))
+        return blocksFree
+
+
 
     def movePlayer(self, turn):
         for player in self.players:
@@ -33,19 +69,17 @@ class Playground(object):
                 speedOfPlayer = player.speed
                 directionOfPlayer = player.directionOfLooking
 
+                nextX, nextY = directionOfPlayer.value
+
                 # draws a line for each speed point
                 for speed in range(speedOfPlayer):
-                    if directionOfPlayer == DirectionOfLooking.LEFT:
-                        xCoordinateOfPlayer -= 1
-                    elif directionOfPlayer == DirectionOfLooking.UP:
-                        yCoordinateOfPlayer -= 1
-                    elif directionOfPlayer == DirectionOfLooking.RIGHT:
-                        xCoordinateOfPlayer += 1
-                    elif directionOfPlayer == DirectionOfLooking.DOWN:
-                        yCoordinateOfPlayer += 1
 
-                    if turn == 6 and 3 <= speedOfPlayer != speed + 1 and speed + 1 >= speedOfPlayer - 2:
-                        logging.debug("Ima skip dat field")
+                    xCoordinateOfPlayer += nextX
+                    yCoordinateOfPlayer += nextY
+
+                    #   6. turn & not the last move position (head) &
+                    if turn == 6 and speedOfPlayer != speed + 1 and (speed + 1) <= (speedOfPlayer - 2):
+                        logging.debug("Ima skip dat field (Speed:" + str(speedOfPlayer) + ")")
                     else:
                         # determine whether player would collide with a wall
                         # determine whether coordinates are within coordinatesystem
@@ -60,7 +94,6 @@ class Playground(object):
 
                                 # update coordinate system
                                 self.coordinateSystem[yCoordinateOfPlayer][xCoordinateOfPlayer] = int(player.id)
-                                # TODO draw walls where the player moved
                             else:
                                 killPlayer(player)
                                 break

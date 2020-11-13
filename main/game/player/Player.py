@@ -16,7 +16,8 @@ class Player(object):
         self.speed = speed
 
     def turnDirectionOfLooking(self, directionOfLooking: DirectionOfLooking):
-        if directionOfLooking.value % 2 == self.directionOfLooking.value % 2:
+
+        if directionOfLooking == self.directionOfLooking or directionOfLooking.value == self.directionOfLooking.value * -1:
             logging.debug(
                 'Cant change direction, reason: Input direction is in opposite or same direction as previous one ')
         else:
@@ -48,52 +49,43 @@ class Player(object):
         self.speed = 0
         self.active = False
 
-    def turnToSurvive(self, playground):
-        xCoordinateOfPlayer = self.x
-        yCoordinateOfPlayer = self.y
-
-
-        if playground.coordinateSystem[yCoordinateOfPlayer][xCoordinateOfPlayer-1] == 0 and self.directionOfLooking != DirectionOfLooking.LEFT and (0 <= xCoordinateOfPlayer-1 < len(playground.coordinateSystem[0]) and 0 <= yCoordinateOfPlayer < len(playground.coordinateSystem)):
-            print("I try to turn Left")
-            self.turnDirectionOfLooking(DirectionOfLooking.LEFT)
-        elif playground.coordinateSystem[yCoordinateOfPlayer][xCoordinateOfPlayer+1] == 0 and self.directionOfLooking != DirectionOfLooking.RIGHT and (0 <= xCoordinateOfPlayer+1 < len(playground.coordinateSystem[0]) and 0 <= yCoordinateOfPlayer < len(playground.coordinateSystem)):
-            print("I try to turn Right")
-            self.turnDirectionOfLooking(DirectionOfLooking.RIGHT)
-        elif playground.coordinateSystem[yCoordinateOfPlayer+1][xCoordinateOfPlayer] == 0 and self.directionOfLooking != DirectionOfLooking.DOWN and (0 <= xCoordinateOfPlayer < len(playground.coordinateSystem[0]) and 0 <= yCoordinateOfPlayer+1 < len(playground.coordinateSystem)):
-            #List out of bound
-            print("I try to turn Down")
-            self.turnDirectionOfLooking(DirectionOfLooking.DOWN)
-        elif playground.coordinateSystem[yCoordinateOfPlayer-1][xCoordinateOfPlayer] == 0 and self.directionOfLooking != DirectionOfLooking.UP and (0 <= xCoordinateOfPlayer < len(playground.coordinateSystem[0]) and 0 <= yCoordinateOfPlayer-1 < len(playground.coordinateSystem)):
-            print("I try to turn Up")
-            self.turnDirectionOfLooking(DirectionOfLooking.UP)
-        else:
-            print("nowhere to run")
-
     def tryToSurvive(self, playground):
         if self.active:
-            #check 4 positions as far as speed amount
-            xCoordinateOfPlayer = self.x
-            yCoordinateOfPlayer = self.y
 
-            if self.directionOfLooking == DirectionOfLooking.LEFT:
-                xCoordinateOfPlayer -= 1
-            elif self.directionOfLooking == DirectionOfLooking.UP:
-                yCoordinateOfPlayer -= 1
-            elif self.directionOfLooking == DirectionOfLooking.RIGHT:
-                xCoordinateOfPlayer += 1
-            elif self.directionOfLooking == DirectionOfLooking.DOWN:
-                yCoordinateOfPlayer += 1
+            #check if someone tries to block you off
 
-            if 0 <= xCoordinateOfPlayer < len(playground.coordinateSystem[0]) and 0 <= yCoordinateOfPlayer < len(playground.coordinateSystem):
-                # within coordinate system
+            #Fallback, check if front is empty, if not, try to change dir
+            if(playground.countBlocksInStraightLine(self, self.directionOfLooking) < self.speed):
+                print("[" + self.id + "] Directory im facing is occupied")
 
-                if playground.coordinateSystem[yCoordinateOfPlayer][xCoordinateOfPlayer] == 0:
-                    #Player did not collide with wall
-                    pass
-                else:
-                    print("i'm gonna die")
-                    self.turnToSurvive(playground)
-            else:
-                print("i'm gonna die")
-                self.turnToSurvive(playground)
+                freeBlocks = [playground.countBlocksInStraightLine(self, DirectionOfLooking.UP),
+                              playground.countBlocksInStraightLine(self, DirectionOfLooking.RIGHT),
+                              playground.countBlocksInStraightLine(self, DirectionOfLooking.DOWN),
+                              playground.countBlocksInStraightLine(self, DirectionOfLooking.LEFT)]
+
+
+                if self.speed > 1 and max(freeBlocks) < self.speed:
+                    print("[" + self.id + "] I slow down")
+                    self.speedDown()
+                elif freeBlocks.index(max(freeBlocks)) == 0: #UP
+                    print("[" + self.id + "] I try to turn Up")
+                    self.turnDirectionOfLooking(DirectionOfLooking.UP)
+                #try right
+                elif freeBlocks.index(max(freeBlocks)) == 1: #RIGHT
+                    print("[" + self.id + "] I try to turn Right")
+                    self.turnDirectionOfLooking(DirectionOfLooking.RIGHT)
+                #try down
+                elif freeBlocks.index(max(freeBlocks)) == 2: #DOWN
+                    print("[" + self.id + "] I try to turn Down")
+                    self.turnDirectionOfLooking(DirectionOfLooking.DOWN)
+                #try left
+                elif freeBlocks.index(max(freeBlocks)) == 3: #LEFT
+                    print("[" + self.id + "] I try to turn Left")
+                    self.turnDirectionOfLooking(DirectionOfLooking.LEFT)
+
+
+
+
+
+
 

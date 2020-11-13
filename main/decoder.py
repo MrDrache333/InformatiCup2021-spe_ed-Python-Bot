@@ -2,7 +2,10 @@ import json
 
 import pygame
 
-from JsonInterpreter import JsonInterpreter
+try:
+    from JsonInterpreter import JsonInterpreter
+except:
+    from networking.JsonInterpreter import JsonInterpreter
 from game.Playground import Playground
 from game.graphic.PlaygroundPresenter import PlaygroundPresenter
 from game.player.DirectionOfLooking import DirectionOfLooking
@@ -44,8 +47,8 @@ if ownPlayer is None:
 
 while running:
     # pygame.time.delay(500//60)
-    #clock.tick(1000 // 800)
-    clock.tick(1000 // 200)
+    clock.tick(1000 // 800)
+    #clock.tick(1000 // 200)
 
     # Benutzereingabe prüfen
     keys = pygame.key.get_pressed()
@@ -58,12 +61,16 @@ while running:
     elif keys[pygame.K_RIGHT] or keys[pygame.K_d]:
         ownPlayer.turnDirectionOfLooking(DirectionOfLooking.RIGHT)
     elif keys[pygame.K_RSHIFT] or keys[pygame.K_LSHIFT]:
+        print("Speed Up!")
         ownPlayer.speedUp()
     elif keys[pygame.K_RCTRL] or keys[pygame.K_LCTRL]:
         ownPlayer.speedDown()
+    elif keys[pygame.K_q]:
+        pygame.quit()
 
-    ownPlayer.tryToSurvive(playground)
-
+    for player in playground.players:
+        player.tryToSurvive(playground)
+    #ownPlayer.tryToSurvive(playground)
 
     playground.movePlayer(turn)
     if turn == 6:
