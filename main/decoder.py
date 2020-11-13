@@ -49,17 +49,17 @@ while running:
 
     # Benutzereingabe prüfen
     keys = pygame.key.get_pressed()
-    if keys[pygame.K_UP]:
+    if keys[pygame.K_UP] or keys[pygame.K_w]:
         ownPlayer.turnDirectionOfLooking(DirectionOfLooking.UP)
-    elif keys[pygame.K_DOWN]:
+    elif keys[pygame.K_DOWN] or keys[pygame.K_s]:
         ownPlayer.turnDirectionOfLooking(DirectionOfLooking.DOWN)
-    elif keys[pygame.K_LEFT]:
+    elif keys[pygame.K_LEFT] or keys[pygame.K_a]:
         ownPlayer.turnDirectionOfLooking(DirectionOfLooking.LEFT)
-    elif keys[pygame.K_RIGHT]:
+    elif keys[pygame.K_RIGHT] or keys[pygame.K_d]:
         ownPlayer.turnDirectionOfLooking(DirectionOfLooking.RIGHT)
-    elif keys[pygame.K_RSHIFT]:
+    elif keys[pygame.K_RSHIFT] or keys[pygame.K_LSHIFT]:
         ownPlayer.speedUp()
-    elif keys[pygame.K_RCTRL]:
+    elif keys[pygame.K_RCTRL] or keys[pygame.K_LCTRL]:
         ownPlayer.speedDown()
 
     ownPlayer.tryToSurvive(playground)
