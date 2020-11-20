@@ -2,13 +2,10 @@ import json
 
 import pygame
 
-try:
-    from JsonInterpreter import JsonInterpreter
-except:
-    from networking.JsonInterpreter import JsonInterpreter
 from game.Playground import Playground
 from game.graphic.PlaygroundPresenter import PlaygroundPresenter
 from game.player.DirectionOfLooking import DirectionOfLooking
+from networking.JsonInterpreter import JsonInterpreter
 
 #with open('spe_ed-1603447830516.json') as f:
 with open('spe_ed-10x14.json') as f:
@@ -47,7 +44,7 @@ if ownPlayer is None:
 
 while running:
     # pygame.time.delay(500//60)
-    #clock.tick(1000 // 800)
+    # clock.tick(1000 // 800)
     clock.tick(1000 // 400)
 
     # Benutzereingabe prüfen
@@ -70,7 +67,7 @@ while running:
 
     for player in playground.players:
         player.tryToSurvive(playground)
-    #ownPlayer.tryToSurvive(playground)
+    # ownPlayer.tryToSurvive(playground)
 
     playground.movePlayer()
     playgroundPresenter.playground = playground

@@ -2,6 +2,7 @@ import logging
 
 from game.player.DirectionOfLooking import DirectionOfLooking
 
+
 def killPlayer(player):
     print("Player: " + str(player.id) + " died at X: " + str(player.x) + " and Y: " + str(player.y))
     player.die()
@@ -32,12 +33,13 @@ class Playground(object):
             currentX += nextX
             currentY += nextY
 
-            #out of range
-            if(currentX < 0 or currentY < 0 or currentX >= len(self.coordinateSystem[0]) or currentY >= len(self.coordinateSystem)): #46 x 75
-                return i+1
+            # out of range
+            if (currentX < 0 or currentY < 0 or currentX >= len(self.coordinateSystem[0]) or currentY >= len(
+                    self.coordinateSystem)):  # 46 x 75
+                return i + 1
             else:
-                if(self.coordinateSystem[currentY][currentX] != 0) :
-                    return i+1
+                if (self.coordinateSystem[currentY][currentX] != 0):
+                    return i + 1
         return -1
 
     def countBlocksInStraightLine(self, player, direction: DirectionOfLooking) -> int:
@@ -51,7 +53,8 @@ class Playground(object):
             currentY += nextY
 
             # check if out of range
-            if (currentX < 0 or currentY < 0 or currentX >= len(self.coordinateSystem[0]) or currentY >= len(self.coordinateSystem)):  # 46 x 75
+            if (currentX < 0 or currentY < 0 or currentX >= len(self.coordinateSystem[0]) or currentY >= len(
+                    self.coordinateSystem)):  # 46 x 75
                 blockIsFree = False
             else:
                 if self.turn == 6 and player.speed != (blocksFree + 1) and (blocksFree + 1) <= (player.speed - 2):
