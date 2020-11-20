@@ -30,14 +30,14 @@ class AStar(object):
         self.cells = []
         self.grid_height = len(coordinateSystem)
         self.grid_width = len(coordinateSystem[0])
-        for x_ in range(self.grid_width):
-            for y_ in range(self.grid_height):
+        for y_ in range(self.grid_height):
+            for x_ in range(self.grid_width):
                 self.cells.append(Cell(x_, y_, self.coordinateSystem[y_][x_] == 0 if x != x_ and y != y_ else True))
                 self.coordinateSystem[y_][x_] = 1 if self.coordinateSystem[y_][x_] != 0 else 0
         self.start = self.getCell(x, y)
 
     def getCell(self, x, y):
-        return self.cells[x * self.grid_height + y]
+        return self.cells[y * self.grid_width + x]
 
     def get_heuristic(self, cell):
         """Compute the heuristic value H for a cell.
@@ -66,7 +66,7 @@ class AStar(object):
     def get_path(self):
         cell = self.end
         path = [(cell.x, cell.y)]
-        while cell.parent is not self.start:
+        while cell.parent is not self.start and cell.parent is not None:
             cell = cell.parent
             path.append((cell.x, cell.y))
 
@@ -85,6 +85,8 @@ class AStar(object):
         adj.f = adj.h + adj.g
 
     def solve(self, end):
+        if end == self.start:
+            return []
         self.end = self.getCell(*end)
         """Solve maze, find path to ending cell.
         @returns path or None if not found.

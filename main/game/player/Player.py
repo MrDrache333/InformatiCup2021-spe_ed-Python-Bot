@@ -1,8 +1,8 @@
 import copy
 import logging
 import sys
+
 import numpy as np
-import time
 
 from game.player.DirectionOfLooking import DirectionOfLooking
 from game.player.Pathfinding import AStar
@@ -98,7 +98,7 @@ class Player(object):
             # Use a Fancy Technic to calculate the mindblown most Intelligent way from start to end
             finder = AStar(playground.coordinateSystem, self.x, self.y)
             path = finder.solve((maxvalX, maxvalY))
-            print(path)
+            print("Neuer Pfad:" + str(path))
 
             # if(playground.countBlocksInStraightLine(self, self.directionOfLooking) < self.speed):
             # print("[" + self.id + "] Directory im facing is occupied")
