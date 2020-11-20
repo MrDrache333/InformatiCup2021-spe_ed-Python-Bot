@@ -32,7 +32,8 @@ class AStar(object):
         self.grid_width = len(coordinateSystem[0])
         for y_ in range(self.grid_height):
             for x_ in range(self.grid_width):
-                self.cells.append(Cell(x_, y_, self.coordinateSystem[y_][x_] == 0 if x != x_ and y != y_ else True))
+                self.cells.append(
+                    Cell(x_, y_, 0 if self.coordinateSystem[y_][x_] == 0 or (x != x_ and y != y_) else False))
                 self.coordinateSystem[y_][x_] = 1 if self.coordinateSystem[y_][x_] != 0 else 0
         self.start = self.getCell(x, y)
 
