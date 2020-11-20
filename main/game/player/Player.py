@@ -58,25 +58,12 @@ class Player(object):
             tempCS = copy.deepcopy(playground.coordinateSystem)
             count = 6
 
-            print("---------------")
-
 
             self.findFarrestFieldUp(tempCS, self.x, self.y, count)
-            print("---------------")
-            # print(tempCS)
-            for c in tempCS:
-                print(c)
             self.findFarrestFieldDown(tempCS, self.x, self.y, count)
-            print("---------------")
-            # print(tempCS)
-            for c in tempCS:
-                print(c)
             self.findFarrestFieldLeft(tempCS, self.x, self.y, count)
-            print("---------------")
-            # print(tempCS)
-            for c in tempCS:
-                print(c)
             self.findFarrestFieldRight(tempCS, self.x, self.y, count)
+
             print("---------------")
             # print(tempCS)
             for c in tempCS:
@@ -88,21 +75,41 @@ class Player(object):
             for (i, row) in enumerate(tempCS):
                 for (j, value) in enumerate(row):
                     if value == maxval:
-                        maxvalX = i
-                        maxvalY = j
-                        print("Max Val (" + str(maxval) + ") at [" + str(i) + ", " + str(j) + "]")
+                        maxvalX = j
+                        maxvalY = i
+                        print("Max Val (" + str(maxval) + ") at [" + str(j) + ", " + str(i) + "]")
                         break
 
-            #time.sleep(2)
 
             # Use a Fancy Technic to calculate the mindblown most Intelligent way from start to end
             finder = AStar(playground.coordinateSystem, self.x, self.y)
             path = finder.solve((maxvalX, maxvalY))
-            print("Neuer Pfad:" + str(path))
 
-            # if(playground.countBlocksInStraightLine(self, self.directionOfLooking) < self.speed):
-            # print("[" + self.id + "] Directory im facing is occupied")
-            if False:
+            if len(path) > 0:
+
+                print("Neuer Pfad:" + str(path))
+
+                firstPathX = path[1][0]
+                firstPathY = path[1][1]
+
+                print("I'm at [" + str(self.x) + ", " + str(self.y) + "] ant want to go to [" + str(firstPathX) + ", " + str(firstPathY) + "]")
+
+                if firstPathX > self.x:
+                    self.turnDirectionOfLooking(DirectionOfLooking.RIGHT)
+                    print("Turn right")
+                elif firstPathX < self.x:
+                    self.turnDirectionOfLooking(DirectionOfLooking.LEFT)
+                    print("Turn left")
+                elif firstPathY > self.y:
+                    self.turnDirectionOfLooking(DirectionOfLooking.DOWN)
+                    print("Turn down")
+                elif firstPathY < self.y:
+                    self.turnDirectionOfLooking(DirectionOfLooking.UP)
+                    print("Turn up")
+
+
+            # Ändere Richtung immer in die Richtung wo am meisten Blöcke frei sind
+            else:
                 freeBlocks = [playground.countBlocksInStraightLine(self, DirectionOfLooking.UP),
                               playground.countBlocksInStraightLine(self, DirectionOfLooking.RIGHT),
                               playground.countBlocksInStraightLine(self, DirectionOfLooking.DOWN),

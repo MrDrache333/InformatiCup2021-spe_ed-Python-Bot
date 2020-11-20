@@ -2,12 +2,12 @@ import json
 
 import pygame
 
+
 from game.Playground import Playground
 from game.graphic.PlaygroundPresenter import PlaygroundPresenter
 from game.player.DirectionOfLooking import DirectionOfLooking
-from networking.JsonInterpreter import JsonInterpreter
+from JsonInterpreter import JsonInterpreter
 
-#with open('spe_ed-1603447830516.json') as f:
 with open('spe_ed-10x14.json') as f:
     data = json.load(f)
 
