@@ -1,11 +1,12 @@
 import copy
 import logging
 import sys
-from numpy import sqrt
 
 from game.player.DirectionOfLooking import DirectionOfLooking
+from game.player.Pathfinding import AStar
 
 logging.basicConfig(stream=sys.stderr, level=logging.DEBUG)
+
 
 class Player(object):
     def __init__(self, id: int, x: int, y: int, directionOfLooking: str, active: bool, speed: int):
@@ -55,7 +56,12 @@ class Player(object):
 
             tempCS = copy.deepcopy(playground.coordinateSystem)
             count = 6
-            self.findFarrestField(tempCS, self.x, self.y, count)
+            # self.findFarrestField(tempCS, self.x, self.y, count)
+
+            # Use a Fancy Technic to calculate the mindblown most Intelligent way from start to end
+            finder = AStar(playground.coordinateSystem, self.x, self.y)
+            path = finder.solve((0, 5))
+            print(path)
 
             # if(playground.countBlocksInStraightLine(self, self.directionOfLooking) < self.speed):
             # print("[" + self.id + "] Directory im facing is occupied")
@@ -111,15 +117,12 @@ class Player(object):
         checkY = currentPosY
         self.checkPos(tempCS, checkX, checkY, count)
 
-
-
-
     def checkPos(self, tempCS, checkX, checkY, count):
         print("---------------")
         # print(tempCS)
         for c in tempCS:
             print(c)
-        if checkX >= 0 and checkX < len(tempCS[0]) and checkY >= 0 and checkY < len(tempCS):
+        if 0 <= checkX < len(tempCS[0]) and 0 <= checkY < len(tempCS):
             if tempCS[checkY][checkX] == 0:
                 tempCS[checkY][checkX] = count
                 count += 1

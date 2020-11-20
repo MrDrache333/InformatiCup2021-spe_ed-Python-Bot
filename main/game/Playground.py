@@ -38,7 +38,7 @@ class Playground(object):
                     self.coordinateSystem)):  # 46 x 75
                 return i + 1
             else:
-                if (self.coordinateSystem[currentY][currentX] != 0):
+                if self.coordinateSystem[currentY][currentX] != 0:
                     return i + 1
         return -1
 

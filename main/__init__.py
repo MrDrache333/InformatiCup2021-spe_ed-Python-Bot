@@ -2,10 +2,10 @@ import asyncio
 import json
 
 import websockets as websockets
-from JsonInterpreter import JsonInterpreter
 
 from game.Playground import Playground
 from game.graphic.PlaygroundPresenter import PlaygroundPresenter
+from networking.JsonInterpreter import JsonInterpreter
 
 
 class Game:
