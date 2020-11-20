@@ -1,7 +1,8 @@
 import copy
 import logging
 import sys
-from numpy import sqrt
+import numpy as np
+import time
 
 from game.player.DirectionOfLooking import DirectionOfLooking
 
@@ -55,7 +56,41 @@ class Player(object):
 
             tempCS = copy.deepcopy(playground.coordinateSystem)
             count = 6
-            self.findFarrestField(tempCS, self.x, self.y, count)
+
+            print("---------------")
+
+
+            self.findFarrestFieldUp(tempCS, self.x, self.y, count)
+            print("---------------")
+            # print(tempCS)
+            for c in tempCS:
+                print(c)
+            self.findFarrestFieldDown(tempCS, self.x, self.y, count)
+            print("---------------")
+            # print(tempCS)
+            for c in tempCS:
+                print(c)
+            self.findFarrestFieldLeft(tempCS, self.x, self.y, count)
+            print("---------------")
+            # print(tempCS)
+            for c in tempCS:
+                print(c)
+            self.findFarrestFieldRight(tempCS, self.x, self.y, count)
+            print("---------------")
+            # print(tempCS)
+            for c in tempCS:
+                print(c)
+
+
+            maxval = np.amax(tempCS)
+
+            for (i, row) in enumerate(tempCS):
+                for (j, value) in enumerate(row):
+                    if value == maxval:
+                        print("Max Val (" + str(maxval) + ") at [" + str(i) + ", " + str(j) + "]")
+                        break
+
+            time.sleep(2)
 
             # if(playground.countBlocksInStraightLine(self, self.directionOfLooking) < self.speed):
             # print("[" + self.id + "] Directory im facing is occupied")
@@ -84,46 +119,116 @@ class Player(object):
                     print("[" + self.id + "] I try to turn Left")
                     self.turnDirectionOfLooking(DirectionOfLooking.LEFT)
 
-    def findFarrestField(self, tempCS, x, y, count):
+    def findFarrestFieldUp(self, tempCS, x, y, count):
         # check nearest nodes
-
-        print("Current Pos: " + str(x) + " x " + str(y) + " with count: " + str(count))
         currentPosX = x
         currentPosY = y
-
         # up
         checkX = currentPosX
         checkY = currentPosY - 1
-        self.checkPos(tempCS, checkX, checkY, count)
-
+        self.checkPos(tempCS, checkX, checkY, count, 1)
+        # down
+        #checkX = currentPosX
+        #checkY = currentPosY + 1
+        #self.checkPos(tempCS, checkX, checkY, count, 2)
         # right
         checkX = currentPosX + 1
         checkY = currentPosY
-        self.checkPos(tempCS, checkX, checkY, count)
+        self.checkPos(tempCS, checkX, checkY, count, 1)
+        # left
+        checkX = currentPosX - 1
+        checkY = currentPosY
+        self.checkPos(tempCS, checkX, checkY, count, 1)
 
+    def findFarrestFieldDown(self, tempCS, x, y, count):
+        # check nearest nodes
+        currentPosX = x
+        currentPosY = y
+        # up
+        #checkX = currentPosX
+        #checkY = currentPosY - 1
+        #self.checkPos(tempCS, checkX, checkY, count)
         # down
         checkX = currentPosX
-        checkY = currentPosY - 1
-        self.checkPos(tempCS, checkX, checkY, count)
+        checkY = currentPosY + 1
+        self.checkPos(tempCS, checkX, checkY, count, 2)
+        # right
+        checkX = currentPosX + 1
+        checkY = currentPosY
+        self.checkPos(tempCS, checkX, checkY, count, 2)
+        # left
+        checkX = currentPosX - 1
+        checkY = currentPosY
+        self.checkPos(tempCS, checkX, checkY, count, 2)
+
+    def findFarrestFieldLeft(self, tempCS, x, y, count):
+        # check nearest nodes
+        currentPosX = x
+        currentPosY = y
 
         # left
         checkX = currentPosX - 1
         checkY = currentPosY
-        self.checkPos(tempCS, checkX, checkY, count)
+        self.checkPos(tempCS, checkX, checkY, count, 3)
+        # up
+        checkX = currentPosX
+        checkY = currentPosY - 1
+        self.checkPos(tempCS, checkX, checkY, count, 3)
+        # down
+        checkX = currentPosX
+        checkY = currentPosY + 1
+        self.checkPos(tempCS, checkX, checkY, count, 3)
+        # right
+        #checkX = currentPosX + 1
+        #checkY = currentPosY
+        #self.checkPos(tempCS, checkX, checkY, count, 2)
+
+    def findFarrestFieldRight(self, tempCS, x, y, count):
+        # check nearest nodes
+        currentPosX = x
+        currentPosY = y
+
+        # left
+        #checkX = currentPosX - 1
+        #checkY = currentPosY
+        #self.checkPos(tempCS, checkX, checkY, count, 3)
+        # right
+        checkX = currentPosX + 1
+        checkY = currentPosY
+        self.checkPos(tempCS, checkX, checkY, count, 4)
+        # up
+        checkX = currentPosX
+        checkY = currentPosY - 1
+        self.checkPos(tempCS, checkX, checkY, count, 4)
+        # down
+        checkX = currentPosX
+        checkY = currentPosY + 1
+        self.checkPos(tempCS, checkX, checkY, count, 4)
 
 
+    def checkPos(self, tempCS, checkX, checkY, count, val):
 
-
-    def checkPos(self, tempCS, checkX, checkY, count):
-        print("---------------")
-        # print(tempCS)
-        for c in tempCS:
-            print(c)
         if checkX >= 0 and checkX < len(tempCS[0]) and checkY >= 0 and checkY < len(tempCS):
-            if tempCS[checkY][checkX] == 0:
+            if tempCS[checkY][checkX] == 0 or count == 6:
                 tempCS[checkY][checkX] = count
+
+                #print("---------------")
+                # print(tempCS)
+                #for c in tempCS:
+                    #print(c)
+
+                #time.sleep(0.1)
+
                 count += 1
-                self.findFarrestField(tempCS, checkX, checkY, count)
+
+                if val == 1: # up
+                    self.findFarrestFieldUp(tempCS, checkX, checkY, count)
+                elif val == 2: # down
+                    self.findFarrestFieldDown(tempCS, checkX, checkY, count)
+                elif val == 3:  # left
+                    self.findFarrestFieldLeft(tempCS, checkX, checkY, count)
+                else: # right
+                    self.findFarrestFieldRight(tempCS, checkX, checkY, count)
             else:
                 if tempCS[checkY][checkX] < 6:
                     tempCS[checkY][checkX] = -1
