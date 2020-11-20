@@ -64,6 +64,8 @@ class Playground(object):
         print("[" + str(player.id) + "] Free Blocks towards " + direction.name + ": " + str(blocksFree))
         return blocksFree
 
+
+
     def movePlayer(self):
         for player in self.players:
             # read speed,direction, position and activity of player
