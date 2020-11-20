@@ -1,6 +1,7 @@
 import copy
 import logging
 import sys
+import time
 
 import numpy as np
 
@@ -59,6 +60,7 @@ class Player(object):
             count = 6
 
 
+
             self.findFarrestFieldUp(tempCS, self.x, self.y, count)
             self.findFarrestFieldDown(tempCS, self.x, self.y, count)
             self.findFarrestFieldLeft(tempCS, self.x, self.y, count)
@@ -68,7 +70,6 @@ class Player(object):
             # print(tempCS)
             for c in tempCS:
                 print(c)
-
 
             maxval = np.amax(tempCS)
 
@@ -85,7 +86,7 @@ class Player(object):
             finder = AStar(playground.coordinateSystem, self.x, self.y)
             path = finder.solve((maxvalX, maxvalY))
 
-            if len(path) > 0:
+            if path != None and len(path) > 0:
 
                 print("Neuer Pfad:" + str(path))
 
@@ -107,9 +108,12 @@ class Player(object):
                     self.turnDirectionOfLooking(DirectionOfLooking.UP)
                     print("Turn up")
 
-
+                time.sleep(5)
             # Ändere Richtung immer in die Richtung wo am meisten Blöcke frei sind
             else:
+                print("I DONT KNOW WHAT TO DO!")
+
+            if False:
                 freeBlocks = [playground.countBlocksInStraightLine(self, DirectionOfLooking.UP),
                               playground.countBlocksInStraightLine(self, DirectionOfLooking.RIGHT),
                               playground.countBlocksInStraightLine(self, DirectionOfLooking.DOWN),
