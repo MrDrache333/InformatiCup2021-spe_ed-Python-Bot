@@ -58,12 +58,6 @@ class Player(object):
             tempCS = copy.deepcopy(playground.coordinateSystem)
             count = 6
 
-            # Use a Fancy Technic to calculate the mindblown most Intelligent way from start to end
-            finder = AStar(playground.coordinateSystem, self.x, self.y)
-            path = finder.solve((0, 5))
-            print(path)
-
-
             print("---------------")
 
 
@@ -94,10 +88,17 @@ class Player(object):
             for (i, row) in enumerate(tempCS):
                 for (j, value) in enumerate(row):
                     if value == maxval:
+                        maxvalX = i
+                        maxvalY = j
                         print("Max Val (" + str(maxval) + ") at [" + str(i) + ", " + str(j) + "]")
                         break
 
-            time.sleep(2)
+            #time.sleep(2)
+
+            # Use a Fancy Technic to calculate the mindblown most Intelligent way from start to end
+            finder = AStar(playground.coordinateSystem, self.x, self.y)
+            path = finder.solve((maxvalX, maxvalY))
+            print(path)
 
             # if(playground.countBlocksInStraightLine(self, self.directionOfLooking) < self.speed):
             # print("[" + self.id + "] Directory im facing is occupied")
@@ -127,90 +128,57 @@ class Player(object):
                     self.turnDirectionOfLooking(DirectionOfLooking.LEFT)
 
     def findFarrestFieldUp(self, tempCS, x, y, count):
-        # check nearest nodes
-        currentPosX = x
-        currentPosY = y
         # up
-        checkX = currentPosX
-        checkY = currentPosY - 1
-        self.checkPos(tempCS, checkX, checkY, count, 1)
-        # down
-        #checkX = currentPosX
-        #checkY = currentPosY + 1
-        #self.checkPos(tempCS, checkX, checkY, count, 2)
+        self.checkUp(tempCS, x, y, count, 1)
         # right
-        checkX = currentPosX + 1
-        checkY = currentPosY
-        self.checkPos(tempCS, checkX, checkY, count, 1)
+        self.checkRight(tempCS, x, y, count, 1)
         # left
-        checkX = currentPosX - 1
-        checkY = currentPosY
-        self.checkPos(tempCS, checkX, checkY, count, 1)
+        self.checkLeft(tempCS, x, y, count, 1)
 
     def findFarrestFieldDown(self, tempCS, x, y, count):
-        # check nearest nodes
-        currentPosX = x
-        currentPosY = y
-        # up
-        #checkX = currentPosX
-        #checkY = currentPosY - 1
-        #self.checkPos(tempCS, checkX, checkY, count)
         # down
-        checkX = currentPosX
-        checkY = currentPosY + 1
-        self.checkPos(tempCS, checkX, checkY, count, 2)
+        self.checkDown(tempCS, x, y, count, 2)
         # right
-        checkX = currentPosX + 1
-        checkY = currentPosY
-        self.checkPos(tempCS, checkX, checkY, count, 2)
+        self.checkRight(tempCS, x, y, count, 2)
         # left
-        checkX = currentPosX - 1
-        checkY = currentPosY
-        self.checkPos(tempCS, checkX, checkY, count, 2)
+        self.checkLeft(tempCS, x, y, count, 2)
 
     def findFarrestFieldLeft(self, tempCS, x, y, count):
-        # check nearest nodes
-        currentPosX = x
-        currentPosY = y
-
         # left
-        checkX = currentPosX - 1
-        checkY = currentPosY
-        self.checkPos(tempCS, checkX, checkY, count, 3)
+        self.checkLeft(tempCS, x, y, count, 3)
         # up
-        checkX = currentPosX
-        checkY = currentPosY - 1
-        self.checkPos(tempCS, checkX, checkY, count, 3)
+        self.checkUp(tempCS, x, y, count, 3)
         # down
-        checkX = currentPosX
-        checkY = currentPosY + 1
-        self.checkPos(tempCS, checkX, checkY, count, 3)
-        # right
-        #checkX = currentPosX + 1
-        #checkY = currentPosY
-        #self.checkPos(tempCS, checkX, checkY, count, 2)
+        self.checkDown(tempCS, x, y, count, 3)
 
     def findFarrestFieldRight(self, tempCS, x, y, count):
-        # check nearest nodes
-        currentPosX = x
-        currentPosY = y
-
-        # left
-        #checkX = currentPosX - 1
-        #checkY = currentPosY
-        #self.checkPos(tempCS, checkX, checkY, count, 3)
         # right
+        self.checkRight(tempCS, x, y, count, 4)
+        # up
+        self.checkUp(tempCS, x, y, count, 4)
+        # down
+        self.checkDown(tempCS, x, y, count, 4)
+
+
+    def checkRight(self, tempCS, currentPosX, currentPosY, count, val):
         checkX = currentPosX + 1
         checkY = currentPosY
-        self.checkPos(tempCS, checkX, checkY, count, 4)
-        # up
+        self.checkPos(tempCS, checkX, checkY, count, val)
+
+    def checkUp(self, tempCS, currentPosX, currentPosY, count, val):
         checkX = currentPosX
         checkY = currentPosY - 1
-        self.checkPos(tempCS, checkX, checkY, count, 4)
-        # down
+        self.checkPos(tempCS, checkX, checkY, count, val)
+
+    def checkDown(self, tempCS, currentPosX, currentPosY, count, val):
         checkX = currentPosX
         checkY = currentPosY + 1
-        self.checkPos(tempCS, checkX, checkY, count, 4)
+        self.checkPos(tempCS, checkX, checkY, count, val)
+
+    def checkLeft(self, tempCS, currentPosX, currentPosY, count, val):
+        checkX = currentPosX - 1
+        checkY = currentPosY
+        self.checkPos(tempCS, checkX, checkY, count, val)
 
 
     def checkPos(self, tempCS, checkX, checkY, count, val):
@@ -218,13 +186,6 @@ class Player(object):
         if checkX >= 0 and checkX < len(tempCS[0]) and checkY >= 0 and checkY < len(tempCS):
             if tempCS[checkY][checkX] == 0 or count == 6:
                 tempCS[checkY][checkX] = count
-
-                #print("---------------")
-                # print(tempCS)
-                #for c in tempCS:
-                    #print(c)
-
-                #time.sleep(0.1)
 
                 count += 1
 
