@@ -61,7 +61,7 @@ class Player(object):
 
 
             # Use a Fancy Technic to calculate the mindblown most Intelligent way from start to end
-            finder = AStar(playground.coordinateSystem, self.x, self.y)
+            finder = AStar(playground.coordinateSystem, self.x, self.y, self.speed)
             path = finder.solve((maxvalX, maxvalY))
 
             if path != None and len(path) > 0:
