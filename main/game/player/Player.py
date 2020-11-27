@@ -56,30 +56,8 @@ class Player(object):
     def tryToSurvive(self, playground):
         if self.active:
 
-            tempCS = copy.deepcopy(playground.coordinateSystem)
-            count = 6
-
-
-
-            self.findFarrestFieldUp(tempCS, self.x, self.y, count)
-            self.findFarrestFieldDown(tempCS, self.x, self.y, count)
-            self.findFarrestFieldLeft(tempCS, self.x, self.y, count)
-            self.findFarrestFieldRight(tempCS, self.x, self.y, count)
-
-            print("---------------")
-            # print(tempCS)
-            for c in tempCS:
-                print(c)
-
-            maxval = np.amax(tempCS)
-
-            for (i, row) in enumerate(tempCS):
-                for (j, value) in enumerate(row):
-                    if value == maxval:
-                        maxvalX = j
-                        maxvalY = i
-                        print("Max Val (" + str(maxval) + ") at [" + str(j) + ", " + str(i) + "]")
-                        break
+            #Strategie: Weit entferntestes Feld finden
+            maxvalX, maxvalY = self.findFurthestField(playground)
 
 
             # Use a Fancy Technic to calculate the mindblown most Intelligent way from start to end
@@ -108,106 +86,137 @@ class Player(object):
                     self.turnDirectionOfLooking(DirectionOfLooking.UP)
                     print("Turn up")
 
-                time.sleep(5)
             # Ändere Richtung immer in die Richtung wo am meisten Blöcke frei sind
             else:
                 print("I DONT KNOW WHAT TO DO!")
 
-            if False:
-                freeBlocks = [playground.countBlocksInStraightLine(self, DirectionOfLooking.UP),
-                              playground.countBlocksInStraightLine(self, DirectionOfLooking.RIGHT),
-                              playground.countBlocksInStraightLine(self, DirectionOfLooking.DOWN),
-                              playground.countBlocksInStraightLine(self, DirectionOfLooking.LEFT)]
 
-                if self.speed > 1 and max(freeBlocks) < self.speed:
-                    print("[" + self.id + "] I slow down")
-                    self.speedDown()
-                elif freeBlocks.index(max(freeBlocks)) == 0:  # UP
-                    print("[" + self.id + "] I try to turn Up")
-                    self.turnDirectionOfLooking(DirectionOfLooking.UP)
-                # try right
-                elif freeBlocks.index(max(freeBlocks)) == 1:  # RIGHT
-                    print("[" + self.id + "] I try to turn Right")
-                    self.turnDirectionOfLooking(DirectionOfLooking.RIGHT)
-                # try down
-                elif freeBlocks.index(max(freeBlocks)) == 2:  # DOWN
-                    print("[" + self.id + "] I try to turn Down")
-                    self.turnDirectionOfLooking(DirectionOfLooking.DOWN)
-                # try left
-                elif freeBlocks.index(max(freeBlocks)) == 3:  # LEFT
-                    print("[" + self.id + "] I try to turn Left")
-                    self.turnDirectionOfLooking(DirectionOfLooking.LEFT)
+            '''
+            # Prüfe wie viele Blöcke in jeder Richtung frei sind
+            freeBlocks = [playground.countBlocksInStraightLine(self, DirectionOfLooking.UP),
+                          playground.countBlocksInStraightLine(self, DirectionOfLooking.RIGHT),
+                          playground.countBlocksInStraightLine(self, DirectionOfLooking.DOWN),
+                          playground.countBlocksInStraightLine(self, DirectionOfLooking.LEFT)]
 
-    def findFarrestFieldUp(self, tempCS, x, y, count):
+            # Ändere Kurs, zur Richtung wo am meisten Blöcke frei sind
+            if self.speed > 1 and max(freeBlocks) < self.speed:
+                print("[" + self.id + "] I slow down")
+                self.speedDown()
+            elif freeBlocks.index(max(freeBlocks)) == 0:  # UP
+                print("[" + self.id + "] I try to turn Up")
+                self.turnDirectionOfLooking(DirectionOfLooking.UP)
+            # try right
+            elif freeBlocks.index(max(freeBlocks)) == 1:  # RIGHT
+                print("[" + self.id + "] I try to turn Right")
+                self.turnDirectionOfLooking(DirectionOfLooking.RIGHT)
+            # try down
+            elif freeBlocks.index(max(freeBlocks)) == 2:  # DOWN
+                print("[" + self.id + "] I try to turn Down")
+                self.turnDirectionOfLooking(DirectionOfLooking.DOWN)
+            # try left
+            elif freeBlocks.index(max(freeBlocks)) == 3:  # LEFT
+                print("[" + self.id + "] I try to turn Left")
+                self.turnDirectionOfLooking(DirectionOfLooking.LEFT)
+            '''
+
+    # Füllt ein Koordinatensystem mit Werten um ausgehend der Spielerposition den weit entferntesten Punkt zu finden
+    def findFurthestField(self, playground):
+
+        debug = False
+
+        global newNodes
+        currentNodes = []
+        currentNodes.append((self.x, self.y))
+        newNodes = []
+        tempCS = copy.deepcopy(playground.coordinateSystem)
+        count = 10
+
+        # So lange zu prüfende Knoten verfügbar sind
+        while len(currentNodes) > 0:
+
+            # Iteriere über alle anliegenden Knoten
+            while len(currentNodes) > 0:
+                x = currentNodes[0][0]
+                y = currentNodes[0][1]
+                if debug:
+                    print("CurrentNodes Entry: [" + str(x) + ", " + str(y) + "]")
+                self.checkAllNodesSurround(tempCS, x, y, count)
+                currentNodes.remove(currentNodes[0])
+
+             # Füge neu entdeckte Knoten hinzu nachdem alle aktuellen Knoten geprüft wurden
+            while len(newNodes) > 0:
+                currentNodes.append(newNodes[0])
+                if debug:
+                    print(" -- " + str(newNodes[0]) + " -> currentNodes")
+                newNodes.remove(newNodes[0])
+
+            count += 1
+
+            if debug:
+                print("---------------")
+                for c in tempCS:
+                    print(c)
+
+
+        if debug:
+            print("---------------")
+            for c in tempCS:
+                print(c)
+
+        # Maximalen Wert im Koordinatensystem suchen und zurück geben
+        maxval = np.amax(tempCS)
+        for (i, row) in enumerate(tempCS):
+            for (j, value) in enumerate(row):
+                if value == maxval:
+                    maxvalX = j
+                    maxvalY = i
+                    print("Max Val (" + str(maxval) + ") at [" + str(j) + ", " + str(i) + "]")
+                    return maxvalX, maxvalY
+
+
+    # Prüfe alle anliegenden Knoten
+    def checkAllNodesSurround(self, tempCS, x, y, count):
         # up
-        self.checkUp(tempCS, x, y, count, 1)
+        self.checkUp(tempCS, x, y, count)
         # right
-        self.checkRight(tempCS, x, y, count, 1)
+        self.checkRight(tempCS, x, y, count)
         # left
-        self.checkLeft(tempCS, x, y, count, 1)
-
-    def findFarrestFieldDown(self, tempCS, x, y, count):
+        self.checkLeft(tempCS, x, y, count)
         # down
-        self.checkDown(tempCS, x, y, count, 2)
-        # right
-        self.checkRight(tempCS, x, y, count, 2)
-        # left
-        self.checkLeft(tempCS, x, y, count, 2)
+        self.checkDown(tempCS, x, y, count)
 
-    def findFarrestFieldLeft(self, tempCS, x, y, count):
-        # left
-        self.checkLeft(tempCS, x, y, count, 3)
-        # up
-        self.checkUp(tempCS, x, y, count, 3)
-        # down
-        self.checkDown(tempCS, x, y, count, 3)
-
-    def findFarrestFieldRight(self, tempCS, x, y, count):
-        # right
-        self.checkRight(tempCS, x, y, count, 4)
-        # up
-        self.checkUp(tempCS, x, y, count, 4)
-        # down
-        self.checkDown(tempCS, x, y, count, 4)
-
-
-    def checkRight(self, tempCS, currentPosX, currentPosY, count, val):
+    # Prüfe rechten Knoten
+    def checkRight(self, tempCS, currentPosX, currentPosY, count):
         checkX = currentPosX + 1
         checkY = currentPosY
-        self.checkPos(tempCS, checkX, checkY, count, val)
+        self.checkPos(tempCS, checkX, checkY, count)
 
-    def checkUp(self, tempCS, currentPosX, currentPosY, count, val):
+    # Prüfe obeneren Knoten
+    def checkUp(self, tempCS, currentPosX, currentPosY, count):
         checkX = currentPosX
         checkY = currentPosY - 1
-        self.checkPos(tempCS, checkX, checkY, count, val)
+        self.checkPos(tempCS, checkX, checkY, count)
 
-    def checkDown(self, tempCS, currentPosX, currentPosY, count, val):
+    # Prüfe unteren Knoten
+    def checkDown(self, tempCS, currentPosX, currentPosY, count):
         checkX = currentPosX
         checkY = currentPosY + 1
-        self.checkPos(tempCS, checkX, checkY, count, val)
+        self.checkPos(tempCS, checkX, checkY, count)
 
-    def checkLeft(self, tempCS, currentPosX, currentPosY, count, val):
+    # Prüfe linken Knoten
+    def checkLeft(self, tempCS, currentPosX, currentPosY, count):
         checkX = currentPosX - 1
         checkY = currentPosY
-        self.checkPos(tempCS, checkX, checkY, count, val)
+        self.checkPos(tempCS, checkX, checkY, count)
 
-
-    def checkPos(self, tempCS, checkX, checkY, count, val):
+    # Prüfe ob Knoten frei ist oder Hindernis beinhaltet
+    def checkPos(self, tempCS, checkX, checkY, count):
 
         if checkX >= 0 and checkX < len(tempCS[0]) and checkY >= 0 and checkY < len(tempCS):
-            if tempCS[checkY][checkX] == 0 or count == 6:
+            if tempCS[checkY][checkX] == 0 or count == 10:
                 tempCS[checkY][checkX] = count
-
-                count += 1
-
-                if val == 1: # up
-                    self.findFarrestFieldUp(tempCS, checkX, checkY, count)
-                elif val == 2: # down
-                    self.findFarrestFieldDown(tempCS, checkX, checkY, count)
-                elif val == 3:  # left
-                    self.findFarrestFieldLeft(tempCS, checkX, checkY, count)
-                else: # right
-                    self.findFarrestFieldRight(tempCS, checkX, checkY, count)
+                #print("New Node Entry: [" + str(checkX) + ", " + str(checkY) + "]")
+                newNodes.append((checkX, checkY))
             else:
-                if tempCS[checkY][checkX] < 6:
+                if tempCS[checkY][checkX] < 10:
                     tempCS[checkY][checkX] = -1

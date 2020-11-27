@@ -8,7 +8,7 @@ from game.graphic.PlaygroundPresenter import PlaygroundPresenter
 from game.player.DirectionOfLooking import DirectionOfLooking
 from JsonInterpreter import JsonInterpreter
 
-with open('spe_ed-10x14.json') as f:
+with open('spe_ed-10x15.json') as f:
     data = json.load(f)
 
 width = data[0]['width']
