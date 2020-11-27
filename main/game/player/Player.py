@@ -59,8 +59,6 @@ class Player(object):
             tempCS = copy.deepcopy(playground.coordinateSystem)
             count = 6
 
-
-
             self.findFarrestFieldUp(tempCS, self.x, self.y, count)
             self.findFarrestFieldDown(tempCS, self.x, self.y, count)
             self.findFarrestFieldLeft(tempCS, self.x, self.y, count)
@@ -68,8 +66,8 @@ class Player(object):
 
             print("---------------")
             # print(tempCS)
-            for c in tempCS:
-                print(c)
+            # for c in tempCS:
+            #    print(c)
 
             maxval = np.amax(tempCS)
 
@@ -83,17 +81,18 @@ class Player(object):
 
 
             # Use a Fancy Technic to calculate the mindblown most Intelligent way from start to end
-            finder = AStar(playground.coordinateSystem, self.x, self.y)
+            finder = AStar(playground.coordinateSystem, self.x, self.y, self.speed)
             path = finder.solve((maxvalX, maxvalY))
 
-            if path != None and len(path) > 0:
+            if path is not None and len(path) > 0:
 
                 print("Neuer Pfad:" + str(path))
 
                 firstPathX = path[1][0]
                 firstPathY = path[1][1]
 
-                print("I'm at [" + str(self.x) + ", " + str(self.y) + "] ant want to go to [" + str(firstPathX) + ", " + str(firstPathY) + "]")
+                print("I'm at [" + str(self.x) + ", " + str(self.y) + "] ant want to go to [" + str(
+                    firstPathX) + ", " + str(firstPathY) + "]")
 
                 if firstPathX > self.x:
                     self.turnDirectionOfLooking(DirectionOfLooking.RIGHT)
@@ -108,7 +107,7 @@ class Player(object):
                     self.turnDirectionOfLooking(DirectionOfLooking.UP)
                     print("Turn up")
 
-                time.sleep(5)
+                time.sleep(1)
             # Ändere Richtung immer in die Richtung wo am meisten Blöcke frei sind
             else:
                 print("I DONT KNOW WHAT TO DO!")
