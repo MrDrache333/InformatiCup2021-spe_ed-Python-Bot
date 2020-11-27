@@ -36,9 +36,9 @@ class AStar(object):
                 self.cells.append(Cell(x_, y_, self.coordinateSystem[y_][x_] == 0 or (y_ == y and x_ == x)))
                 self.coordinateSystem[y_][x_] = 1 if self.coordinateSystem[y_][x_] != 0 else 0
 
-        print("A* Coords")
-        for y_ in range(self.grid_height):
-            print(self.coordinateSystem[y_])
+        #print("A* Coords")
+        #for y_ in range(self.grid_height):
+            #print(self.coordinateSystem[y_])
         self.start = self.getCell(x, y)
 
     def getCell(self, x, y):

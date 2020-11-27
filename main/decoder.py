@@ -7,7 +7,7 @@ from game.Playground import Playground
 from game.graphic.PlaygroundPresenter import PlaygroundPresenter
 from game.player.DirectionOfLooking import DirectionOfLooking
 
-with open('spe_ed-1603447830516.json') as f:
+with open('spe_ed-10x15.json') as f:
     data = json.load(f)
 
 width = data[0]['width']
@@ -44,7 +44,7 @@ if ownPlayer is None:
 while running:
     # pygame.time.delay(500//60)
     # clock.tick(1000 // 800)
-    clock.tick(1000 // 400)
+    clock.tick(1000 // 200)
 
     # Benutzereingabe prüfen
     keys = pygame.key.get_pressed()
