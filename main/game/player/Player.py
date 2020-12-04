@@ -10,6 +10,7 @@ from game.player.Pathfinding import AStar
 logging.basicConfig(stream=sys.stderr, level=logging.DEBUG)
 logger = logging.getLogger()
 
+
 class Player(object):
     def __init__(self, id: int, x: int, y: int, directionOfLooking: str, active: bool, speed: int):
         self.id = id
@@ -98,7 +99,7 @@ class Player(object):
                 self.checkAllNodesSurround(tempCS, x, y, count, turn)
                 currentNodes.remove(currentNodes[0])
 
-             # Füge neu entdeckte Knoten hinzu nachdem alle aktuellen Knoten geprüft wurden
+            # Füge neu entdeckte Knoten hinzu nachdem alle aktuellen Knoten geprüft wurden
             while len(newNodes) > 0:
                 currentNodes.append(newNodes[0])
                 logger.debug(" -- " + str(newNodes[0]) + " -> currentNodes")
@@ -114,7 +115,6 @@ class Player(object):
             logger.debug("---------------")
             for c in tempCS:
                 logger.debug(c)
-
 
         logger.debug("---------------")
         for c in tempCS:
@@ -144,63 +144,84 @@ class Player(object):
     def checkRight(self, tempCS, currentPosX, currentPosY, count, turn):
         '''Checks the right node'''
         for i in range(self.speed):
-            checkX = currentPosX + (i+1)
+            checkX = currentPosX + (i + 1)
             checkY = currentPosY
-            if turn == 6 and (i+1) > 1 and (i+1) < self.speed:
+            if turn == 6 and (self.speed - 2) < (i + 1) < (self.speed):
                 jump = True
             else:
                 jump = False
 
-            if not self.checkPos(tempCS, checkX, checkY, count, jump):
+            if (i + 1) == self.speed:
+                add = True
+            else:
+                add = False
+
+            if not self.checkPos(tempCS, checkX, checkY, count, jump, add):
                 break
 
     def checkUp(self, tempCS, currentPosX, currentPosY, count, turn):
         '''Checks the upper node'''
         for i in range(self.speed):
             checkX = currentPosX
-            checkY = currentPosY - (i+1)
+            checkY = currentPosY - (i + 1)
             if turn == 6 and (self.speed - 2) < (i + 1) < (self.speed):
                 jump = True
             else:
                 jump = False
 
-            if not self.checkPos(tempCS, checkX, checkY, count, jump):
+            if (i + 1) == self.speed:
+                add = True
+            else:
+                add = False
+
+            if not self.checkPos(tempCS, checkX, checkY, count, jump, add):
                 break
 
     def checkDown(self, tempCS, currentPosX, currentPosY, count, turn):
         '''Checks the node below'''
         for i in range(self.speed):
             checkX = currentPosX
-            checkY = currentPosY + (i+1)
-            if turn == 6 and (self.speed - 2) < (i + 1) < (self.speed):
+            checkY = currentPosY + (i + 1)
+            if turn == 6 and (self.speed - 2) < (i + 1) < self.speed:
                 jump = True
             else:
                 jump = False
 
-            if not self.checkPos(tempCS, checkX, checkY, count, jump):
+            if (i + 1) == self.speed:
+                add = True
+            else:
+                add = False
+
+            if not self.checkPos(tempCS, checkX, checkY, count, jump, add):
                 break
 
     def checkLeft(self, tempCS, currentPosX, currentPosY, count, turn):
         '''Checks the left node'''
         for i in range(self.speed):
-            checkX = currentPosX - (i+1)
+            checkX = currentPosX - (i + 1)
             checkY = currentPosY
-            if turn == 6 and (self.speed - 2) < (i + 1) < (self.speed):
+            if turn == 6 and (self.speed - 2) < (i + 1) < self.speed:
                 jump = True
             else:
                 jump = False
 
-            if not self.checkPos(tempCS, checkX, checkY, count, jump):
+            if (i + 1) == self.speed:
+                add = True
+            else:
+                add = False
+
+            if not self.checkPos(tempCS, checkX, checkY, count, jump, add):
                 break
 
-    def checkPos(self, tempCS, checkX, checkY, count, jump):
+    def checkPos(self, tempCS, checkX, checkY, count, jump, add):
         '''Checks if the given node is free or occupied'''
 
         if checkX >= 0 and checkX < len(tempCS[0]) and checkY >= 0 and checkY < len(tempCS):
             if tempCS[checkY][checkX] == 0 or (jump and tempCS[checkY][checkX] < 10):
                 tempCS[checkY][checkX] = count
-                #print("New Node Entry: [" + str(checkX) + ", " + str(checkY) + "]")
-                newNodes.append((checkX, checkY))
+                # print("New Node Entry: [" + str(checkX) + ", " + str(checkY) + "]")
+                if add:
+                    newNodes.append((checkX, checkY))
                 return True
             else:
                 if tempCS[checkY][checkX] < 10:
