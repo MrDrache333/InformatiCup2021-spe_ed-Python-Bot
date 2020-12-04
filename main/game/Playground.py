@@ -41,6 +41,8 @@ class Playground(object):
         return -1
 
     def countBlocksInStraightLine(self, player, direction: DirectionOfLooking) -> int:
+        """Returns the amount of cells that are free in a direction of looking from the position of the given player.
+        Returns zero if there is an obstacle directly adjacent to the player"""
         nextX, nextY = direction.value
         currentX, currentY = player.x, player.y
 
@@ -62,7 +64,7 @@ class Playground(object):
                         blockIsFree = False
                     else:
                         blocksFree += 1
-        print("[" + str(player.id) + "] Free Blocks towards " + direction.name + ": " + str(blocksFree))
+        #print("[" + str(player.id) + "] Free Blocks towards " + direction.name + ": " + str(blocksFree))
         return blocksFree
 
     def movePlayer(self):
