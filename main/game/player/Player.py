@@ -178,8 +178,10 @@ class Player(object):
     def moveToFurthestField(self, playground, maxvalX, maxvalY):
 
         # Use a Fancy Technic to calculate the mindblown most Intelligent way from start to end
-        finder = AStar(playground.coordinateSystem, self.x, self.y, self.speed)
+        # Get the Best Path for each Speed
+        finder = AStar(playground.coordinateSystem, self.x, self.y, self.speed, playground.getTurn())
         path = finder.solve((maxvalX, maxvalY))
+
         '''pathcoords = path
         PP = PlaygroundPresenter
         for i in range(0, len(pathcoords)):
@@ -189,8 +191,7 @@ class Player(object):
 
         if path != None and len(path) > 0:
             print("Neuer Pfad:" + str(path))
-
-        if path is None or len(path) <= 0:
+        else:
             return False
         print("Neuer Pfad:" + str(path))
 

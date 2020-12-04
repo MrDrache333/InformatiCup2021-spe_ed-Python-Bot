@@ -1,5 +1,3 @@
-import logging
-
 from game.player.DirectionOfLooking import DirectionOfLooking
 
 
@@ -84,14 +82,14 @@ class Playground(object):
                 nextX, nextY = directionOfPlayer.value
 
                 # draws a line for each speed point
-                for speed in range(speedOfPlayer):
+                for speed in range(1, speedOfPlayer + 1):
 
                     xCoordinateOfPlayer += nextX
                     yCoordinateOfPlayer += nextY
 
                     #   6. turn & not the last move position (head) &
-                    if self.turn == 6 and speedOfPlayer != (speed + 1) and (speed + 1) <= (speedOfPlayer - 2):
-                        logging.debug("Ima skip dat field (Speed:" + str(speedOfPlayer) + ")")
+                    if self.turn == 6 and speed != 1 and speed != speedOfPlayer:
+                        print("Ima skip dat field (Speed:" + str(speedOfPlayer) + ")")
                     else:
                         # determine whether player would collide with a wall
                         # determine whether coordinates are within coordinatesystem

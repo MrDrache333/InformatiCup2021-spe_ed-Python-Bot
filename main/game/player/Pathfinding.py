@@ -17,13 +17,14 @@ class Cell(object):
 
 
 class AStar(object):
-    def __init__(self, coordinateSystem, x, y, speed):
+    def __init__(self, coordinateSystem, x, y, speed, currentTurn):
         """
         :param coordinateSystem: CoordinateSystem
         :param x: Start X
         :param y: Start Y
         """
         self.speed = speed
+        self.currentTurn = currentTurn
         self.opened = []
         heapq.heapify(self.opened)
         self.closed = set()
@@ -57,15 +58,42 @@ class AStar(object):
         @param cell get adjacent cells for this cell
         @returns adjacent cells list.
         """
+
         cells = []
+        # Range the next Cells must be checked to run at the Current Speed and while jumping
+        maxCellCheckRange = self.speed if self.currentTurn != 6 or self.speed < 3 else self.speed - 2
         if cell.x < self.grid_width - self.speed:
-            cells.append(self.getCell(cell.x + self.speed, cell.y))
+            passed = all(
+                self.coordinateSystem[cell.y][cell.x + i] != 1
+                for i in range(1, maxCellCheckRange)
+            )
+
+            if passed:
+                cells.append(self.getCell(cell.x + self.speed, cell.y))
         if cell.y >= self.speed:
-            cells.append(self.getCell(cell.x, cell.y - self.speed))
+            passed = all(
+                self.coordinateSystem[cell.y - i][cell.x] != 1
+                for i in range(1, maxCellCheckRange)
+            )
+
+            if passed:
+                cells.append(self.getCell(cell.x, cell.y - self.speed))
         if cell.x >= self.speed:
-            cells.append(self.getCell(cell.x - self.speed, cell.y))
+            passed = all(
+                self.coordinateSystem[cell.y][cell.x - i] != 1
+                for i in range(1, maxCellCheckRange)
+            )
+
+            if passed:
+                cells.append(self.getCell(cell.x - self.speed, cell.y))
         if cell.y < self.grid_height - self.speed:
-            cells.append(self.getCell(cell.x, cell.y + self.speed))
+            passed = all(
+                self.coordinateSystem[cell.y + i][cell.x] != 1
+                for i in range(1, maxCellCheckRange)
+            )
+
+            if passed:
+                cells.append(self.getCell(cell.x, cell.y + self.speed))
         return cells
 
     def get_path(self):
@@ -109,6 +137,8 @@ class AStar(object):
                 return self.get_path()
             # get adjacent cells for cell
             adj_cells = self.get_adjacent_cells(cell)
+            # Aktuellen Zug neu berechnen
+            self.currentTurn = 0 if self.currentTurn == 6 else self.currentTurn + 1
             for adj_cell in adj_cells:
                 if adj_cell.reachable and adj_cell not in self.closed:
                     if (adj_cell.f, adj_cell) in self.opened:
