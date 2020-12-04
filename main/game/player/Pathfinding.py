@@ -90,12 +90,13 @@ class AStar(object):
         adj.f = adj.h + adj.g
 
     def solve(self, end):
-        if end == self.start:
-            return []
-        self.end = self.getCell(*end)
         """Solve maze, find path to ending cell.
         @returns path or None if not found.
         """
+        if end == self.start:
+            return []
+        self.end = self.getCell(*end)
+
         # add starting cell to open heap queue
         heapq.heappush(self.opened, (self.start.f, self.start))
         while len(self.opened):

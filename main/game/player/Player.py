@@ -61,7 +61,21 @@ class Player(object):
         '''Different strategies to keep the player alive'''
         if self.active:
 
+            # Strategie: Weit entferntestes Feld finden
             maxval, maxvalX, maxvalY = self.findFurthestField(playground)
+
+            # Use a Fancy Technic to calculate the mindblown most Intelligent way from start to end
+            finder = AStar(playground.coordinateSystem, self.x, self.y, self.speed)
+            path = finder.solve((maxvalX, maxvalY))
+            '''pathcoords = path
+            PP = PlaygroundPresenter
+            for i in range(0, len(pathcoords)):
+                pathcoords[i] = [pathcoords[i][0] * (PP.blockwidth / 2), pathcoords[i][1] * (PP.blockwidth) / 2]
+            PP.py.draw.lines(PP.py.display.get_active(), PP.playerColors[self.id], False, pathcoords)
+            '''
+
+            if path != None and len(path) > 0:
+                print("Neuer Pfad:" + str(path))
 
             # if maxval < x
             self.jumpOverWall(playground)
