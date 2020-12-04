@@ -1,6 +1,7 @@
 import copy
 import logging
 import sys
+import random
 
 import numpy as np
 
@@ -9,6 +10,7 @@ from game.player.Pathfinding import AStar
 
 logging.basicConfig(stream=sys.stderr, level=logging.DEBUG)
 logger = logging.getLogger()
+logger.disabled = True
 
 
 class Player(object):
@@ -21,7 +23,7 @@ class Player(object):
         self.speed = speed
 
     def turnDirectionOfLooking(self, directionOfLooking: DirectionOfLooking):
-        '''Turns current direction to given direction if possible'''
+        """Turns current direction to given direction if possible"""
         if directionOfLooking == self.directionOfLooking or directionOfLooking.value == self.directionOfLooking.value * -1:
             logging.debug(
                 'Cant change direction, reason: Input direction is in opposite or same direction as previous one ')
@@ -29,21 +31,21 @@ class Player(object):
             self.directionOfLooking = directionOfLooking
 
     def speedUp(self):
-        '''Accelerate one speed'''
+        """Accelerate one speed"""
         if self.speed == 10:
             logging.debug('Cant accelerate, reason: I Am Speed! (Speed = 10)')
         else:
             self.speed += 1
 
     def speedDown(self):
-        '''Decelerates one speed'''
+        """Decelerates one speed"""
         if self.speed == 1:
             logging.debug('Cant decelerate, reason: Don\'t stop me now! (Speed =1 )')
         else:
             self.speed -= 1
 
     def updatePlayer(self, id: int, x: int, y: int, directionOfLooking: DirectionOfLooking, active: bool, speed: int):
-        '''Updates the player'''
+        """Updates the player"""
         if id != self.id:
             logging.debug('No matching ID of player')
         else:
@@ -54,13 +56,14 @@ class Player(object):
             self.speed = speed
 
     def die(self):
-        '''Player cant move any further so it dies'''
+        """Player cant move any further so it dies"""
         self.speed = 0
         self.active = False
 
     def tryToSurvive(self, playground):
-        '''Different strategies to keep the player alive'''
+        """Different strategies to keep the player alive"""
         if self.active:
+
 
             # Strategie: Weit entferntestes Feld finden
             maxval, maxvalX, maxvalY, tempCS = self.findFurthestField(playground)
@@ -75,8 +78,108 @@ class Player(object):
         '''
         pass
 
+    def rideAlongSideWall(self, playground):
+        """Finds the nearest Wall and tries to ride alongside it while reducing the players speed to 1. The resulting
+        Pattern results into a spiral. This Method ignores one cell wide indents in a wall.
+        ATTENTION: This method only does one action per call. E.g. This Method only slows down the player or turns him
+        according to the aforementioned plan. This means this method has to be called multiple rounds in a row to
+        accomplish said plan."""
+        # 1. Find nearest Wall
+        # 2. Turn to nearest wall
+        # 3. Try to reduce Speed
+        # 4. Turn clockwise in cul de sac
+        # 5. Scan if next cell is a odd shaped cul de sac or an one wide indent
+        # 6. ride alongside wall
+        # 7. If next wallpiece is straight, reduce speed
+        # 8. Go to 4.
+        print("Ride alongside wall")
+
+        freeBlocks = {DirectionOfLooking.UP: playground.countBlocksInStraightLine(self, DirectionOfLooking.UP),
+                      DirectionOfLooking.RIGHT: playground.countBlocksInStraightLine(self, DirectionOfLooking.RIGHT),
+                      DirectionOfLooking.DOWN: playground.countBlocksInStraightLine(self, DirectionOfLooking.DOWN),
+                      DirectionOfLooking.LEFT: playground.countBlocksInStraightLine(self, DirectionOfLooking.LEFT)}
+
+        setOfDirections = [DirectionOfLooking.UP, DirectionOfLooking.RIGHT, DirectionOfLooking.DOWN,
+                           DirectionOfLooking.LEFT]
+
+        freeBlocks.pop(setOfDirections[(setOfDirections.index(self.directionOfLooking) + 2) % 4])
+
+        freeBlocksWithoutDuplicateValues = {}
+
+        #remove double values from freeBlocks, so that "min" operation does not  fail
+        for key,value in freeBlocks.items():
+            if value not in freeBlocksWithoutDuplicateValues.values():
+                freeBlocksWithoutDuplicateValues[key] = value
+
+        distanceOfNearestWall, directionOfClosestWall = min(zip(freeBlocksWithoutDuplicateValues.values(), freeBlocksWithoutDuplicateValues.keys()))
+
+        if distanceOfNearestWall == 0:
+            if not self.directionOfLooking == directionOfClosestWall:
+                # the player is adjacent to a wall and not looking at it. Commence plan.
+                # if the player would hit a wall, change direction
+                # else slow down
+                if freeBlocks.get(self.directionOfLooking) < self.speed:
+                    # not enough space in direction of player. change direction
+                    directionThePlayerShouldTurnTo = setOfDirections[
+                        (setOfDirections.index(self.directionOfLooking) + 1) % 4]
+                    self.directionOfLooking = directionThePlayerShouldTurnTo
+                else:
+                    #if the player would move into a one wide gap, change direction
+
+                    #go one field forward look left and right
+                    currentX, currentY = self.x, self.y
+                    currentX += self.directionOfLooking.value[0]
+                    currentY += self.directionOfLooking.value[1]
+
+                    freeBlocks.pop(self.directionOfLooking)
+
+                    isGapOneCellWide = 0
+                    for direction in freeBlocks.keys():
+                        tempX = currentX + direction.value[0]
+                        tempY = currentY + direction.value[1]
+                        if len(playground.coordinateSystem[0]) > tempX and len(playground.coordinateSystem) > tempY:
+                                if not playground.coordinateSystem[tempY][tempX] == 0:
+                                    isGapOneCellWide += 1
+
+                    if isGapOneCellWide == 2:
+                        directionThePlayerShouldTurnTo = setOfDirections[
+                            (setOfDirections.index(self.directionOfLooking) + 1) % 4]
+                        self.directionOfLooking = directionThePlayerShouldTurnTo
+                    else:
+                        self.speedDown()
+
+            else:
+                # player is adjacent to wall and looking into it. Player has to change his direction of looking
+                # Change direction of looking to archive clockwise motion
+                directionThePlayerShouldTurnTo = setOfDirections[
+                    (setOfDirections.index(self.directionOfLooking) + 1) % 4]
+                self.directionOfLooking = directionThePlayerShouldTurnTo
+        else:
+            if self.directionOfLooking == directionOfClosestWall:
+                if distanceOfNearestWall >= self.speed:
+                    # Player is already going to the closest wall and has enough space to go into it. Slow down to stall
+                    self.speedDown()
+                    return
+                else:
+                    # player is turned into the closes wall, but does not have enough space to go near it. Player has to
+                    # turn in another direction
+                    setOfDirections.remove(directionOfClosestWall)
+                    self.directionOfLooking = random.choices(setOfDirections)
+                    return
+            else:
+                if distanceOfNearestWall >= self.speed:
+                    # player is not turned to the closest wall, and has enough space to come closer to it without
+                    # hitting it so he turns into it
+                    self.directionOfLooking = directionOfClosestWall
+                    return
+                else:
+                    # player is not turned to the closest wall, but does not have enough space to to turn into it, slow
+                    # down to stall and prepare for turning into wall
+                    self.speedDown()
+                    return
+
     def findFurthestField(self, playground):
-        '''Fills out a coordinate system, to tell how far the player can move'''
+        """Fills out a coordinate system, to tell how far the player can move"""
         logger.disabled = True
 
         global newNodes
@@ -131,7 +234,7 @@ class Player(object):
                     return maxval, maxvalX, maxvalY, tempCS
 
     def checkAllNodesSurround(self, tempCS, x, y, count, turn):
-        '''Checks all surrounding nodes of a given node'''
+        """Checks all surrounding nodes of a given node"""
         # up
         self.checkUp(tempCS, x, y, count, turn)
         # right
@@ -142,7 +245,7 @@ class Player(object):
         self.checkDown(tempCS, x, y, count, turn)
 
     def checkRight(self, tempCS, currentPosX, currentPosY, count, turn):
-        '''Checks the right node'''
+        """Checks the right node"""
         for i in range(self.speed):
             checkX = currentPosX + (i + 1)
             checkY = currentPosY
@@ -160,7 +263,7 @@ class Player(object):
                 break
 
     def checkUp(self, tempCS, currentPosX, currentPosY, count, turn):
-        '''Checks the upper node'''
+        """Checks the upper node"""
         for i in range(self.speed):
             checkX = currentPosX
             checkY = currentPosY - (i + 1)
@@ -178,7 +281,7 @@ class Player(object):
                 break
 
     def checkDown(self, tempCS, currentPosX, currentPosY, count, turn):
-        '''Checks the node below'''
+        """Checks the node below"""
         for i in range(self.speed):
             checkX = currentPosX
             checkY = currentPosY + (i + 1)
@@ -196,7 +299,7 @@ class Player(object):
                 break
 
     def checkLeft(self, tempCS, currentPosX, currentPosY, count, turn):
-        '''Checks the left node'''
+        """Checks the left node"""
         for i in range(self.speed):
             checkX = currentPosX - (i + 1)
             checkY = currentPosY
