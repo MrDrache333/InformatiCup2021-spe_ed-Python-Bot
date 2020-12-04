@@ -12,7 +12,7 @@ class Playground(object):
     def __init__(self, coordinateSystem, players):
         self.coordinateSystem = coordinateSystem
         self.players = players
-        self.turn = 0
+        self.turn = 1
 
     def addTurn(self):
         if self.turn == 6:
