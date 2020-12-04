@@ -85,6 +85,7 @@ class Player(object):
         tempCS = copy.deepcopy(playground.coordinateSystem)
         count = 10
         turn = playground.getTurn()
+        tempSpeed = self.speed
 
         # So lange zu prüfende Knoten verfügbar sind
         while len(currentNodes) > 0:
@@ -104,6 +105,7 @@ class Player(object):
                 newNodes.remove(newNodes[0])
 
             count += 1
+
             if turn < 6:
                 turn += 1
             else:
@@ -141,39 +143,69 @@ class Player(object):
 
     def checkRight(self, tempCS, currentPosX, currentPosY, count, turn):
         '''Checks the right node'''
-        checkX = currentPosX + 1
-        checkY = currentPosY
-        self.checkPos(tempCS, checkX, checkY, count, turn)
+        for i in range(self.speed):
+            checkX = currentPosX + (i+1)
+            checkY = currentPosY
+            if turn == 6 and (i+1) > 1 and (i+1) < self.speed:
+                jump = True
+            else:
+                jump = False
+
+            if not self.checkPos(tempCS, checkX, checkY, count, jump):
+                break
 
     def checkUp(self, tempCS, currentPosX, currentPosY, count, turn):
         '''Checks the upper node'''
-        checkX = currentPosX
-        checkY = currentPosY - 1
-        self.checkPos(tempCS, checkX, checkY, count, turn)
+        for i in range(self.speed):
+            checkX = currentPosX
+            checkY = currentPosY - (i+1)
+            if turn == 6 and (self.speed - 2) < (i + 1) < (self.speed):
+                jump = True
+            else:
+                jump = False
+
+            if not self.checkPos(tempCS, checkX, checkY, count, jump):
+                break
 
     def checkDown(self, tempCS, currentPosX, currentPosY, count, turn):
         '''Checks the node below'''
-        checkX = currentPosX
-        checkY = currentPosY + 1
-        self.checkPos(tempCS, checkX, checkY, count, turn)
+        for i in range(self.speed):
+            checkX = currentPosX
+            checkY = currentPosY + (i+1)
+            if turn == 6 and (self.speed - 2) < (i + 1) < (self.speed):
+                jump = True
+            else:
+                jump = False
+
+            if not self.checkPos(tempCS, checkX, checkY, count, jump):
+                break
 
     def checkLeft(self, tempCS, currentPosX, currentPosY, count, turn):
         '''Checks the left node'''
-        checkX = currentPosX - 1
-        checkY = currentPosY
-        self.checkPos(tempCS, checkX, checkY, count, turn)
+        for i in range(self.speed):
+            checkX = currentPosX - (i+1)
+            checkY = currentPosY
+            if turn == 6 and (self.speed - 2) < (i + 1) < (self.speed):
+                jump = True
+            else:
+                jump = False
 
-    def checkPos(self, tempCS, checkX, checkY, count, turn):
+            if not self.checkPos(tempCS, checkX, checkY, count, jump):
+                break
+
+    def checkPos(self, tempCS, checkX, checkY, count, jump):
         '''Checks if the given node is free or occupied'''
 
         if checkX >= 0 and checkX < len(tempCS[0]) and checkY >= 0 and checkY < len(tempCS):
-            if tempCS[checkY][checkX] == 0 or count == 10 or (turn == 6 and self.speed >= 3):
+            if tempCS[checkY][checkX] == 0 or (jump and tempCS[checkY][checkX] < 10):
                 tempCS[checkY][checkX] = count
                 #print("New Node Entry: [" + str(checkX) + ", " + str(checkY) + "]")
                 newNodes.append((checkX, checkY))
+                return True
             else:
                 if tempCS[checkY][checkX] < 10:
                     tempCS[checkY][checkX] = -1
+                    return False
 
     def moveToFurthestField(self, playground, maxvalX, maxvalY):
 
