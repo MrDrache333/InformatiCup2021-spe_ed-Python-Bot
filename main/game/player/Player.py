@@ -64,19 +64,6 @@ class Player(object):
             # Strategie: Weit entferntestes Feld finden
             maxval, maxvalX, maxvalY = self.findFurthestField(playground)
 
-            # Use a Fancy Technic to calculate the mindblown most Intelligent way from start to end
-            finder = AStar(playground.coordinateSystem, self.x, self.y, self.speed)
-            path = finder.solve((maxvalX, maxvalY))
-            '''pathcoords = path
-            PP = PlaygroundPresenter
-            for i in range(0, len(pathcoords)):
-                pathcoords[i] = [pathcoords[i][0] * (PP.blockwidth / 2), pathcoords[i][1] * (PP.blockwidth) / 2]
-            PP.py.draw.lines(PP.py.display.get_active(), PP.playerColors[self.id], False, pathcoords)
-            '''
-
-            if path != None and len(path) > 0:
-                print("Neuer Pfad:" + str(path))
-
             # if maxval < x
             self.jumpOverWall(playground)
 
@@ -138,7 +125,6 @@ class Player(object):
                     logger.debug("Max Val (" + str(maxval) + ") at [" + str(j) + ", " + str(i) + "]")
                     return maxval, maxvalX, maxvalY
 
-
     def checkAllNodesSurround(self, tempCS, x, y, count):
         '''Checks all surrounding nodes of a given node'''
         # up
@@ -187,37 +173,45 @@ class Player(object):
                     tempCS[checkY][checkX] = -1
 
     def moveToFurthestField(self, playground, maxvalX, maxvalY):
+
         # Use a Fancy Technic to calculate the mindblown most Intelligent way from start to end
         finder = AStar(playground.coordinateSystem, self.x, self.y, self.speed)
         path = finder.solve((maxvalX, maxvalY))
+        '''pathcoords = path
+        PP = PlaygroundPresenter
+        for i in range(0, len(pathcoords)):
+            pathcoords[i] = [pathcoords[i][0] * (PP.blockwidth / 2), pathcoords[i][1] * (PP.blockwidth) / 2]
+        PP.py.draw.lines(PP.py.display.get_active(), PP.playerColors[self.id], False, pathcoords)
+        '''
 
         if path != None and len(path) > 0:
-
             print("Neuer Pfad:" + str(path))
 
-            firstPathX = path[1][0]
-            firstPathY = path[1][1]
-
-            print(
-                "I'm at [" + str(self.x) + ", " + str(self.y) + "] ant want to go to [" + str(firstPathX) + ", " + str(
-                    firstPathY) + "]")
-
-            if firstPathX > self.x:
-                self.turnDirectionOfLooking(DirectionOfLooking.RIGHT)
-                print("Turn right")
-            elif firstPathX < self.x:
-                self.turnDirectionOfLooking(DirectionOfLooking.LEFT)
-                print("Turn left")
-            elif firstPathY > self.y:
-                self.turnDirectionOfLooking(DirectionOfLooking.DOWN)
-                print("Turn down")
-            elif firstPathY < self.y:
-                self.turnDirectionOfLooking(DirectionOfLooking.UP)
-                print("Turn up")
-
-            return True
-        else:
+        if path is None or len(path) <= 0:
             return False
+        print("Neuer Pfad:" + str(path))
+
+        firstPathX = path[1][0]
+        firstPathY = path[1][1]
+
+        print(
+            "I'm at [" + str(self.x) + ", " + str(self.y) + "] ant want to go to [" + str(firstPathX) + ", " + str(
+                firstPathY) + "]")
+
+        if firstPathX > self.x:
+            self.turnDirectionOfLooking(DirectionOfLooking.RIGHT)
+            print("Turn right")
+        elif firstPathX < self.x:
+            self.turnDirectionOfLooking(DirectionOfLooking.LEFT)
+            print("Turn left")
+        elif firstPathY > self.y:
+            self.turnDirectionOfLooking(DirectionOfLooking.DOWN)
+            print("Turn down")
+        elif firstPathY < self.y:
+            self.turnDirectionOfLooking(DirectionOfLooking.UP)
+            print("Turn up")
+
+        return True
 
     def fallBackPlan(self, playground):
         print("CANT FIND ZE PATH, I TRY TO BIEG AB!")
