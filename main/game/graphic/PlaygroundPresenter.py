@@ -1,3 +1,5 @@
+import copy
+
 import pygame
 from mss import mss
 
@@ -33,8 +35,29 @@ class PlaygroundPresenter(object):
         self.gameWindow = py.display.set_mode((self.displayWidth, self.displayHeight))
         self.generateGameField()
 
+    def getPlayground(self):
+        return self.playground
+
     def generateGameField(self):
         self.updateGameField()
+
+        # pygame.display.flip()
+
+        # setting title and favicon
+        py.display.set_caption("Spe_ed")
+        py.display.set_icon(pygame.image.load("Lightning_McQueen.png"))
+
+    def drawPath(self, path, playerid):
+        pathcoords = copy.deepcopy(path)
+        if pathcoords is not None and len(pathcoords) >= 2:
+            for i in range(len(pathcoords)):
+                pathcoords[i] = [pathcoords[i][0] * blockwidth + (blockwidth / 2),
+                                 pathcoords[i][1] * blockwidth + blockwidth / 2]
+            py.draw.lines(self.gameWindow, playerColors[int(playerid)], False, pathcoords, width=3)
+
+    def updateGameField(self):
+        """Draws rectangles in different colors to different players"""
+        # fill screen with a white blankspace
         self.gameWindow.fill((40, 40, 40))
         white = (255, 255, 255)
 
@@ -48,18 +71,7 @@ class PlaygroundPresenter(object):
             y += blockwidth
             py.draw.line(self.gameWindow, white, (0, y), (self.displayWidth, y))
 
-        # pygame.display.flip()
-
-        # setting title and favicon
-        py.display.set_caption("Spe_ed")
-        py.display.set_icon(pygame.image.load("Lightning_McQueen.png"))
-
-    def updateGameField(self):
-        """Draws rectangles in different colors to different players"""
-        # fill screen with a white blankspace
-
         # Determine width and height of a cube
-
         widthOfCube = self.displayWidth / len(self.playground.coordinateSystem[0])
         heightOfCube = self.displayHeight / len(self.playground.coordinateSystem)
         currentXOfCube = 0
@@ -82,5 +94,7 @@ class PlaygroundPresenter(object):
 
             currentXOfCube = 0
             currentYOfCube += heightOfCube
+        for player in self.playground.players:
+            self.drawPath(player.path, player.id)
 
         py.display.flip()

@@ -90,7 +90,7 @@
         "x": 41,
         "y": 14,
         "direction": "left",
-        "speed": 1,
+        "speed": 3,
         "active": true
       },
       "3": {

@@ -1,7 +1,7 @@
 import copy
 import logging
-import sys
 import random
+import sys
 
 import numpy as np
 
@@ -13,6 +13,7 @@ logger = logging.getLogger()
 logger.disabled = True
 
 
+
 class Player(object):
     def __init__(self, id: int, x: int, y: int, directionOfLooking: str, active: bool, speed: int):
         self.id = id
@@ -21,6 +22,17 @@ class Player(object):
         self.directionOfLooking = DirectionOfLooking[directionOfLooking.upper()]
         self.active = active
         self.speed = speed
+        self.path = []
+
+    def printMatrix(self, matrix):
+        for y in matrix:
+            line = ""
+            for x in y:
+                line += ((str(x) if len(str(x)) == 2 else "0" + str(x)) + " ")
+            print(line)
+
+    def isCoordinateFree(self, x, y, playground):
+        return playground.coordinateSystem[y][x] == 0
 
     def turnDirectionOfLooking(self, directionOfLooking: DirectionOfLooking):
         """Turns current direction to given direction if possible"""
@@ -60,15 +72,15 @@ class Player(object):
         self.speed = 0
         self.active = False
 
-    def tryToSurvive(self, playground):
+    def tryToSurvive(self, playgroundPresenter):
+        playground = playgroundPresenter.getPlayground()
         """Different strategies to keep the player alive"""
         if self.active:
-
 
             # Strategie: Weit entferntestes Feld finden
             maxval, maxvalX, maxvalY, tempCS = self.findFurthestField(playground)
 
-            if not self.moveToFurthestField(playground, maxvalX, maxvalY):
+            if not self.moveToFurthestField(playgroundPresenter, maxvalX, maxvalY, tempCS):
                 print("CANT FIND ZE PATH, I TRY TO BIEG AB!")
                 self.fallBackPlan(playground)
 
@@ -331,25 +343,54 @@ class Player(object):
                     tempCS[checkY][checkX] = -1
                     return False
 
-    def moveToFurthestField(self, playground, maxvalX, maxvalY):
+    def moveToFurthestField(self, playgroundPresenter, maxvalX, maxvalY, tempCS):
+        playground = playgroundPresenter.getPlayground()
 
         # Use a Fancy Technic to calculate the mindblown most Intelligent way from start to end
         # Get the Best Path for each Speed
         finder = AStar(playground.coordinateSystem, self.x, self.y, self.speed, playground.getTurn())
+
+        oldmaxVal = (maxvalX, maxvalY)
+        # Correct maxvalX and maxvalY
+        if maxvalX % self.speed != self.x % self.speed:
+            newmaxvalx = self.x
+            if maxvalX < self.x:
+                while newmaxvalx > maxvalX and newmaxvalx - self.speed >= 0:
+                    newmaxvalx -= self.speed
+            if maxvalX > self.x:
+                while newmaxvalx < maxvalX and newmaxvalx + self.speed < len(playground.coordinateSystem[0]):
+                    newmaxvalx += self.speed
+            maxvalX = newmaxvalx
+
+        if maxvalY % self.speed != self.y % self.speed:
+            newmaxvaly = self.y
+            if maxvalY < self.y:
+                while newmaxvaly > maxvalY and newmaxvaly - self.speed >= 0:
+                    newmaxvaly -= self.speed
+            if maxvalY > self.y:
+                while newmaxvaly < maxvalY and newmaxvaly + self.speed < len(playground.coordinateSystem):
+                    newmaxvaly += self.speed
+            maxvalY = newmaxvaly
+
+        oldpath = playground.players[int(self.id) - 1].path
+        if not self.isCoordinateFree(maxvalX, maxvalY, playground) and oldpath is not None:
+            for coord in reversed(oldpath):
+                if self.isCoordinateFree(coord[0], coord[1], playground):
+                    maxvalX = coord[0]
+                    maxvalY = coord[1]
+
         path = finder.solve((maxvalX, maxvalY))
 
-        '''pathcoords = path
-        PP = PlaygroundPresenter
-        for i in range(0, len(pathcoords)):
-            pathcoords[i] = [pathcoords[i][0] * (PP.blockwidth / 2), pathcoords[i][1] * (PP.blockwidth) / 2]
-        PP.py.draw.lines(PP.py.display.get_active(), PP.playerColors[self.id], False, pathcoords)
-        '''
+        # PP = PlaygroundPresenter(playground, len(playground.coordinateSystem), len(playground.coordinateSystem[0]))
+        self.path = path
 
         if path != None and len(path) > 0:
             print("Neuer Pfad:" + str(path))
         else:
+            self.printMatrix(tempCS)
+            print("Nix Pfad gefunden :/ von " + str(self.x) + ":" + str(self.y) + " nach " + str(maxvalX) + ":" + str(
+                maxvalY))
             return False
-        print("Neuer Pfad:" + str(path))
 
         firstPathX = path[1][0]
         firstPathY = path[1][1]

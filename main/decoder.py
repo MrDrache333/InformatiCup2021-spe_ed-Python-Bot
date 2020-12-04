@@ -7,7 +7,7 @@ from game.Playground import Playground
 from game.graphic.PlaygroundPresenter import PlaygroundPresenter
 from game.player.DirectionOfLooking import DirectionOfLooking
 
-with open('spe_ed-10x15.json') as f:
+with open('spe_ed-1603447830516.json') as f:
     data = json.load(f)
 
 width = data[0]['width']
@@ -31,6 +31,11 @@ playground = Playground(interpreter.getCellsFromLoadedJson(data), interpreter.ge
 playgroundPresenter = PlaygroundPresenter(playground, width, height)
 clock = pygame.time.Clock()
 running = True
+
+
+def getPlaygroundPresenter():
+    return playgroundPresenter
+
 
 # Den eigenen Spieler heraussuchen
 ownPlayer = None
@@ -65,7 +70,7 @@ while running:
         pygame.quit()
 
     for player in playground.players:
-        player.tryToSurvive(playground)
+        player.tryToSurvive(playgroundPresenter)
     # ownPlayer.tryToSurvive(playground)
 
     playground.movePlayer()
