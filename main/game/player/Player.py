@@ -62,18 +62,16 @@ class Player(object):
         if self.active:
 
             # Strategie: Weit entferntestes Feld finden
-            maxval, maxvalX, maxvalY = self.findFurthestField(playground)
-
-            # if maxval < x
-            self.jumpOverWall(playground)
-
-            # else
+            maxval, maxvalX, maxvalY, tempCS = self.findFurthestField(playground)
 
             if not self.moveToFurthestField(playground, maxvalX, maxvalY):
+                print("CANT FIND ZE PATH, I TRY TO BIEG AB!")
                 self.fallBackPlan(playground)
 
-    def jumpOverWall(self, playgound):
-
+    def jumpOverWall(self, playground):
+        '''
+        Look again for furthest field, but this time with a jump and wall
+        '''
         pass
 
     def findFurthestField(self, playground):
@@ -86,6 +84,7 @@ class Player(object):
         newNodes = []
         tempCS = copy.deepcopy(playground.coordinateSystem)
         count = 10
+        turn = playground.getTurn()
 
         # So lange zu prüfende Knoten verfügbar sind
         while len(currentNodes) > 0:
@@ -95,7 +94,7 @@ class Player(object):
                 x = currentNodes[0][0]
                 y = currentNodes[0][1]
                 logger.debug("CurrentNodes Entry: [" + str(x) + ", " + str(y) + "]")
-                self.checkAllNodesSurround(tempCS, x, y, count)
+                self.checkAllNodesSurround(tempCS, x, y, count, turn)
                 currentNodes.remove(currentNodes[0])
 
              # Füge neu entdeckte Knoten hinzu nachdem alle aktuellen Knoten geprüft wurden
@@ -105,6 +104,10 @@ class Player(object):
                 newNodes.remove(newNodes[0])
 
             count += 1
+            if turn < 6:
+                turn += 1
+            else:
+                turn = 1
 
             logger.debug("---------------")
             for c in tempCS:
@@ -123,48 +126,48 @@ class Player(object):
                     maxvalX = j
                     maxvalY = i
                     logger.debug("Max Val (" + str(maxval) + ") at [" + str(j) + ", " + str(i) + "]")
-                    return maxval, maxvalX, maxvalY
+                    return maxval, maxvalX, maxvalY, tempCS
 
-    def checkAllNodesSurround(self, tempCS, x, y, count):
+    def checkAllNodesSurround(self, tempCS, x, y, count, turn):
         '''Checks all surrounding nodes of a given node'''
         # up
-        self.checkUp(tempCS, x, y, count)
+        self.checkUp(tempCS, x, y, count, turn)
         # right
-        self.checkRight(tempCS, x, y, count)
+        self.checkRight(tempCS, x, y, count, turn)
         # left
-        self.checkLeft(tempCS, x, y, count)
+        self.checkLeft(tempCS, x, y, count, turn)
         # down
-        self.checkDown(tempCS, x, y, count)
+        self.checkDown(tempCS, x, y, count, turn)
 
-    def checkRight(self, tempCS, currentPosX, currentPosY, count):
+    def checkRight(self, tempCS, currentPosX, currentPosY, count, turn):
         '''Checks the right node'''
         checkX = currentPosX + 1
         checkY = currentPosY
-        self.checkPos(tempCS, checkX, checkY, count)
+        self.checkPos(tempCS, checkX, checkY, count, turn)
 
-    def checkUp(self, tempCS, currentPosX, currentPosY, count):
+    def checkUp(self, tempCS, currentPosX, currentPosY, count, turn):
         '''Checks the upper node'''
         checkX = currentPosX
         checkY = currentPosY - 1
-        self.checkPos(tempCS, checkX, checkY, count)
+        self.checkPos(tempCS, checkX, checkY, count, turn)
 
-    def checkDown(self, tempCS, currentPosX, currentPosY, count):
+    def checkDown(self, tempCS, currentPosX, currentPosY, count, turn):
         '''Checks the node below'''
         checkX = currentPosX
         checkY = currentPosY + 1
-        self.checkPos(tempCS, checkX, checkY, count)
+        self.checkPos(tempCS, checkX, checkY, count, turn)
 
-    def checkLeft(self, tempCS, currentPosX, currentPosY, count):
+    def checkLeft(self, tempCS, currentPosX, currentPosY, count, turn):
         '''Checks the left node'''
         checkX = currentPosX - 1
         checkY = currentPosY
-        self.checkPos(tempCS, checkX, checkY, count)
+        self.checkPos(tempCS, checkX, checkY, count, turn)
 
-    def checkPos(self, tempCS, checkX, checkY, count):
+    def checkPos(self, tempCS, checkX, checkY, count, turn):
         '''Checks if the given node is free or occupied'''
 
         if checkX >= 0 and checkX < len(tempCS[0]) and checkY >= 0 and checkY < len(tempCS):
-            if tempCS[checkY][checkX] == 0 or count == 10:
+            if tempCS[checkY][checkX] == 0 or count == 10 or (turn == 6 and self.speed >= 3):
                 tempCS[checkY][checkX] = count
                 #print("New Node Entry: [" + str(checkX) + ", " + str(checkY) + "]")
                 newNodes.append((checkX, checkY))
@@ -214,7 +217,6 @@ class Player(object):
         return True
 
     def fallBackPlan(self, playground):
-        print("CANT FIND ZE PATH, I TRY TO BIEG AB!")
 
         # Prüfe wie viele Blöcke in jeder Richtung frei sind
         freeBlocks = [playground.countBlocksInStraightLine(self, DirectionOfLooking.UP),

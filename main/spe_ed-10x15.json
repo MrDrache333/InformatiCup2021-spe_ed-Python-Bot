@@ -33,7 +33,7 @@
         "x": 8,
         "y": 21,
         "direction": "up",
-        "speed": 1,
+        "speed": 3,
         "active": true
       }
     },
