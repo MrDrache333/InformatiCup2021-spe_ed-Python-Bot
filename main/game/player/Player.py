@@ -265,7 +265,7 @@ class Player(object):
         for i in range(self.speed):
             checkX = currentPosX + (i + 1)
             checkY = currentPosY
-            if turn == 6 and (self.speed - 2) < (i + 1) < (self.speed):
+            if turn == 6 and (self.speed - 2) < (i + 1) < self.speed:
                 jump = True
             else:
                 jump = False
@@ -334,14 +334,16 @@ class Player(object):
     def moveToFurthestField(self, playgroundPresenter, maxvalX, maxvalY, tempCS):
         playground = playgroundPresenter.getPlayground()
 
+        # Use a Fancy Technic to calculate the mindblown most Intelligent way from start to end
+        # Get the Best Path for each Speed
+        finder = AStar(playground.coordinateSystem, self.x, self.y, self.speed, playground.getTurn())
+
         if not self.isCoordinateFree(maxvalX, maxvalY, playground):
             print("Maximal entfernte gegebenen Koordinate ist bereits belegt!")
         if (maxvalX % self.speed != self.x % self.speed) or (maxvalY % self.speed != self.y % self.speed):
             print("Maximal entfernte gegebenen Koordinate ist NICHT erreichbar!")
-        """
-        # Find nearest Valid Coordinate. (Just valid for current Speed)
-        newmaxvalx = maxvalX
-        newmaxvaly = maxvalY
+        oldmaxVal = (maxvalX, maxvalY)
+        # Correct maxvalX and maxvalY
         if maxvalX % self.speed != self.x % self.speed:
             newmaxvalx = self.x
             if maxvalX < self.x:
@@ -350,6 +352,7 @@ class Player(object):
             if maxvalX > self.x:
                 while newmaxvalx < maxvalX and newmaxvalx + self.speed < len(playground.coordinateSystem[0]):
                     newmaxvalx += self.speed
+            maxvalX = newmaxvalx
 
         if maxvalY % self.speed != self.y % self.speed:
             newmaxvaly = self.y
@@ -359,52 +362,21 @@ class Player(object):
             if maxvalY > self.y:
                 while newmaxvaly < maxvalY and newmaxvaly + self.speed < len(playground.coordinateSystem):
                     newmaxvaly += self.speed
-        """
-        # Correct Dest-Coord if not available
-        maxvalX = self.x
-        maxvalY = self.y
-        print("NOTLÖSUNG versucht Koordinate zu korrigieren!")
-        count = 1
-        highestDistance = 0
-        highestReachable = []
-        # Stores if every checked coordinate is out of bounds
+            maxvalY = newmaxvaly
 
-        while (len(playground.coordinateSystem[0]) > (count * self.speed + self.x) >= 0) or (
-                len(playground.coordinateSystem) > (count * self.speed + self.y) >= 0) or (
-                len(playground.coordinateSystem[0]) > (self.x - count * self.speed) >= 0) or (
-                len(playground.coordinateSystem) > (self.y - count * self.speed) >= 0):
-            for ym in range(count * -1, count + 1):
-                for xm in range(count * -1, count + 1):
-                    # If Cells to test were already tested, next
-                    if abs(xm) < count and abs(ym) < count:
-                        continue
-                    # Calc new Coordinate to check
-                    tempX = self.x + xm * self.speed
-                    tempY = self.y + ym * self.speed
-                    # Test if new coordinate is out of bounds
-                    if not (len(playground.coordinateSystem[0]) > tempX >= 0) or not (
-                            len(playground.coordinateSystem) > tempY >= 0):
-                        continue
-                    # Test if new Coord is free and has lower Distance than current
-                    if self.isCoordinateFree(tempX, tempY, playground):
-                        dist = abs(maxvalX - tempX) + abs(maxvalY - tempY)
-                        if dist >= highestDistance:
-                            highestDistance = dist
-                            highestReachable.append([tempX, tempY])
-            count += 1
-        # Reverse List to start with highest Distance
-        highestReachable = highestReachable[::-1]
-        path = []
-        for coord in highestReachable:
-            finder = AStar(playground.coordinateSystem, self.x, self.y, self.speed, playground.getTurn())
-            path = finder.solve(coord)
-            if path is not None and len(path) > 0:
-                break
+        oldpath = playground.players[int(self.id) - 1].path
+        if not self.isCoordinateFree(maxvalX, maxvalY, playground) and oldpath is not None:
+            for coord in reversed(oldpath):
+                if self.isCoordinateFree(coord[0], coord[1], playground):
+                    maxvalX = coord[0]
+                    maxvalY = coord[1]
 
-        # Store current Path for later Drawing and reuse
+        path = finder.solve((maxvalX, maxvalY))
+
+        # PP = PlaygroundPresenter(playground, len(playground.coordinateSystem), len(playground.coordinateSystem[0]))
         self.path = path
 
-        if path is not None and len(path) > 0:
+        if path != None and len(path) > 0:
             print("Neuer Pfad:" + str(path))
         else:
             # self.printMatrix(tempCS)
