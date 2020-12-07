@@ -342,8 +342,8 @@ class Player(object):
         if (maxvalX % self.speed != self.x % self.speed) or (maxvalY % self.speed != self.y % self.speed):
             hasToBeCorrected = True
             print("Maximal entfernte gegebenen Koordinate ist NICHT erreichbar!")
-        oldmaxVal = (maxvalX, maxvalY)
-        # Correct maxvalX and maxvalY
+
+        # Correct maxvalX and maxvalY by selecting the Nearest Cell to the Initial One
         if maxvalX % self.speed != self.x % self.speed:
             newmaxvalx = self.x
             if maxvalX < self.x:
@@ -373,10 +373,10 @@ class Player(object):
             print("NOTLÖSUNG: Versuche Koordinate zu korrigieren!")
             count = 1
             fastestReachable = []
-            while (len(playground.coordinateSystem[0]) > (count * self.speed + self.x) >= 0) or (
+            while (count < 3 and (len(playground.coordinateSystem[0]) > (count * self.speed + self.x) >= 0) or (
                     len(playground.coordinateSystem) > (count * self.speed + self.y) >= 0) or (
-                    len(playground.coordinateSystem[0]) > (self.x - count * self.speed) >= 0) or (
-                    len(playground.coordinateSystem) > (self.y - count * self.speed) >= 0):
+                           len(playground.coordinateSystem[0]) > (self.x - count * self.speed) >= 0) or (
+                           len(playground.coordinateSystem) > (self.y - count * self.speed) >= 0)):
                 for ym in range(count * -1, count + 1):
                     for xm in range(count * -1, count + 1):
                         # If Cells to test were already tested, next
