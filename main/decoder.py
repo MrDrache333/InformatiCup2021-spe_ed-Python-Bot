@@ -51,23 +51,23 @@ while running:
     # pygame.time.delay(500//60)
     # clock.tick(1000 // 800)
     clock.tick(1000 // 25)
-
-    # Benutzereingabe prüfen
-    keys = pygame.key.get_pressed()
-    if keys[pygame.K_UP] or keys[pygame.K_w]:
-        ownPlayer.turnDirectionOfLooking(DirectionOfLooking.UP)
-    elif keys[pygame.K_DOWN] or keys[pygame.K_s]:
-        ownPlayer.turnDirectionOfLooking(DirectionOfLooking.DOWN)
-    elif keys[pygame.K_LEFT] or keys[pygame.K_a]:
-        ownPlayer.turnDirectionOfLooking(DirectionOfLooking.LEFT)
-    elif keys[pygame.K_RIGHT] or keys[pygame.K_d]:
-        ownPlayer.turnDirectionOfLooking(DirectionOfLooking.RIGHT)
-    elif keys[pygame.K_RSHIFT] or keys[pygame.K_LSHIFT]:
-        print("Speed Up!")
-        ownPlayer.speedUp()
-    elif keys[pygame.K_RCTRL] or keys[pygame.K_LCTRL]:
-        ownPlayer.speedDown()
-    elif keys[pygame.K_q]:
+    if ownPlayer.active:
+        # Benutzereingabe prüfen
+        keys = pygame.key.get_pressed()
+        if keys[pygame.K_UP] or keys[pygame.K_w]:
+            ownPlayer.turnDirectionOfLooking(DirectionOfLooking.UP)
+        elif keys[pygame.K_DOWN] or keys[pygame.K_s]:
+            ownPlayer.turnDirectionOfLooking(DirectionOfLooking.DOWN)
+        elif keys[pygame.K_LEFT] or keys[pygame.K_a]:
+            ownPlayer.turnDirectionOfLooking(DirectionOfLooking.LEFT)
+        elif keys[pygame.K_RIGHT] or keys[pygame.K_d]:
+            ownPlayer.turnDirectionOfLooking(DirectionOfLooking.RIGHT)
+        elif keys[pygame.K_RSHIFT] or keys[pygame.K_LSHIFT]:
+            print("Speed Up!")
+            ownPlayer.speedUp()
+        elif keys[pygame.K_RCTRL] or keys[pygame.K_LCTRL]:
+            ownPlayer.speedDown()
+    if keys[pygame.K_q]:
         pygame.quit()
 
     active = 0

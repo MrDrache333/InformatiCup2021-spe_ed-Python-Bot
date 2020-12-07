@@ -364,19 +364,45 @@ class Player(object):
                     newmaxvaly += self.speed
             maxvalY = newmaxvaly
 
-        oldpath = playground.players[int(self.id) - 1].path
-        if not self.isCoordinateFree(maxvalX, maxvalY, playground) and oldpath is not None:
-            for coord in reversed(oldpath):
-                if self.isCoordinateFree(coord[0], coord[1], playground):
-                    maxvalX = coord[0]
-                    maxvalY = coord[1]
-
-        path = finder.solve((maxvalX, maxvalY))
+        # NOTLÖSUNG, falls kein Pfad vorhanden
+        print("NOTLÖSUNG: Versuche Koordinate zu korrigieren!")
+        count = 1
+        lowestDistance = 999
+        fastestReachable = []
+        while (len(playground.coordinateSystem[0]) > (count * self.speed + self.x) >= 0) or (
+                len(playground.coordinateSystem) > (count * self.speed + self.y) >= 0) or (
+                len(playground.coordinateSystem[0]) > (self.x - count * self.speed) >= 0) or (
+                len(playground.coordinateSystem) > (self.y - count * self.speed) >= 0):
+            for ym in range(count * -1, count + 1):
+                for xm in range(count * -1, count + 1):
+                    # If Cells to test were already tested, next
+                    if abs(xm) < count and abs(ym) < count:
+                        continue
+                    # Calc new Coordinate to check
+                    tempX = maxvalX + xm * self.speed
+                    tempY = maxvalY + ym * self.speed
+                    # Test if new coordinate is out of bounds
+                    if not (len(playground.coordinateSystem[0]) > tempX >= 0) or not (
+                            len(playground.coordinateSystem) > tempY >= 0):
+                        continue
+                    # Test if new Coord is free and has lower Distance than current
+                    if self.isCoordinateFree(tempX, tempY, playground):
+                        dist = abs(maxvalX - tempX) + abs(maxvalY - tempY)
+                        if dist <= lowestDistance:
+                            lowestDistance = dist
+                            fastestReachable.append([tempX, tempY])
+            count += 1
+        path = []
+        for coord in fastestReachable:
+            finder = AStar(playground.coordinateSystem, self.x, self.y, self.speed, playground.getTurn())
+            path = finder.solve(coord)
+            if path is not None and len(path) > 0:
+                break
 
         # PP = PlaygroundPresenter(playground, len(playground.coordinateSystem), len(playground.coordinateSystem[0]))
         self.path = path
 
-        if path != None and len(path) > 0:
+        if path is not None and len(path) > 0:
             print("Neuer Pfad:" + str(path))
         else:
             # self.printMatrix(tempCS)
