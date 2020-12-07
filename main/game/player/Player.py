@@ -350,6 +350,10 @@ class Player(object):
         # Get the Best Path for each Speed
         finder = AStar(playground.coordinateSystem, self.x, self.y, self.speed, playground.getTurn())
 
+        if not self.isCoordinateFree(maxvalX, maxvalY, playground):
+            print("Maximal entfernte gegebenen Koordinate ist bereits belegt!")
+        if (maxvalX % self.speed != self.x % self.speed) or (maxvalY % self.speed != self.y % self.speed):
+            print("Maximal entfernte gegebenen Koordinate ist NICHT erreichbar!")
         oldmaxVal = (maxvalX, maxvalY)
         # Correct maxvalX and maxvalY
         if maxvalX % self.speed != self.x % self.speed:
@@ -387,7 +391,7 @@ class Player(object):
         if path != None and len(path) > 0:
             print("Neuer Pfad:" + str(path))
         else:
-            self.printMatrix(tempCS)
+            # self.printMatrix(tempCS)
             print("Nix Pfad gefunden :/ von " + str(self.x) + ":" + str(self.y) + " nach " + str(maxvalX) + ":" + str(
                 maxvalY))
             return False
