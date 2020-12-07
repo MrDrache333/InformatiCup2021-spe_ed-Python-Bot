@@ -13,7 +13,6 @@ logger = logging.getLogger()
 logger.disabled = True
 
 
-
 class Player(object):
     def __init__(self, id: int, x: int, y: int, directionOfLooking: str, active: bool, speed: int):
         self.id = id
@@ -23,6 +22,7 @@ class Player(object):
         self.active = active
         self.speed = speed
         self.path = []
+        self.fitness = 0
 
     def printMatrix(self, matrix):
         for y in matrix:
@@ -70,25 +70,20 @@ class Player(object):
     def die(self):
         """Player cant move any further so it dies"""
         self.speed = 0
+        self.path = []
         self.active = False
 
     def tryToSurvive(self, playgroundPresenter):
-        playground = playgroundPresenter.getPlayground()
         """Different strategies to keep the player alive"""
         if self.active:
 
+            playground = playgroundPresenter.getPlayground()
             # Strategie: Weit entferntestes Feld finden
             maxval, maxvalX, maxvalY, tempCS = self.findFurthestField(playground)
 
             if not self.moveToFurthestField(playgroundPresenter, maxvalX, maxvalY, tempCS):
                 print("CANT FIND ZE PATH, I TRY TO BIEG AB!")
                 self.fallBackPlan(playground)
-
-    def jumpOverWall(self, playground):
-        '''
-        Look again for furthest field, but this time with a jump and wall
-        '''
-        pass
 
     def rideAlongSideWall(self, playground):
         """Finds the nearest Wall and tries to ride alongside it while reducing the players speed to 1. The resulting
@@ -118,12 +113,13 @@ class Player(object):
 
         freeBlocksWithoutDuplicateValues = {}
 
-        #remove double values from freeBlocks, so that "min" operation does not  fail
-        for key,value in freeBlocks.items():
+        # remove double values from freeBlocks, so that "min" operation does not  fail
+        for key, value in freeBlocks.items():
             if value not in freeBlocksWithoutDuplicateValues.values():
                 freeBlocksWithoutDuplicateValues[key] = value
 
-        distanceOfNearestWall, directionOfClosestWall = min(zip(freeBlocksWithoutDuplicateValues.values(), freeBlocksWithoutDuplicateValues.keys()))
+        distanceOfNearestWall, directionOfClosestWall = min(
+            zip(freeBlocksWithoutDuplicateValues.values(), freeBlocksWithoutDuplicateValues.keys()))
 
         if distanceOfNearestWall == 0:
             if not self.directionOfLooking == directionOfClosestWall:
@@ -136,9 +132,9 @@ class Player(object):
                         (setOfDirections.index(self.directionOfLooking) + 1) % 4]
                     self.directionOfLooking = directionThePlayerShouldTurnTo
                 else:
-                    #if the player would move into a one wide gap, change direction
+                    # if the player would move into a one wide gap, change direction
 
-                    #go one field forward look left and right
+                    # go one field forward look left and right
                     currentX, currentY = self.x, self.y
                     currentX += self.directionOfLooking.value[0]
                     currentY += self.directionOfLooking.value[1]
@@ -150,8 +146,8 @@ class Player(object):
                         tempX = currentX + direction.value[0]
                         tempY = currentY + direction.value[1]
                         if len(playground.coordinateSystem[0]) > tempX and len(playground.coordinateSystem) > tempY:
-                                if not playground.coordinateSystem[tempY][tempX] == 0:
-                                    isGapOneCellWide += 1
+                            if not playground.coordinateSystem[tempY][tempX] == 0:
+                                isGapOneCellWide += 1
 
                     if isGapOneCellWide == 2:
                         directionThePlayerShouldTurnTo = setOfDirections[
@@ -195,8 +191,7 @@ class Player(object):
         logger.disabled = True
 
         global newNodes
-        currentNodes = []
-        currentNodes.append((self.x, self.y))
+        currentNodes = [(self.x, self.y)]
         newNodes = []
         tempCS = copy.deepcopy(playground.coordinateSystem)
         count = 10
@@ -204,10 +199,10 @@ class Player(object):
         tempSpeed = self.speed
 
         # So lange zu prüfende Knoten verfügbar sind
-        while len(currentNodes) > 0:
+        while currentNodes:
 
             # Iteriere über alle anliegenden Knoten
-            while len(currentNodes) > 0:
+            while currentNodes:
                 x = currentNodes[0][0]
                 y = currentNodes[0][1]
                 logger.debug("CurrentNodes Entry: [" + str(x) + ", " + str(y) + "]")
@@ -215,7 +210,7 @@ class Player(object):
                 currentNodes.remove(currentNodes[0])
 
             # Füge neu entdeckte Knoten hinzu nachdem alle aktuellen Knoten geprüft wurden
-            while len(newNodes) > 0:
+            while newNodes:
                 currentNodes.append(newNodes[0])
                 logger.debug(" -- " + str(newNodes[0]) + " -> currentNodes")
                 newNodes.remove(newNodes[0])
@@ -242,7 +237,16 @@ class Player(object):
                 if value == maxval:
                     maxvalX = j
                     maxvalY = i
-                    logger.debug("Max Val (" + str(maxval) + ") at [" + str(j) + ", " + str(i) + "]")
+                    logger.debug(
+                        "Max Val ("
+                        + str(maxval)
+                        + ") at ["
+                        + str(maxvalX)
+                        + ", "
+                        + str(maxvalY)
+                        + "]"
+                    )
+
                     return maxval, maxvalX, maxvalY, tempCS
 
     def checkAllNodesSurround(self, tempCS, x, y, count, turn):
@@ -266,11 +270,7 @@ class Player(object):
             else:
                 jump = False
 
-            if (i + 1) == self.speed:
-                add = True
-            else:
-                add = False
-
+            add = (i + 1) == self.speed
             if not self.checkPos(tempCS, checkX, checkY, count, jump, add):
                 break
 
@@ -279,16 +279,12 @@ class Player(object):
         for i in range(self.speed):
             checkX = currentPosX
             checkY = currentPosY - (i + 1)
-            if turn == 6 and (self.speed - 2) < (i + 1) < (self.speed):
+            if turn == 6 and (self.speed - 2) < (i + 1) < self.speed:
                 jump = True
             else:
                 jump = False
 
-            if (i + 1) == self.speed:
-                add = True
-            else:
-                add = False
-
+            add = (i + 1) == self.speed
             if not self.checkPos(tempCS, checkX, checkY, count, jump, add):
                 break
 
@@ -302,11 +298,7 @@ class Player(object):
             else:
                 jump = False
 
-            if (i + 1) == self.speed:
-                add = True
-            else:
-                add = False
-
+            add = (i + 1) == self.speed
             if not self.checkPos(tempCS, checkX, checkY, count, jump, add):
                 break
 
@@ -320,18 +312,14 @@ class Player(object):
             else:
                 jump = False
 
-            if (i + 1) == self.speed:
-                add = True
-            else:
-                add = False
-
+            add = (i + 1) == self.speed
             if not self.checkPos(tempCS, checkX, checkY, count, jump, add):
                 break
 
     def checkPos(self, tempCS, checkX, checkY, count, jump, add):
         '''Checks if the given node is free or occupied'''
 
-        if checkX >= 0 and checkX < len(tempCS[0]) and checkY >= 0 and checkY < len(tempCS):
+        if 0 <= checkX < len(tempCS[0]) and 0 <= checkY < len(tempCS):
             if tempCS[checkY][checkX] == 0 or (jump and tempCS[checkY][checkX] < 10):
                 tempCS[checkY][checkX] = count
                 # print("New Node Entry: [" + str(checkX) + ", " + str(checkY) + "]")
@@ -346,16 +334,14 @@ class Player(object):
     def moveToFurthestField(self, playgroundPresenter, maxvalX, maxvalY, tempCS):
         playground = playgroundPresenter.getPlayground()
 
-        # Use a Fancy Technic to calculate the mindblown most Intelligent way from start to end
-        # Get the Best Path for each Speed
-        finder = AStar(playground.coordinateSystem, self.x, self.y, self.speed, playground.getTurn())
-
         if not self.isCoordinateFree(maxvalX, maxvalY, playground):
             print("Maximal entfernte gegebenen Koordinate ist bereits belegt!")
         if (maxvalX % self.speed != self.x % self.speed) or (maxvalY % self.speed != self.y % self.speed):
             print("Maximal entfernte gegebenen Koordinate ist NICHT erreichbar!")
-        oldmaxVal = (maxvalX, maxvalY)
-        # Correct maxvalX and maxvalY
+        """
+        # Find nearest Valid Coordinate. (Just valid for current Speed)
+        newmaxvalx = maxvalX
+        newmaxvaly = maxvalY
         if maxvalX % self.speed != self.x % self.speed:
             newmaxvalx = self.x
             if maxvalX < self.x:
@@ -364,7 +350,6 @@ class Player(object):
             if maxvalX > self.x:
                 while newmaxvalx < maxvalX and newmaxvalx + self.speed < len(playground.coordinateSystem[0]):
                     newmaxvalx += self.speed
-            maxvalX = newmaxvalx
 
         if maxvalY % self.speed != self.y % self.speed:
             newmaxvaly = self.y
@@ -374,21 +359,52 @@ class Player(object):
             if maxvalY > self.y:
                 while newmaxvaly < maxvalY and newmaxvaly + self.speed < len(playground.coordinateSystem):
                     newmaxvaly += self.speed
-            maxvalY = newmaxvaly
+        """
+        # Correct Dest-Coord if not available
+        maxvalX = self.x
+        maxvalY = self.y
+        print("NOTLÖSUNG versucht Koordinate zu korrigieren!")
+        count = 1
+        highestDistance = 0
+        highestReachable = []
+        # Stores if every checked coordinate is out of bounds
 
-        oldpath = playground.players[int(self.id) - 1].path
-        if not self.isCoordinateFree(maxvalX, maxvalY, playground) and oldpath is not None:
-            for coord in reversed(oldpath):
-                if self.isCoordinateFree(coord[0], coord[1], playground):
-                    maxvalX = coord[0]
-                    maxvalY = coord[1]
+        while (len(playground.coordinateSystem[0]) > (count * self.speed + self.x) >= 0) or (
+                len(playground.coordinateSystem) > (count * self.speed + self.y) >= 0) or (
+                len(playground.coordinateSystem[0]) > (self.x - count * self.speed) >= 0) or (
+                len(playground.coordinateSystem) > (self.y - count * self.speed) >= 0):
+            for ym in range(count * -1, count + 1):
+                for xm in range(count * -1, count + 1):
+                    # If Cells to test were already tested, next
+                    if abs(xm) < count and abs(ym) < count:
+                        continue
+                    # Calc new Coordinate to check
+                    tempX = self.x + xm * self.speed
+                    tempY = self.y + ym * self.speed
+                    # Test if new coordinate is out of bounds
+                    if not (len(playground.coordinateSystem[0]) > tempX >= 0) or not (
+                            len(playground.coordinateSystem) > tempY >= 0):
+                        continue
+                    # Test if new Coord is free and has lower Distance than current
+                    if self.isCoordinateFree(tempX, tempY, playground):
+                        dist = abs(maxvalX - tempX) + abs(maxvalY - tempY)
+                        if dist >= highestDistance:
+                            highestDistance = dist
+                            highestReachable.append([tempX, tempY])
+            count += 1
+        # Reverse List to start with highest Distance
+        highestReachable = highestReachable[::-1]
+        path = []
+        for coord in highestReachable:
+            finder = AStar(playground.coordinateSystem, self.x, self.y, self.speed, playground.getTurn())
+            path = finder.solve(coord)
+            if path is not None and len(path) > 0:
+                break
 
-        path = finder.solve((maxvalX, maxvalY))
-
-        # PP = PlaygroundPresenter(playground, len(playground.coordinateSystem), len(playground.coordinateSystem[0]))
+        # Store current Path for later Drawing and reuse
         self.path = path
 
-        if path != None and len(path) > 0:
+        if path is not None and len(path) > 0:
             print("Neuer Pfad:" + str(path))
         else:
             # self.printMatrix(tempCS)

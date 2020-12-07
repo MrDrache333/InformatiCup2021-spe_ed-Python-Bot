@@ -46,10 +46,11 @@ for player in playground.players:
 if ownPlayer is None:
     exit("Invalid Players")
 
+printedStatistics = False
 while running:
     # pygame.time.delay(500//60)
     # clock.tick(1000 // 800)
-    clock.tick(1000 // 200)
+    clock.tick(1000 // 25)
 
     # Benutzereingabe prüfen
     keys = pygame.key.get_pressed()
@@ -69,13 +70,22 @@ while running:
     elif keys[pygame.K_q]:
         pygame.quit()
 
+    active = 0
     for player in playground.players:
-        player.tryToSurvive(playgroundPresenter)
-    # ownPlayer.tryToSurvive(playground)
+        if player.active:
+            active += 1
+            player.tryToSurvive(playgroundPresenter)
+            player.fitness += 1
+    if active == 0 and not printedStatistics:
+        print("--- Statistiken ---")
+        for player in playground.players:
+            print("Spieler " + str(player.id) + ": " + str(player.fitness))
+            printedStatistics = True
+    else:
+        playground.movePlayer()
+        playgroundPresenter.playground = playground
+        playgroundPresenter.updateGameField()
 
-    playground.movePlayer()
-    playgroundPresenter.playground = playground
-    playgroundPresenter.updateGameField()
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False
