@@ -193,8 +193,8 @@ if ONLINE:
                 print("Zeitüberschreitung bei Verbindungsaufbau!")
             print(e)
 
-        for i in range(10, 0, -1):
-            print("Warte " + str(i) + " Sekunden, bis zum erneuten Start!")
+        for i in range(5, 0, -1):
+            print("Warte " + str(i - 1) + " Sekunden, bis zum erneuten Start!")
             time.sleep(1)
 else:
     asyncio.get_event_loop().run_until_complete(game.playOffline())
