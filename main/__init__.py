@@ -10,7 +10,7 @@ from game.graphic.PlaygroundPresenter import PlaygroundPresenter
 # Play online via API-Key, or Offline
 from game.player.DirectionOfLooking import DirectionOfLooking
 
-ONLINE = True
+ONLINE = False
 
 
 class Game(object):
@@ -43,7 +43,7 @@ class Game(object):
         print("Your are Player " + str(data[0]['you']))
 
     async def playOffline(self):
-        with open('spe_ed-1603447830516.json') as f:
+        with open('spe_ed-1603447830516_1.json') as f:
             data = json.load(f)
 
         self.width = data[0]['width']
@@ -67,7 +67,7 @@ class Game(object):
 
         while running:
             # pygame.time.delay(500//60)
-            # clock.tick(1000 // 800)
+            self.clock.tick(30)
             # clock.tick(10000)
 
             # Benutzereingabe prüfen

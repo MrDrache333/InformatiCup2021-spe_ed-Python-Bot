@@ -61,7 +61,7 @@ class AStar(object):
 
         cells = []
         # Range the next Cells must be checked to run at the Current Speed and while jumping
-        maxCellCheckRange = self.speed if self.currentTurn != 6 or self.speed < 3 else self.speed - 2
+        maxCellCheckRange = self.speed if self.currentTurn != 6 or self.speed < 3 else self.speed - 1
         if cell.x < self.grid_width - self.speed:
             passed = all(
                 self.coordinateSystem[cell.y][cell.x + i] != 1
