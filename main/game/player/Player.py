@@ -81,9 +81,11 @@ class Player(object):
             # Strategie: Weit entferntestes Feld finden
             maxval, maxvalX, maxvalY, tempCS = self.findFurthestField(playground)
 
-            if not self.moveToFurthestField(playgroundPresenter, maxvalX, maxvalY, tempCS):
-                print("CANT FIND ZE PATH, I TRY TO BIEG AB!")
-                self.fallBackPlan(playground)
+
+            if maxval != 0:
+                if not self.moveToFurthestField(playgroundPresenter, maxvalX, maxvalY, tempCS):
+                    print("CANT FIND ZE PATH, I TRY TO BIEG AB!")
+                    self.fallBackPlan(playground)
 
     def rideAlongSideWall(self, playground):
         """Finds the nearest Wall and tries to ride alongside it while reducing the players speed to 1. The resulting
@@ -198,6 +200,7 @@ class Player(object):
         turn = playground.getTurn()
         tempSpeed = self.speed
 
+
         # So lange zu prüfende Knoten verfügbar sind
         while currentNodes:
 
@@ -226,7 +229,7 @@ class Player(object):
             for c in tempCS:
                 logger.debug(c)
 
-        logger.debug("---------------")
+        print("---------------")
         for c in tempCS:
             logger.debug(c)
 
@@ -237,17 +240,33 @@ class Player(object):
                 if value == maxval:
                     maxvalX = j
                     maxvalY = i
-                    logger.debug(
-                        "Max Val ("
-                        + str(maxval)
-                        + ") at ["
-                        + str(maxvalX)
-                        + ", "
-                        + str(maxvalY)
-                        + "]"
-                    )
+                    if (maxvalX % self.speed != self.x % self.speed) or (maxvalY % self.speed != self.y % self.speed):
+                        logger.debug("Maximal entfernte gegebenen Koordinate ist NICHT erreichbar!")
+                    else:
+                        print("Max Val ("+ str(maxval)+ ") at ["+ str(maxvalX)+ ", "+ str(maxvalY) + "]")
+                        return maxval, maxvalX, maxvalY, tempCS
+        maxval =- 1
+        for (i, row) in enumerate(tempCS):
+            for (j, value) in enumerate(row):
+                if value == maxval:
+                    maxvalX = j
+                    maxvalY = i
+                    if (maxvalX % self.speed != self.x % self.speed) or (maxvalY % self.speed != self.y % self.speed):
+                        logger.debug("Maximal entfernte gegebenen Koordinate ist NICHT erreichbar!")
+                    else:
+                        print("Max Val ("+ str(maxval)+ ") at ["+ str(maxvalX)+ ", "+ str(maxvalY) + "]")
+                        return maxval, maxvalX, maxvalY, tempCS
 
-                    return maxval, maxvalX, maxvalY, tempCS
+        print("[" + str(self.id) + "]: Konnte keinen Punkt finden.")
+        for c in tempCS:
+            print()
+            for d in c:
+                if d < 10 and d >= 0:
+                    print(" " + str(d) + ", ", end='')
+                else:
+                    print(str(d) + ", ", end='')
+        print()
+        return 0, 0, 0, tempCS
 
     def checkAllNodesSurround(self, tempCS, x, y, count, turn):
         """Checks all surrounding nodes of a given node"""
@@ -262,66 +281,75 @@ class Player(object):
 
     def checkRight(self, tempCS, currentPosX, currentPosY, count, turn):
         """Checks the right node"""
-        for i in range(self.speed):
-            checkX = currentPosX + (i + 1)
-            checkY = currentPosY
-            if turn == 6 and (self.speed - 2) < (i + 1) < self.speed:
-                jump = True
-            else:
-                jump = False
+        if self.checkPos(tempCS, currentPosX+self.speed, currentPosY, -1, False, False):
 
-            add = (i + 1) == self.speed
-            if not self.checkPos(tempCS, checkX, checkY, count, jump, add):
-                break
+            for i in range(self.speed):
+                checkX = currentPosX + (i + 1)
+                checkY = currentPosY
+                if turn == 6 and (self.speed - 2) < (i + 1) < self.speed:
+                    jump = True
+                else:
+                    jump = False
+
+                add = (i + 1) == self.speed
+                if not self.checkPos(tempCS, checkX, checkY, count, jump, add):
+                    break
 
     def checkUp(self, tempCS, currentPosX, currentPosY, count, turn):
         """Checks the upper node"""
-        for i in range(self.speed):
-            checkX = currentPosX
-            checkY = currentPosY - (i + 1)
-            if turn == 6 and (self.speed - 2) < (i + 1) < self.speed:
-                jump = True
-            else:
-                jump = False
+        if self.checkPos(tempCS, currentPosX, currentPosY - self.speed, -1, False, False):
 
-            add = (i + 1) == self.speed
-            if not self.checkPos(tempCS, checkX, checkY, count, jump, add):
-                break
+            for i in range(self.speed):
+                checkX = currentPosX
+                checkY = currentPosY - (i + 1)
+                if turn == 6 and (self.speed - 2) < (i + 1) < self.speed:
+                    jump = True
+                else:
+                    jump = False
+
+                add = (i + 1) == self.speed
+                if not self.checkPos(tempCS, checkX, checkY, count, jump, add):
+                    break
 
     def checkDown(self, tempCS, currentPosX, currentPosY, count, turn):
         """Checks the node below"""
-        for i in range(self.speed):
-            checkX = currentPosX
-            checkY = currentPosY + (i + 1)
-            if turn == 6 and (self.speed - 2) < (i + 1) < self.speed:
-                jump = True
-            else:
-                jump = False
+        if self.checkPos(tempCS, currentPosX, currentPosY + self.speed, -1, False, False):
 
-            add = (i + 1) == self.speed
-            if not self.checkPos(tempCS, checkX, checkY, count, jump, add):
-                break
+            for i in range(self.speed):
+                checkX = currentPosX
+                checkY = currentPosY + (i + 1)
+                if turn == 6 and (self.speed - 2) < (i + 1) < self.speed:
+                    jump = True
+                else:
+                    jump = False
+
+                add = (i + 1) == self.speed
+                if not self.checkPos(tempCS, checkX, checkY, count, jump, add):
+                    break
 
     def checkLeft(self, tempCS, currentPosX, currentPosY, count, turn):
         """Checks the left node"""
-        for i in range(self.speed):
-            checkX = currentPosX - (i + 1)
-            checkY = currentPosY
-            if turn == 6 and (self.speed - 2) < (i + 1) < self.speed:
-                jump = True
-            else:
-                jump = False
+        if self.checkPos(tempCS, currentPosX - self.speed, currentPosY, -1, False, False):
 
-            add = (i + 1) == self.speed
-            if not self.checkPos(tempCS, checkX, checkY, count, jump, add):
-                break
+            for i in range(self.speed):
+                checkX = currentPosX - (i + 1)
+                checkY = currentPosY
+                if turn == 6 and (self.speed - 2) < (i + 1) < self.speed:
+                    jump = True
+                else:
+                    jump = False
+
+                add = (i + 1) == self.speed
+                if not self.checkPos(tempCS, checkX, checkY, count, jump, add):
+                    break
 
     def checkPos(self, tempCS, checkX, checkY, count, jump, add):
         '''Checks if the given node is free or occupied'''
 
         if 0 <= checkX < len(tempCS[0]) and 0 <= checkY < len(tempCS):
             if tempCS[checkY][checkX] == 0 or (jump and tempCS[checkY][checkX] < 10):
-                tempCS[checkY][checkX] = count
+                if count != -1: # dont update temp coordinate system if -1 is given
+                    tempCS[checkY][checkX] = count
                 # print("New Node Entry: [" + str(checkX) + ", " + str(checkY) + "]")
                 if add:
                     newNodes.append((checkX, checkY))
