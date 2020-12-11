@@ -23,6 +23,7 @@ class Player(object):
         self.speed = speed
         self.path = []
         self.fitness = 0
+        self.choosenTurn = "change_nothing"
 
     def printMatrix(self, matrix):
         for y in matrix:
@@ -40,6 +41,26 @@ class Player(object):
             logging.debug(
                 'Cant change direction, reason: Input direction is in opposite or same direction as previous one ')
         else:
+            if self.directionOfLooking == DirectionOfLooking.UP:
+                if directionOfLooking == DirectionOfLooking.LEFT:
+                    self.choosenTurn = "turn_left"
+                elif directionOfLooking == DirectionOfLooking.RIGHT:
+                    self.choosenTurn = "turn_right"
+            if self.directionOfLooking == DirectionOfLooking.DOWN:
+                if directionOfLooking == DirectionOfLooking.RIGHT:
+                    self.choosenTurn = "turn_left"
+                elif directionOfLooking == DirectionOfLooking.LEFT:
+                    self.choosenTurn = "turn_right"
+            if self.directionOfLooking == DirectionOfLooking.LEFT:
+                if directionOfLooking == DirectionOfLooking.DOWN:
+                    self.choosenTurn = "turn_left"
+                elif directionOfLooking == DirectionOfLooking.UP:
+                    self.choosenTurn = "turn_right"
+            if self.directionOfLooking == DirectionOfLooking.RIGHT:
+                if directionOfLooking == DirectionOfLooking.UP:
+                    self.choosenTurn = "turn_left"
+                elif directionOfLooking == DirectionOfLooking.DOWN:
+                    self.choosenTurn = "turn_right"
             self.directionOfLooking = directionOfLooking
 
     def speedUp(self):
@@ -47,6 +68,7 @@ class Player(object):
         if self.speed == 10:
             logging.debug('Cant accelerate, reason: I Am Speed! (Speed = 10)')
         else:
+            self.choosenTurn = "speed_up"
             self.speed += 1
 
     def speedDown(self):
@@ -54,6 +76,7 @@ class Player(object):
         if self.speed == 1:
             logging.debug('Cant decelerate, reason: Don\'t stop me now! (Speed =1 )')
         else:
+            self.choosenTurn = "slow_down"
             self.speed -= 1
 
     def updatePlayer(self, id: int, x: int, y: int, directionOfLooking: DirectionOfLooking, active: bool, speed: int):
@@ -76,6 +99,7 @@ class Player(object):
     def tryToSurvive(self, playgroundPresenter):
         """Different strategies to keep the player alive"""
         if self.active:
+            self.choosenTurn = "change_nothing"
             playground = playgroundPresenter.getPlayground()
             self.rideAlongSideWall(playground)
             """
@@ -496,20 +520,20 @@ class Player(object):
 
         # Ändere Kurs, zur Richtung wo am meisten Blöcke frei sind
         if self.speed > 1 and max(freeBlocks) < self.speed:
-            print("[" + self.id + "] I slow down")
+            print("[" + str(self.id) + "] I slow down")
             self.speedDown()
         elif freeBlocks.index(max(freeBlocks)) == 0:  # UP
-            print("[" + self.id + "] I try to turn Up")
+            print("[" + str(self.id) + "] I try to turn Up")
             self.turnDirectionOfLooking(DirectionOfLooking.UP)
         # try right
         elif freeBlocks.index(max(freeBlocks)) == 1:  # RIGHT
-            print("[" + self.id + "] I try to turn Right")
+            print("[" + str(self.id) + "] I try to turn Right")
             self.turnDirectionOfLooking(DirectionOfLooking.RIGHT)
         # try down
         elif freeBlocks.index(max(freeBlocks)) == 2:  # DOWN
-            print("[" + self.id + "] I try to turn Down")
+            print("[" + str(self.id) + "] I try to turn Down")
             self.turnDirectionOfLooking(DirectionOfLooking.DOWN)
         # try left
         elif freeBlocks.index(max(freeBlocks)) == 3:  # LEFT
-            print("[" + self.id + "] I try to turn Left")
+            print("[" + str(self.id) + "] I try to turn Left")
             self.turnDirectionOfLooking(DirectionOfLooking.LEFT)
