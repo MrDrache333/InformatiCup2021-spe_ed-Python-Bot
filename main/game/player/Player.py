@@ -107,14 +107,17 @@ class Player(object):
         if self.active:
             self.choosenTurn = "change_nothing"
             playground = playgroundPresenter.getPlayground()
-            self.rideAlongSideWall(playground)
-            """
             # Strategie: Weit entferntestes Feld finden
-            maxval, maxvalX, maxvalY, tempCS = self.findFurthestField(playground)
+            maxval, maxvalX, maxvalY, tempCS = self.findFurthestField(playground, self.speed)
 
-            if not self.moveToFurthestField(playgroundPresenter, maxvalX, maxvalY, tempCS):
+            if maxval != 0:
+                if not self.moveToFurthestField(
+                        playgroundPresenter, maxval, maxvalX, maxvalY, tempCS):
+                    print("CANT FIND ZE PATH, I TRY TO BIEG AB!")
+                    self.fallBackPlan(playground)
+            else:
                 print("CANT FIND ZE PATH, I TRY TO BIEG AB!")
-                self.fallBackPlan(playground)"""
+                self.fallBackPlan(playground)
 
     def rideAlongSideWall(self, playground):
         """Finds the nearest Wall and tries to ride alongside it while reducing the players speed to 1. The resulting
@@ -296,7 +299,7 @@ class Player(object):
 
         return amountOfFreeSpaces
 
-    def findFurthestField(self, playground):
+    def findFurthestField(self, playground, speed):
         """Fills out a coordinate system, to tell how far the player can move"""
         logger.disabled = True
 
@@ -306,7 +309,6 @@ class Player(object):
         tempCS = copy.deepcopy(playground.coordinateSystem)
         count = 10
         turn = playground.getTurn()
-        tempSpeed = self.speed
 
         # So lange zu prüfende Knoten verfügbar sind
         while currentNodes:
@@ -316,7 +318,7 @@ class Player(object):
                 x = currentNodes[0][0]
                 y = currentNodes[0][1]
                 logger.debug("CurrentNodes Entry: [" + str(x) + ", " + str(y) + "]")
-                self.checkAllNodesSurround(tempCS, x, y, count, turn)
+                self.checkAllNodesSurround(tempCS, x, y, count, turn, speed)
                 currentNodes.remove(currentNodes[0])
 
             # Füge neu entdeckte Knoten hinzu nachdem alle aktuellen Knoten geprüft wurden
@@ -336,102 +338,128 @@ class Player(object):
             for c in tempCS:
                 logger.debug(c)
 
-        logger.debug("---------------")
+        print("---------------")
         for c in tempCS:
             logger.debug(c)
 
         # Maximalen Wert im Koordinatensystem suchen und zurück geben
         maxval = np.amax(tempCS)
-        for (i, row) in enumerate(tempCS):
-            for (j, value) in enumerate(row):
-                if value == maxval:
-                    maxvalX = j
-                    maxvalY = i
-                    logger.debug(
-                        "Max Val ("
-                        + str(maxval)
-                        + ") at ["
-                        + str(maxvalX)
-                        + ", "
-                        + str(maxvalY)
-                        + "]"
-                    )
+        if maxval >= 10:
+            for (i, row) in enumerate(tempCS):
+                for (j, value) in enumerate(row):
+                    if value == maxval:
+                        maxvalX = j
+                        maxvalY = i
+                        if (maxvalX % speed != self.x % speed) or (maxvalY % speed != self.y % speed):
+                            logger.debug("Maximal entfernte gegebenen Koordinate ist NICHT erreichbar!")
+                        else:
+                            print("Max Val ("+ str(maxval)+ ") at ["+ str(maxvalX)+ ", "+ str(maxvalY) + "]")
+                            return maxval, maxvalX, maxvalY, tempCS
+            maxval -= 1
+            for (i, row) in enumerate(tempCS):
+                for (j, value) in enumerate(row):
+                    if value == maxval:
+                        maxvalX = j
+                        maxvalY = i
+                        if (maxvalX % speed != self.x % speed) or (maxvalY % speed != self.y % speed):
+                            logger.debug("Maximal entfernte gegebenen Koordinate ist NICHT erreichbar!")
+                        else:
+                            print("Max Val ("+ str(maxval)+ ") at ["+ str(maxvalX)+ ", "+ str(maxvalY) + "]")
+                            return maxval, maxvalX, maxvalY, tempCS
 
-                    return maxval, maxvalX, maxvalY, tempCS
+        print("[" + str(self.id) + "]: Konnte keinen Punkt finden.")
+        for c in tempCS:
+            print()
+            for d in c:
+                if 10 > d >= 0:
+                    print(" " + str(d) + ", ", end='')
+                else:
+                    print(str(d) + ", ", end='')
+        print()
+        return 0, 0, 0, tempCS
 
-    def checkAllNodesSurround(self, tempCS, x, y, count, turn):
+    def checkAllNodesSurround(self, tempCS, x, y, count, turn, speed):
         """Checks all surrounding nodes of a given node"""
         # up
-        self.checkUp(tempCS, x, y, count, turn)
+        self.checkUp(tempCS, x, y, count, turn, speed)
         # right
-        self.checkRight(tempCS, x, y, count, turn)
+        self.checkRight(tempCS, x, y, count, turn, speed)
         # left
-        self.checkLeft(tempCS, x, y, count, turn)
+        self.checkLeft(tempCS, x, y, count, turn, speed)
         # down
-        self.checkDown(tempCS, x, y, count, turn)
+        self.checkDown(tempCS, x, y, count, turn, speed)
 
-    def checkRight(self, tempCS, currentPosX, currentPosY, count, turn):
+    def checkRight(self, tempCS, currentPosX, currentPosY, count, turn, speed):
         """Checks the right node"""
-        for i in range(self.speed):
-            checkX = currentPosX + (i + 1)
-            checkY = currentPosY
-            if turn == 6 and (self.speed - 2) < (i + 1) < self.speed:
-                jump = True
-            else:
-                jump = False
+        if self.checkPos(tempCS, currentPosX+speed, currentPosY, -1, False, False):
 
-            add = (i + 1) == self.speed
-            if not self.checkPos(tempCS, checkX, checkY, count, jump, add):
-                break
+            for i in range(speed):
+                checkX = currentPosX + (i + 1)
+                checkY = currentPosY
+                if turn == 6 and (speed - 2) < (i + 1) < speed:
+                    jump = True
+                else:
+                    jump = False
 
-    def checkUp(self, tempCS, currentPosX, currentPosY, count, turn):
+                add = (i + 1) == speed
+                if not self.checkPos(tempCS, checkX, checkY, count, jump, add):
+                    break
+
+    def checkUp(self, tempCS, currentPosX, currentPosY, count, turn, speed):
         """Checks the upper node"""
-        for i in range(self.speed):
-            checkX = currentPosX
-            checkY = currentPosY - (i + 1)
-            if turn == 6 and (self.speed - 2) < (i + 1) < self.speed:
-                jump = True
-            else:
-                jump = False
+        if self.checkPos(tempCS, currentPosX, currentPosY - speed, -1, False, False):
 
-            add = (i + 1) == self.speed
-            if not self.checkPos(tempCS, checkX, checkY, count, jump, add):
-                break
+            for i in range(speed):
+                checkX = currentPosX
+                checkY = currentPosY - (i + 1)
+                if turn == 6 and (speed - 2) < (i + 1) < speed:
+                    jump = True
+                else:
+                    jump = False
 
-    def checkDown(self, tempCS, currentPosX, currentPosY, count, turn):
+                add = (i + 1) == self.speed
+                if not self.checkPos(tempCS, checkX, checkY, count, jump, add):
+                    break
+
+    def checkDown(self, tempCS, currentPosX, currentPosY, count, turn, speed):
         """Checks the node below"""
-        for i in range(self.speed):
-            checkX = currentPosX
-            checkY = currentPosY + (i + 1)
-            if turn == 6 and (self.speed - 2) < (i + 1) < self.speed:
-                jump = True
-            else:
-                jump = False
+        if self.checkPos(tempCS, currentPosX, currentPosY + speed, -1, False, False):
 
-            add = (i + 1) == self.speed
-            if not self.checkPos(tempCS, checkX, checkY, count, jump, add):
-                break
+            for i in range(speed):
+                checkX = currentPosX
+                checkY = currentPosY + (i + 1)
+                if turn == 6 and (speed - 2) < (i + 1) < speed:
+                    jump = True
+                else:
+                    jump = False
 
-    def checkLeft(self, tempCS, currentPosX, currentPosY, count, turn):
+                add = (i + 1) == speed
+                if not self.checkPos(tempCS, checkX, checkY, count, jump, add):
+                    break
+
+    def checkLeft(self, tempCS, currentPosX, currentPosY, count, turn, speed):
         """Checks the left node"""
-        for i in range(self.speed):
-            checkX = currentPosX - (i + 1)
-            checkY = currentPosY
-            if turn == 6 and (self.speed - 2) < (i + 1) < self.speed:
-                jump = True
-            else:
-                jump = False
+        if self.checkPos(tempCS, currentPosX - speed, currentPosY, -1, False, False):
 
-            add = (i + 1) == self.speed
-            if not self.checkPos(tempCS, checkX, checkY, count, jump, add):
-                break
+            for i in range(speed):
+                checkX = currentPosX - (i + 1)
+                checkY = currentPosY
+                if turn == 6 and (speed - 2) < (i + 1) < speed:
+                    jump = True
+                else:
+                    jump = False
+
+                add = (i + 1) == speed
+                if not self.checkPos(tempCS, checkX, checkY, count, jump, add):
+                    break
 
     def checkPos(self, tempCS, checkX, checkY, count, jump, add):
         '''Checks if the given node is free or occupied'''
 
         if 0 <= checkX < len(tempCS[0]) and 0 <= checkY < len(tempCS):
             if tempCS[checkY][checkX] == 0 or (jump and tempCS[checkY][checkX] < 10):
-                tempCS[checkY][checkX] = count
+                if count != -1:  # dont update temp coordinate system if -1 is given
+                    tempCS[checkY][checkX] = count
                 # print("New Node Entry: [" + str(checkX) + ", " + str(checkY) + "]")
                 if add:
                     newNodes.append((checkX, checkY))
@@ -441,91 +469,30 @@ class Player(object):
                     tempCS[checkY][checkX] = -1
                     return False
 
-    def moveToFurthestField(self, playgroundPresenter, maxvalX, maxvalY, tempCS):
+    def moveToFurthestField(self, playgroundPresenter, maxval, maxvalX, maxvalY, tempCS):
         playground = playgroundPresenter.getPlayground()
-
-        hasToBeCorrected = False
 
         if not self.isCoordinateFree(maxvalX, maxvalY, playground):
             print("Maximal entfernte gegebenen Koordinate ist bereits belegt!")
-            hasToBeCorrected = True
+            return False
         if (maxvalX % self.speed != self.x % self.speed) or (maxvalY % self.speed != self.y % self.speed):
             hasToBeCorrected = True
             print("Maximal entfernte gegebenen Koordinate ist NICHT erreichbar!")
-
-        # Correct maxvalX and maxvalY by selecting the Nearest Cell to the Initial One
-        if maxvalX % self.speed != self.x % self.speed:
-            newmaxvalx = self.x
-            if maxvalX < self.x:
-                while newmaxvalx > maxvalX and newmaxvalx - self.speed >= 0:
-                    newmaxvalx -= self.speed
-            if maxvalX > self.x:
-                while newmaxvalx < maxvalX and newmaxvalx + self.speed < len(playground.coordinateSystem[0]):
-                    newmaxvalx += self.speed
-            maxvalX = newmaxvalx
-
-        if maxvalY % self.speed != self.y % self.speed:
-            newmaxvaly = self.y
-            if maxvalY < self.y:
-                while newmaxvaly > maxvalY and newmaxvaly - self.speed >= 0:
-                    newmaxvaly -= self.speed
-            if maxvalY > self.y:
-                while newmaxvaly < maxvalY and newmaxvaly + self.speed < len(playground.coordinateSystem):
-                    newmaxvaly += self.speed
-            maxvalY = newmaxvaly
+            return False
 
         finder = AStar(playground.coordinateSystem, self.x, self.y, self.speed, playground.getTurn())
-        path = finder.solve((maxvalX, maxvalY))
-        if path is None or len(path) == 0:
-            hasToBeCorrected = True
-        # NOTLÖSUNG, falls kein Pfad vorhanden
-        if hasToBeCorrected:
-            print("NOTLÖSUNG: Versuche Koordinate zu korrigieren!")
-            count = 1
-            fastestReachable = []
-            while (count < 3 and (len(playground.coordinateSystem[0]) > (count * self.speed + self.x) >= 0) or (
-                    len(playground.coordinateSystem) > (count * self.speed + self.y) >= 0) or (
-                           len(playground.coordinateSystem[0]) > (self.x - count * self.speed) >= 0) or (
-                           len(playground.coordinateSystem) > (self.y - count * self.speed) >= 0)):
-                for ym in range(count * -1, count + 1):
-                    for xm in range(count * -1, count + 1):
-                        # If Cells to test were already tested, next
-                        if abs(xm) < count and abs(ym) < count:
-                            continue
-                        # Calc new Coordinate to check
-                        tempX = maxvalX + xm * self.speed
-                        tempY = maxvalY + ym * self.speed
-                        # Test if new coordinate is out of bounds
-                        if not (len(playground.coordinateSystem[0]) > tempX >= 0) or not (
-                                len(playground.coordinateSystem) > tempY >= 0):
-                            continue
-                        # Test if new Coord is free
-                        if self.isCoordinateFree(tempX, tempY, playground):
-                            fastestReachable.append([tempX, tempY])
-                count += 1
-            path = []
-            for coord in fastestReachable:
-                finder = AStar(playground.coordinateSystem, self.x, self.y, self.speed, playground.getTurn())
-                path = finder.solve(coord)
-                if path is not None and len(path) > 0:
-                    print("NOTLÖSUNG: Erreichbare Alternative gefunden! " + str(maxvalX) + ":" + str(
-                        maxvalY) + " -> " + str(coord[0]) + ":" + str(coord[1]) + " Dist: " + str(
-                        abs(maxvalX - coord[0] + abs(maxvalY - coord[1]))))
-                    break
+        self.path = finder.solve((maxvalX, maxvalY))
 
-        # PP = PlaygroundPresenter(playground, len(playground.coordinateSystem), len(playground.coordinateSystem[0]))
-        self.path = path
-
-        if path is not None and len(path) > 0:
-            print("Neuer Pfad:" + str(path))
+        if self.path is not None and len(self.path) > 0:
+            print("Neuer Pfad:" + str(self.path))
         else:
             # self.printMatrix(tempCS)
             print("Nix Pfad gefunden :/ von " + str(self.x) + ":" + str(self.y) + " nach " + str(maxvalX) + ":" + str(
                 maxvalY))
             return False
 
-        firstPathX = path[1][0]
-        firstPathY = path[1][1]
+        firstPathX = self.path[1][0]
+        firstPathY = self.path[1][1]
 
         print(
             "I'm at [" + str(self.x) + ", " + str(self.y) + "] ant want to go to [" + str(firstPathX) + ", " + str(
