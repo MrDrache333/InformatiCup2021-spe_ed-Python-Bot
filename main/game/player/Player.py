@@ -106,7 +106,7 @@ class Player(object):
 
 
             if maxval != 0:
-                if not self.moveToFurthestField(playgroundPresenter, maxvalX, maxvalY, tempCS):
+                if not self.moveToFurthestField(playgroundPresenter, maxval, maxvalX, maxvalY, tempCS):
                     print("CANT FIND ZE PATH, I TRY TO BIEG AB!")
                     self.fallBackPlan(playground)
 
@@ -314,7 +314,7 @@ class Player(object):
                     else:
                         print("Max Val ("+ str(maxval)+ ") at ["+ str(maxvalX)+ ", "+ str(maxvalY) + "]")
                         return maxval, maxvalX, maxvalY, tempCS
-        maxval =- 1
+        maxval -= 1
         for (i, row) in enumerate(tempCS):
             for (j, value) in enumerate(row):
                 if value == maxval:
@@ -428,7 +428,7 @@ class Player(object):
                     tempCS[checkY][checkX] = -1
                     return False
 
-    def moveToFurthestField(self, playgroundPresenter, maxvalX, maxvalY, tempCS):
+    def moveToFurthestField(self, playgroundPresenter, maxval, maxvalX, maxvalY, tempCS):
         playground = playgroundPresenter.getPlayground()
 
         hasToBeCorrected = False
