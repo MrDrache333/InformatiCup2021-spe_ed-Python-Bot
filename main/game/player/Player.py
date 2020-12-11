@@ -104,6 +104,19 @@ class Player(object):
             # Strategie: Weit entferntestes Feld finden
             maxval, maxvalX, maxvalY, tempCS = self.findFurthestField(playground)
 
+            # Check other Speeds
+            if self.speed < 10:
+                nextPlayground = copy.deepcopy(playground)
+                nextPlayground.players[self.id - 1].speedUp()
+                # Richtig advanced -> Jeden möglichen Zug anderer Spieler auch noch prüfen und weitesten Weg nehmen
+                nextPlayground.movePlayer(self.id - 1)
+                temp_maxval, temp_maxvalX, temp_maxvalY, temp_tempCS = self.findFurthestField(nextPlayground)
+
+                current_dist = maxval
+                faster_dist = temp_maxval / self.speed * (self.speed - 1)
+                if faster_dist - current_dist > 2:
+                    print("Das bringt was!")
+
             if maxval != 0:
                 if not self.moveToFurthestField(
                         playgroundPresenter, maxval, maxvalX, maxvalY, tempCS):
