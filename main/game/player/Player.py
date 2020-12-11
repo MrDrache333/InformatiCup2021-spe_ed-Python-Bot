@@ -76,14 +76,15 @@ class Player(object):
     def tryToSurvive(self, playgroundPresenter):
         """Different strategies to keep the player alive"""
         if self.active:
-
             playground = playgroundPresenter.getPlayground()
+            self.rideAlongSideWall(playground)
+            """
             # Strategie: Weit entferntestes Feld finden
             maxval, maxvalX, maxvalY, tempCS = self.findFurthestField(playground)
 
             if not self.moveToFurthestField(playgroundPresenter, maxvalX, maxvalY, tempCS):
                 print("CANT FIND ZE PATH, I TRY TO BIEG AB!")
-                self.fallBackPlan(playground)
+                self.fallBackPlan(playground)"""
 
     def rideAlongSideWall(self, playground):
         """Finds the nearest Wall and tries to ride alongside it while reducing the players speed to 1. The resulting
@@ -125,7 +126,7 @@ class Player(object):
             if not self.directionOfLooking == directionOfClosestWall:
                 # the player is adjacent to a wall and not looking at it. Commence plan.
                 # if the player would hit a wall, change direction
-                # else slow down
+
                 if freeBlocks.get(self.directionOfLooking) < self.speed:
                     # not enough space in direction of player. change direction
                     directionThePlayerShouldTurnTo = setOfDirections[
@@ -145,11 +146,14 @@ class Player(object):
                     for direction in freeBlocks.keys():
                         tempX = currentX + direction.value[0]
                         tempY = currentY + direction.value[1]
+                        # check if coordinate is within system
                         if len(playground.coordinateSystem[0]) > tempX and len(playground.coordinateSystem) > tempY:
                             if not playground.coordinateSystem[tempY][tempX] == 0:
                                 isGapOneCellWide += 1
 
                     if isGapOneCellWide == 2:
+                        # Cell is one wide. check if space behind cell is larger, than the
+
                         directionThePlayerShouldTurnTo = setOfDirections[
                             (setOfDirections.index(self.directionOfLooking) + 1) % 4]
                         self.directionOfLooking = directionThePlayerShouldTurnTo
@@ -185,6 +189,52 @@ class Player(object):
                     # down to stall and prepare for turning into wall
                     self.speedDown()
                     return
+
+    def getAmountOfFreeSpaces(self, givenX, givenY, directionOfLooking, playground):
+        """returns the amount of free spaces in the given coordinatesystem from a given coordinate and direction"""
+        # 1. black out coordinate behind given coordinate
+        # 2. check coordinate up if coordinate == 0 add 1 to free space counter run 2. on this coordinate
+        # 3. check coordinate right if coordinate == 0 add 1 to free space counter run 3. on this coordinate
+        # 4. check coordinate down if coordinate == 0 add 1 to free space counter run 2. on this coordinate
+        # 5. ...
+        # 6. return free space
+
+        global amountOfFreeSpaces, temporaryCoordinateSystem, setOfDirections
+
+        temporaryCoordinateSystem = copy.deepcopy(playground.coordinateSystem)
+        amountOfFreeSpaces = 0
+
+        setOfDirections = [DirectionOfLooking.UP, DirectionOfLooking.RIGHT, DirectionOfLooking.DOWN,
+                           DirectionOfLooking.LEFT]
+
+        # block the cell behind the given x coordinate
+        tmpX, tmpY = setOfDirections[(setOfDirections.index(directionOfLooking) + 2) % 4].value
+
+        xBehindGivenX, yBehindGivenY = givenX + tmpX, givenY + tmpY
+
+        temporaryCoordinateSystem[yBehindGivenY][xBehindGivenX] = -1
+
+        self.checkSurroundingCellsForEmptyness(givenX, givenY)
+
+    def checkSurroundingCellsForEmptyness(self,givenX, givenY):
+        """ATTENTION: This method is reserved fot the 'getAmountOfFreeSpaces' method. It recursivly counts free
+        spaces in a given coordinatesystem and marks them as they are counted """
+        setOfDirections = [DirectionOfLooking.UP, DirectionOfLooking.RIGHT, DirectionOfLooking.DOWN,
+                           DirectionOfLooking.LEFT]
+        global temporaryCoordinateSystem, amountOfFreeSpaces
+
+        #check surrounding nodes for emptiness
+        for direction in setOfDirections:
+            tmpX, tmpY = direction.value
+            toBeAnalysedX = givenX + tmpX
+            toBeAnalysedY = givenY + tmpY
+
+            if temporaryCoordinateSystem[toBeAnalysedY][toBeAnalysedX] == 0:
+                amountOfFreeSpaces += 1
+                temporaryCoordinateSystem[toBeAnalysedY][toBeAnalysedX] = -1
+                self.checkSurroundingCellsForEmptyness(toBeAnalysedX, toBeAnalysedY)
+
+
 
     def findFurthestField(self, playground):
         """Fills out a coordinate system, to tell how far the player can move"""
