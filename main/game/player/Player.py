@@ -104,33 +104,50 @@ class Player(object):
 
     def tryToSurvive(self, playgroundPresenter):
         """Different strategies to keep the player alive"""
-        if self.active:
-            self.choosenTurn = "change_nothing"
-            playground = playgroundPresenter.getPlayground()
-            # Strategie: Weit entferntestes Feld finden
-            maxval, maxvalX, maxvalY, tempCS = self.findFurthestField(playground, self.speed)
+        if not self.active:
+            return
+        self.choosenTurn = "change_nothing"
+        playground = playgroundPresenter.getPlayground()
+        # Strategie: Weit entferntestes Feld finden
+        maxval, maxvalX, maxvalY, tempCS = self.findFurthestField(playground, self.speed)
 
-            # Check other Speeds
-            if self.speed < 10:
-                nextPlayground = copy.deepcopy(playground)
-                nextPlayground.players[self.id - 1].speedUp()
-                # Richtig advanced -> Jeden möglichen Zug anderer Spieler auch noch prüfen und weitesten Weg nehmen
-                nextPlayground.movePlayer(self.id - 1)
-                temp_maxval, temp_maxvalX, temp_maxvalY, temp_tempCS = self.findFurthestField(nextPlayground)
+        # Check other Speeds
+        if self.speed < 10:
+            nextPlayground = copy.deepcopy(playground)
+            nextPlayground.players[self.id - 1].speedUp()
+            # Richtig advanced -> Jeden möglichen Zug anderer Spieler auch noch prüfen und weitesten Weg nehmen
+            nextPlayground.movePlayer(self.id - 1)
+            temp_maxval, temp_maxvalX, temp_maxvalY, temp_tempCS = self.findFurthestField(nextPlayground,
+                                                                                          self.speed + 1)
 
-                current_dist = maxval
-                faster_dist = temp_maxval / self.speed * (self.speed - 1)
-                if faster_dist - current_dist > 2:
-                    print("Das bringt was!")
+            if temp_maxval - maxval > 2:
+                print("SpeedUp bringt was! Schritte: Alt=" + str(maxval) + " Neu=" + str(
+                    temp_maxval) + " NewSpeed=" + str(self.speed + 1))
+                self.speedUp()
+                return
 
-            if maxval != 0:
-                if not self.moveToFurthestField(
-                        playgroundPresenter, maxval, maxvalX, maxvalY, tempCS):
-                    print("CANT FIND ZE PATH, I TRY TO BIEG AB!")
-                    self.fallBackPlan(playground)
-            else:
+        if self.speed > 1:
+            nextPlayground = copy.deepcopy(playground)
+            nextPlayground.players[self.id - 1].speedDown()
+            # Richtig advanced -> Jeden möglichen Zug anderer Spieler auch noch prüfen und weitesten Weg nehmen
+            nextPlayground.movePlayer(self.id - 1)
+            temp_maxval, temp_maxvalX, temp_maxvalY, temp_tempCS = self.findFurthestField(nextPlayground,
+                                                                                          self.speed - 1)
+
+            if temp_maxval - maxval > 5:
+                print("SpeedDown bringt was! Schritte: Alt=" + str(maxval) + " Neu=" + str(
+                    temp_maxval) + " NewSpeed=" + str(self.speed - 1))
+                self.speedDown()
+                return
+
+        if maxval != 0:
+            if not self.moveToFurthestField(
+                    playgroundPresenter, maxval, maxvalX, maxvalY, tempCS):
                 print("CANT FIND ZE PATH, I TRY TO BIEG AB!")
                 self.fallBackPlan(playground)
+        else:
+            print("CANT FIND ZE PATH, I TRY TO BIEG AB!")
+            self.fallBackPlan(playground)
 
     def rideAlongSideWall(self, playground):
         """Finds the nearest Wall and tries to ride alongside it while reducing the players speed to 1. The resulting
@@ -315,9 +332,10 @@ class Player(object):
     def findFurthestField(self, playground, speed):
         """Fills out a coordinate system, to tell how far the player can move"""
         logger.disabled = True
+        currentPlayer = playground.players[self.id - 1]
 
         global newNodes
-        currentNodes = [(self.x, self.y)]
+        currentNodes = [(currentPlayer.x, currentPlayer.y)]
         newNodes = []
         tempCS = copy.deepcopy(playground.coordinateSystem)
         count = 10
@@ -331,7 +349,7 @@ class Player(object):
                 x = currentNodes[0][0]
                 y = currentNodes[0][1]
                 logger.debug("CurrentNodes Entry: [" + str(x) + ", " + str(y) + "]")
-                self.checkAllNodesSurround(tempCS, x, y, count, turn, speed)
+                currentPlayer.checkAllNodesSurround(tempCS, x, y, count, turn, speed)
                 currentNodes.remove(currentNodes[0])
 
             # Füge neu entdeckte Knoten hinzu nachdem alle aktuellen Knoten geprüft wurden
@@ -363,7 +381,7 @@ class Player(object):
                     if value == maxval:
                         maxvalX = j
                         maxvalY = i
-                        if (maxvalX % speed != self.x % speed) or (maxvalY % speed != self.y % speed):
+                        if (maxvalX % speed != currentPlayer.x % speed) or (maxvalY % speed != currentPlayer.y % speed):
                             logger.debug("Maximal entfernte gegebenen Koordinate ist NICHT erreichbar!")
                         else:
                             print("Max Val ("+ str(maxval)+ ") at ["+ str(maxvalX)+ ", "+ str(maxvalY) + "]")
@@ -374,13 +392,13 @@ class Player(object):
                     if value == maxval:
                         maxvalX = j
                         maxvalY = i
-                        if (maxvalX % speed != self.x % speed) or (maxvalY % speed != self.y % speed):
+                        if (maxvalX % speed != currentPlayer.x % speed) or (maxvalY % speed != currentPlayer.y % speed):
                             logger.debug("Maximal entfernte gegebenen Koordinate ist NICHT erreichbar!")
                         else:
                             print("Max Val ("+ str(maxval)+ ") at ["+ str(maxvalX)+ ", "+ str(maxvalY) + "]")
                             return maxval, maxvalX, maxvalY, tempCS
 
-        print("[" + str(self.id) + "]: Konnte keinen Punkt finden.")
+        print("[" + str(currentPlayer.id) + "]: Konnte keinen Punkt finden.")
         for c in tempCS:
             print()
             for d in c:
@@ -413,6 +431,8 @@ class Player(object):
                     jump = True
                 else:
                     jump = False
+                if speed < 3:
+                    jump = False
 
                 add = (i + 1) == speed
                 if not self.checkPos(tempCS, checkX, checkY, count, jump, add):
@@ -429,8 +449,10 @@ class Player(object):
                     jump = True
                 else:
                     jump = False
+                if speed < 3:
+                    jump = False
 
-                add = (i + 1) == self.speed
+                add = (i + 1) == speed
                 if not self.checkPos(tempCS, checkX, checkY, count, jump, add):
                     break
 
@@ -444,6 +466,8 @@ class Player(object):
                 if turn == 6 and (speed - 2) < (i + 1) < speed:
                     jump = True
                 else:
+                    jump = False
+                if speed < 3:
                     jump = False
 
                 add = (i + 1) == speed
@@ -461,6 +485,8 @@ class Player(object):
                     jump = True
                 else:
                     jump = False
+                if speed < 3:
+                    jump = False
 
                 add = (i + 1) == speed
                 if not self.checkPos(tempCS, checkX, checkY, count, jump, add):
@@ -468,7 +494,6 @@ class Player(object):
 
     def checkPos(self, tempCS, checkX, checkY, count, jump, add):
         '''Checks if the given node is free or occupied'''
-
         if 0 <= checkX < len(tempCS[0]) and 0 <= checkY < len(tempCS):
             if tempCS[checkY][checkX] == 0 or (jump and tempCS[checkY][checkX] < 10):
                 if count != -1:  # dont update temp coordinate system if -1 is given

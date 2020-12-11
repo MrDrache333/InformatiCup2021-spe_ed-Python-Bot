@@ -1,5 +1,6 @@
 import asyncio
 import json
+import time
 
 import pygame
 import websockets as websockets
@@ -10,7 +11,7 @@ from game.graphic.PlaygroundPresenter import PlaygroundPresenter
 # Play online via API-Key, or Offline
 from game.player.DirectionOfLooking import DirectionOfLooking
 
-ONLINE = False
+ONLINE = True
 
 
 class Game(object):
@@ -67,9 +68,9 @@ class Game(object):
 
         while running:
             # pygame.time.delay(500//60)
-            self.clock.tick(30)
+            # self.clock.tick(30)
             # clock.tick(10000)
-            self.clock.tick(30)
+            self.clock.tick(1000 // 400)
 
             # Benutzereingabe prüfen
             keys = pygame.key.get_pressed()
@@ -122,6 +123,7 @@ class Game(object):
         while True:
             state_json = await websocket.recv()
             data = json.loads(state_json)
+            data = [data]
 
             self.width = data[0]['width']
             self.height = data[0]['height']
@@ -150,7 +152,7 @@ class Game(object):
                     active += 1
                     player.fitness += 1
 
-            if ownPlayer.active and data[0]['active']:
+            if ownPlayer.active and data[0]['running']:
                 ownPlayer.tryToSurvive(self.playgroundPresenter)
 
             if active == 0 and not self.printedStatistics:
@@ -178,6 +180,21 @@ def getPlaygroundPresenter():
 
 
 if ONLINE:
-    asyncio.get_event_loop().run_until_complete(game.playOnline())
+    while True:
+        try:
+            asyncio.get_event_loop().run_until_complete(game.playOnline())
+        except websockets.InvalidStatusCode as e:
+            if e.status_code == 429:
+                print("Zu viele Anfragen in zu kurzer Zeit!")
+            else:
+                print(e)
+        except websockets.ConnectionClosedOK as e:
+            if e.code == 1000:
+                print("Zeitüberschreitung bei Verbindungsaufbau!")
+            print(e)
+
+        for i in range(10, 0, -1):
+            print("Warte " + str(i) + " Sekunden, bis zum erneuten Start!")
+            time.sleep(1)
 else:
     asyncio.get_event_loop().run_until_complete(game.playOffline())
