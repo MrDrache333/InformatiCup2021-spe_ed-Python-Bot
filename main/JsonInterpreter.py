@@ -13,7 +13,7 @@ class JsonInterpreter(object):
         players = []
 
         for p in file[0]['players']:
-            players.append(Player(p,  # player ID
+            players.append(Player(int(p),  # player ID
                                   file[0]['players'][p]['x'],  # player X coordinate
                                   file[0]['players'][p]['y'],  # player Y coordinate
                                   file[0]['players'][p]['direction'],  # player moving direction
