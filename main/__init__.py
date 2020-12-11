@@ -10,7 +10,7 @@ from game.graphic.PlaygroundPresenter import PlaygroundPresenter
 # Play online via API-Key, or Offline
 from game.player.DirectionOfLooking import DirectionOfLooking
 
-ONLINE = False
+ONLINE = True
 
 
 class Game(object):
@@ -69,9 +69,10 @@ class Game(object):
             # pygame.time.delay(500//60)
             # clock.tick(1000 // 800)
             # clock.tick(10000)
+
+            # Benutzereingabe prüfen
+            keys = pygame.key.get_pressed()
             if ownPlayer.active:
-                # Benutzereingabe prüfen
-                keys = pygame.key.get_pressed()
                 if keys[pygame.K_UP] or keys[pygame.K_w]:
                     ownPlayer.turnDirectionOfLooking(DirectionOfLooking.UP)
                 elif keys[pygame.K_DOWN] or keys[pygame.K_s]:
@@ -167,6 +168,7 @@ class Game(object):
             await websocket.send(action_json)
 
 
+# TODO Auslagern in Parameterübergabe beim Programstart
 game = Game("wss://msoll.de/spe_ed", "72ILGT3YVIW5DV2UR3L5E6VCMFB6TJPR6LAX2ZLGMYGRQSVTW2C4G4E2")
 
 

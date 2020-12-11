@@ -258,8 +258,6 @@ class Player(object):
                 temporaryCoordinateSystem[toBeAnalysedY][toBeAnalysedX] = -1
                 self.checkSurroundingCellsForEmptyness(toBeAnalysedX, toBeAnalysedY)
 
-
-
     def findFurthestField(self, playground):
         """Fills out a coordinate system, to tell how far the player can move"""
         logger.disabled = True
