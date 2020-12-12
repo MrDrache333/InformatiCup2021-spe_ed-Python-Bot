@@ -17,6 +17,7 @@ ONLINE = True
 class Game(object):
 
     def __init__(self, url, key):
+        self.ownPlayer = None
         self.URL = url
         self.KEY = key
         self.width = 0
@@ -121,7 +122,7 @@ class Game(object):
             print("Waiting for initial state...", flush=True)
 
             while True:
-                state_json = await asyncio.wait_for(websocket.recv(), timeout=310)
+                state_json = await websocket.recv()
                 data = json.loads(state_json)
                 data = [data]
 
@@ -130,6 +131,7 @@ class Game(object):
 
                 self.printInfo(data)
 
+                # TODO Write some Update methods, to not completly loose the last Playground Data
                 self.interpreter = JsonInterpreter()
                 self.playground = Playground(self.interpreter.getCellsFromLoadedJson(data),
                                              self.interpreter.getPlayersFromLoadedJson(data))
@@ -138,12 +140,11 @@ class Game(object):
                 running = True
 
                 # Den eigenen Spieler heraussuchen
-                ownPlayer = None
                 for player in self.playground.players:
                     if player.id == data[0]['you']:
-                        ownPlayer = player
+                        self.ownPlayer = player
                         break
-                if ownPlayer is None:
+                if self.ownPlayer is None:
                     exit("Invalid Players")
 
                 active = 0
@@ -152,8 +153,8 @@ class Game(object):
                         active += 1
                         player.fitness += 1
 
-                if ownPlayer.active and data[0]['running']:
-                    ownPlayer.tryToSurvive(self.playgroundPresenter)
+                if self.ownPlayer.active and data[0]['running']:
+                    self.ownPlayer.tryToSurvive(self.playgroundPresenter)
 
                 if active == 0 and not self.printedStatistics:
                     print("--- Statistiken ---")
@@ -165,8 +166,9 @@ class Game(object):
                     self.playgroundPresenter.playground = self.playground
                     self.playgroundPresenter.updateGameField()
 
-                action = ownPlayer.choosenTurn
+                action = self.ownPlayer.choosenTurn
                 print("API-Zug: " + action)
+                time.sleep(0.3)
                 action_json = json.dumps({"action": action})
                 await websocket.send(action_json)
 
@@ -179,6 +181,12 @@ def getPlaygroundPresenter():
     return game.playgroundPresenter
 
 
+def sleep(secs):
+    for i in range(secs, 0, -1):
+        print("Warte " + str(i - 1) + " Sekunden, bis zum erneuten Start!", flush=True)
+        time.sleep(1)
+
+
 if ONLINE:
     while True:
         try:
@@ -186,19 +194,28 @@ if ONLINE:
         except websockets.InvalidStatusCode as e:
             if e.status_code == 429:
                 print("Zu viele Anfragen in zu kurzer Zeit!")
-                for i in range(60, 0, -1):
-                    print("Warte " + str(i - 1) + " Sekunden, bis zum erneuten Start!", flush=True)
-                    time.sleep(1)
+                sleep(30)
             else:
                 print(e)
-
         except websockets.ConnectionClosedOK as e:
             if e.code == 1000:
                 print("Zeitüberschreitung bei Verbindungsaufbau!")
             print(e)
-            for i in range(5, 0, -1):
-                print("Warte " + str(i - 1) + " Sekunden, bis zum erneuten Start!", flush=True)
-                time.sleep(1)
+            sleep(5)
+        except websockets.ConnectionClosedError as e:
+            if e.code == 1006:
+                print("---------Spiel Vorbei---------")
+                if game.ownPlayer.active:
+                    print("Wir haben gewonnen !!!     PS: Weil wir einfach Boss sind ;)")
+                else:
+                    print("Haben leider verloren... :/ Alles Hacker hier...")
+                print("---Statistiken---")
+                for player in game.playground.players:
+                    print("Spieler " + str(player.id) + ": " + str(player.fitness) + " Status: " + str(
+                        "Lebend" if player.active else "Gestorben"))
+                    game.printedStatistics = True
+                print("-------------------------------")
+                sleep(10)
 
 
 else:

@@ -19,6 +19,7 @@ class PlaygroundPresenter(object):
         blockwidth = 10
     # Defining PlayerColors
     playerColors = {
+        -1: (255, 255, 255),  # Zwei Spieler auf gleicher koordinate
         0: (255, 255, 255),  # white / no player
         1: (153, 255, 51),  # Green
         2: (204, 0, 0),  # Red
