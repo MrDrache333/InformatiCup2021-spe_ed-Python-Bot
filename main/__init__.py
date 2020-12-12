@@ -120,55 +120,55 @@ class Game(object):
         async with websockets.connect(f"{self.URL}?key={self.KEY}") as websocket:
             print("Waiting for initial state...", flush=True)
 
-        while True:
-            state_json = await websocket.recv()
-            data = json.loads(state_json)
-            data = [data]
+            while True:
+                state_json = await asyncio.wait_for(websocket.recv(), timeout=310)
+                data = json.loads(state_json)
+                data = [data]
 
-            self.width = data[0]['width']
-            self.height = data[0]['height']
+                self.width = data[0]['width']
+                self.height = data[0]['height']
 
-            self.printInfo(data)
+                self.printInfo(data)
 
-            self.interpreter = JsonInterpreter()
-            self.playground = Playground(self.interpreter.getCellsFromLoadedJson(data),
-                                         self.interpreter.getPlayersFromLoadedJson(data))
-            self.playgroundPresenter = PlaygroundPresenter(self.playground, self.width, self.height)
-            self.clock = pygame.time.Clock()
-            running = True
+                self.interpreter = JsonInterpreter()
+                self.playground = Playground(self.interpreter.getCellsFromLoadedJson(data),
+                                             self.interpreter.getPlayersFromLoadedJson(data))
+                self.playgroundPresenter = PlaygroundPresenter(self.playground, self.width, self.height)
+                self.clock = pygame.time.Clock()
+                running = True
 
-            # Den eigenen Spieler heraussuchen
-            ownPlayer = None
-            for player in self.playground.players:
-                if player.id == data[0]['you']:
-                    ownPlayer = player
-                    break
-            if ownPlayer is None:
-                exit("Invalid Players")
-
-            active = 0
-            for player in self.playground.players:
-                if player.active:
-                    active += 1
-                    player.fitness += 1
-
-            if ownPlayer.active and data[0]['running']:
-                ownPlayer.tryToSurvive(self.playgroundPresenter)
-
-            if active == 0 and not self.printedStatistics:
-                print("--- Statistiken ---")
+                # Den eigenen Spieler heraussuchen
+                ownPlayer = None
                 for player in self.playground.players:
-                    print("Spieler " + str(player.id) + ": " + str(player.fitness))
-                    self.printedStatistics = True
-            else:
-                self.playground.addTurn()
-                self.playgroundPresenter.playground = self.playground
-                self.playgroundPresenter.updateGameField()
+                    if player.id == data[0]['you']:
+                        ownPlayer = player
+                        break
+                if ownPlayer is None:
+                    exit("Invalid Players")
 
-            action = ownPlayer.choosenTurn
-            print("API-Zug: " + action)
-            action_json = json.dumps({"action": action})
-            await websocket.send(action_json)
+                active = 0
+                for player in self.playground.players:
+                    if player.active:
+                        active += 1
+                        player.fitness += 1
+
+                if ownPlayer.active and data[0]['running']:
+                    ownPlayer.tryToSurvive(self.playgroundPresenter)
+
+                if active == 0 and not self.printedStatistics:
+                    print("--- Statistiken ---")
+                    for player in self.playground.players:
+                        print("Spieler " + str(player.id) + ": " + str(player.fitness))
+                        self.printedStatistics = True
+                else:
+                    self.playground.addTurn()
+                    self.playgroundPresenter.playground = self.playground
+                    self.playgroundPresenter.updateGameField()
+
+                action = ownPlayer.choosenTurn
+                print("API-Zug: " + action)
+                action_json = json.dumps({"action": action})
+                await websocket.send(action_json)
 
 
 # TODO Auslagern in Parameterübergabe beim Programstart
@@ -186,15 +186,20 @@ if ONLINE:
         except websockets.InvalidStatusCode as e:
             if e.status_code == 429:
                 print("Zu viele Anfragen in zu kurzer Zeit!")
+                for i in range(60, 0, -1):
+                    print("Warte " + str(i - 1) + " Sekunden, bis zum erneuten Start!", flush=True)
+                    time.sleep(1)
             else:
                 print(e)
+
         except websockets.ConnectionClosedOK as e:
             if e.code == 1000:
                 print("Zeitüberschreitung bei Verbindungsaufbau!")
             print(e)
+            for i in range(5, 0, -1):
+                print("Warte " + str(i - 1) + " Sekunden, bis zum erneuten Start!", flush=True)
+                time.sleep(1)
 
-        for i in range(5, 0, -1):
-            print("Warte " + str(i - 1) + " Sekunden, bis zum erneuten Start!")
-            time.sleep(1)
+
 else:
     asyncio.get_event_loop().run_until_complete(game.playOffline())
