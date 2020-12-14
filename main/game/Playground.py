@@ -88,6 +88,7 @@ class Playground(object):
         # move player to new position
         # create walls where the player moved
         # move on to the next player
+        logger.disabled = True
         player = self.players[id]
         if player.active:
             xCoordinateOfPlayer = player.x

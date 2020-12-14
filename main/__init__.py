@@ -171,7 +171,7 @@ def getPlaygroundPresenter():
 
 def sleep(secs):
     for i in range(secs, 0, -1):
-        if i <= 5 or i % 10 == 0:
+        if i <= 3 or i % 10 == 0:
             print("Warte " + str(i) + " Sekunden, bis zum erneuten Start!", flush=True)
         time.sleep(1)
 
@@ -185,7 +185,7 @@ if ONLINE:
         except websockets.InvalidStatusCode as e:
             if e.status_code == 429:
                 print("Zu viele Anfragen in zu kurzer Zeit!")
-                sleep(30)
+                sleep(60)
             else:
                 print(e)
         except websockets.ConnectionClosedOK as e:
@@ -195,13 +195,19 @@ if ONLINE:
             sleep(5)
         except websockets.ConnectionClosedError as e:
             if e.code == 1006:
+                # Sortiere die Spieler anhand Ihrer Fitness
+                players = sorted(game.playground.players, key=lambda p: p.fitness, reverse=True)
+
                 print("---------Spiel Vorbei---------")
                 if game.ownPlayer.active:
                     print("Wir haben gewonnen !!!     PS: Weil wir einfach Boss sind ;)")
+                elif game.ownPlayer.fitness == players[0].fitness:
+                    print("Unentschieden. Ihr deppen seid einfach ineinander gerasselt. Zwei Dumme, ein Gedanke...")
                 else:
                     print("Haben leider verloren... :/ Alles Hacker hier...")
-                print("---Statistiken---")
-                for player in game.playground.players:
+                print("---------Statistiken---------")
+
+                for player in players:
                     print("Spieler " + str(player.id) + ": " + str(player.fitness) + " Status: " + str(
                         "Lebend" if player.active else "Gestorben") + " Farbe: " + game.playgroundPresenter.getColorName(
                         player.id) + ("  <---WIR" if game.ownPlayer.id == player.id else ""))

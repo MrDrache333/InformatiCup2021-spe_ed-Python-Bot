@@ -131,6 +131,7 @@ class Player(object):
             if self.speed < 9:
                 nextPlayground = copy.deepcopy(playground)
                 nextPlayground.players[self.id - 1].speedUp()
+                nextPlayground.movePlayer(self.id - 1)
                 nextPlayground.players[self.id - 1].speedUp()
                 # Richtig advanced -> Jeden möglichen Zug anderer Spieler auch noch prüfen und weitesten Weg nehmen
                 nextPlayground.movePlayer(self.id - 1)
@@ -243,11 +244,11 @@ class Player(object):
                                                       playground.coordinateSystem) >= (
                                 self.getAmountOfFreeSpaces(self.x, self.y, lookDirectionAlongSideWallLeft,
                                                            playground.coordinateSystem) or self.getAmountOfFreeSpaces(
-                                self.x, self.y, lookDirectionAlongSideWallRight, playground.coordinateSystem)):
+                            self.x, self.y, lookDirectionAlongSideWallRight, playground.coordinateSystem)):
                             self.speedDown()
                         elif self.getAmountOfFreeSpaces(self.x, self.y, lookDirectionAlongSideWallLeft,
                                                         playground.coordinateSystem) >= self.getAmountOfFreeSpaces(
-                            self.x, self.y, lookDirectionAlongSideWallRight, playground.coordinateSystem) :
+                            self.x, self.y, lookDirectionAlongSideWallRight, playground.coordinateSystem):
                             self.turnDirectionOfLooking(lookDirectionAlongSideWallLeft)
                         else:
                             self.turnDirectionOfLooking(lookDirectionAlongSideWallRight)
@@ -266,8 +267,8 @@ class Player(object):
 
                 if self.getAmountOfFreeSpaces(self.x, self.y, lookDirectionAlongSideWallLeft,
                                               playground.coordinateSystem) > self.getAmountOfFreeSpaces(self.x, self.y,
-                                                                                                         lookDirectionAlongSideWallRight,
-                                                                                                         playground.coordinateSystem):
+                                                                                                        lookDirectionAlongSideWallRight,
+                                                                                                        playground.coordinateSystem):
                     self.turnDirectionOfLooking(lookDirectionAlongSideWallLeft)
                 else:
                     self.turnDirectionOfLooking(lookDirectionAlongSideWallRight)
@@ -307,7 +308,7 @@ class Player(object):
 
         temporaryCoordinateSystem = copy.deepcopy(coordinateSystem)
 
-        tmpX, tmpY =directionOfLooking.value
+        tmpX, tmpY = directionOfLooking.value
 
         givenX += tmpX
         givenY += tmpY
@@ -442,7 +443,7 @@ class Player(object):
 
     def checkRight(self, tempCS, currentPosX, currentPosY, count, turn, speed):
         """Checks the right node"""
-        if self.checkPos(tempCS, currentPosX+speed, currentPosY, -1, False, False):
+        if self.checkPos(tempCS, currentPosX + speed, currentPosY, -1, False, False):
 
             for i in range(speed):
                 checkX = currentPosX + (i + 1)
