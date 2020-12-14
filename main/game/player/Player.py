@@ -115,6 +115,7 @@ class Player(object):
 
         # Check other Speeds
         logger.disabled = False
+        # TODO Bessere Bestimmung und evtl. Lock der Entscheidung die Geschwindigkeit zwei mal zu erhöhen um bessere Alternative durchzusetzen
         if self.speed < 10:
             nextPlayground = copy.deepcopy(playground)
             nextPlayground.players[self.id - 1].speedUp()
@@ -123,7 +124,7 @@ class Player(object):
             temp_maxval, temp_maxvalX, temp_maxvalY, temp_tempCS = self.findFurthestField(nextPlayground,
                                                                                           self.speed + 1)
 
-            if temp_maxval > maxval:
+            if temp_maxval - maxval > 1:
                 logger.debug("SpeedUp bringt was! Schritte: Alt=" + str(maxval) + " Neu=" + str(
                     temp_maxval) + " NewSpeed=" + str(self.speed + 1))
                 self.speedUp()
@@ -138,7 +139,7 @@ class Player(object):
                 temp_maxval, temp_maxvalX, temp_maxvalY, temp_tempCS = self.findFurthestField(nextPlayground,
                                                                                               self.speed + 2)
 
-                if temp_maxval > maxval:
+                if temp_maxval - maxval > 1:
                     logger.debug("SpeedUp bringt was! Schritte: Alt=" + str(maxval) + " Neu=" + str(
                         temp_maxval) + " NewSpeed=" + str(self.speed + 1))
                     self.speedUp()

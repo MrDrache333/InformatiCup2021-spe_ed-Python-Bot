@@ -2,6 +2,7 @@ import asyncio
 import json
 import logging
 import time
+from datetime import datetime
 
 import pygame
 import websockets as websockets
@@ -173,6 +174,10 @@ class Game(object):
             print("Unentschieden. Ihr deppen seid einfach ineinander gerasselt. Zwei Dumme, ein Gedanke...")
         else:
             print("Haben leider verloren... :/ Alles Hacker hier...")
+            if ONLINE:
+                # Screenshot des Spielfeldes speichern
+                pygame.image.save(game.playgroundPresenter.gameWindow,
+                                  "result_" + str(datetime.timestamp(datetime.now())) + ".jpg")
         print("---------Statistiken---------")
 
         for player in players:
