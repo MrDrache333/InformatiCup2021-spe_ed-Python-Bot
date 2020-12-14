@@ -1,6 +1,7 @@
 import asyncio
 import json
 import logging
+import os
 import time
 from datetime import datetime
 
@@ -18,7 +19,7 @@ ONLINE = True
 
 class Game(object):
 
-    def __init__(self, url="", key=""):
+    def __init__(self, url="", key="", docker=False):
         self.ownPlayer = None
         self.URL = url
         self.KEY = key
@@ -29,6 +30,7 @@ class Game(object):
         self.playground = None
         self.playgroundPresenter = None
         self.printedStatistics = False
+        self.docker = docker
 
     def printInfo(self, data):
         print("Playfield: " + str(self.width) + " x " + str(self.height))
@@ -58,6 +60,7 @@ class Game(object):
         self.playground = Playground(self.interpreter.getCellsFromLoadedJson(data),
                                      self.interpreter.getPlayersFromLoadedJson(data))
         self.playgroundPresenter = PlaygroundPresenter(self.playground, self.width, self.height)
+        self.playgroundPresenter.generateGameField()
         running = True
 
         # Den eigenen Spieler heraussuchen
@@ -98,7 +101,7 @@ class Game(object):
             for player in self.playground.players:
                 if player.active:
                     active += 1
-                    player.tryToSurvive(self.playgroundPresenter)
+                    player.tryToSurvive(self.playground)
                     print("API-Zug: " + player.choosenTurn)
                     player.fitness += 1
             if active == 0 and not self.printedStatistics:
@@ -141,7 +144,9 @@ class Game(object):
                 else:
                     self.playground.update(self.interpreter.getCellsFromLoadedJson(data),
                                            self.interpreter.getPlayersFromLoadedJson(data))
-                self.playgroundPresenter = PlaygroundPresenter(self.playground, self.width, self.height)
+                if not self.docker:
+                    self.playgroundPresenter = PlaygroundPresenter(self.playground, self.width, self.height)
+                    self.playgroundPresenter.generateGameField()
 
                 # Den eigenen Spieler heraussuchen
                 self.ownPlayer = self.playground.players[int(data[0]['you']) - 1]
@@ -151,11 +156,12 @@ class Game(object):
                         player.fitness += 1
 
                 if self.ownPlayer.active and data[0]['running']:
-                    self.ownPlayer.tryToSurvive(self.playgroundPresenter)
+                    self.ownPlayer.tryToSurvive(self.playground)
 
                 self.playground.addTurn()
-                self.playgroundPresenter.update(self.playground)
-                self.playgroundPresenter.updateGameField()
+                if not self.docker:
+                    self.playgroundPresenter.update(self.playground)
+                    self.playgroundPresenter.updateGameField()
 
                 action = self.ownPlayer.choosenTurn
                 # print("API-Zug: " + action)
@@ -174,7 +180,7 @@ class Game(object):
             print("Unentschieden. Ihr deppen seid einfach ineinander gerasselt. Zwei Dumme, ein Gedanke...")
         else:
             print("Haben leider verloren... :/ Alles Hacker hier...")
-            if ONLINE:
+            if ONLINE and not self.docker:
                 # Screenshot des Spielfeldes speichern
                 pygame.image.save(game.playgroundPresenter.gameWindow,
                                   "result_" + str(datetime.timestamp(datetime.now())) + ".jpg")
@@ -187,10 +193,6 @@ class Game(object):
         print("-------------------------------")
 
 
-def getPlaygroundPresenter():
-    return game.playgroundPresenter
-
-
 def sleep(secs):
     for i in range(secs, 0, -1):
         if i <= 3 or i % 10 == 0:
@@ -199,9 +201,13 @@ def sleep(secs):
 
 
 if ONLINE:
+    url = os.environ["URL"]
+    key = os.environ["KEY"]
+    docker = bool(os.environ["Docker"])
+
     while True:
         # TODO Auslagern in Parameterübergabe beim Programstart
-        game = Game("wss://msoll.de/spe_ed", "72ILGT3YVIW5DV2UR3L5E6VCMFB6TJPR6LAX2ZLGMYGRQSVTW2C4G4E2")
+        game = Game(url, key, docker)
         try:
             asyncio.get_event_loop().run_until_complete(game.playOnline())
         except websockets.InvalidStatusCode as e:
@@ -219,8 +225,6 @@ if ONLINE:
             if e.code == 1006:
                 game.printStatistics()
                 sleep(10)
-
-
 else:
     game = Game()
     asyncio.get_event_loop().run_until_complete(game.playOffline())

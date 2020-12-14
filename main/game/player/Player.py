@@ -104,12 +104,11 @@ class Player(object):
         self.path = []
         self.active = False
 
-    def tryToSurvive(self, playgroundPresenter):
+    def tryToSurvive(self, playground):
         """Different strategies to keep the player alive"""
         if not self.active:
             return
         self.choosenTurn = "change_nothing"
-        playground = playgroundPresenter.getPlayground()
         # Strategie: Weit entferntestes Feld finden
         maxval, maxvalX, maxvalY, tempCS = self.findFurthestField(playground, self.speed)
 
@@ -164,7 +163,7 @@ class Player(object):
 
         if (
                 maxval != 0
-                and not self.moveToFurthestField(playgroundPresenter, maxvalX, maxvalY)
+                and not self.moveToFurthestField(playground, maxvalX, maxvalY)
                 or maxval == 0
         ):
             logger.debug("CANT FIND ZE PATH, I TRY TO BIEG AB!")
@@ -532,8 +531,7 @@ class Player(object):
                     tempCS[checkY][checkX] = -1
                     return False
 
-    def moveToFurthestField(self, playgroundPresenter, maxvalX, maxvalY):
-        playground = playgroundPresenter.getPlayground()
+    def moveToFurthestField(self, playground, maxvalX, maxvalY):
         logger.disabled = True
 
         if not self.isCoordinateFree(maxvalX, maxvalY, playground):

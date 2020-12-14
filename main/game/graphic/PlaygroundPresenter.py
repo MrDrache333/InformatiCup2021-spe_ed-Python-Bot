@@ -1,7 +1,6 @@
 import copy
 
 import pygame
-from mss import mss
 
 from game.Playground import Playground
 
@@ -10,11 +9,7 @@ class PlaygroundPresenter(object):
     # Defining Constants
     global playerColors, colorNames, blockwidth, py
     py = pygame
-    sct = mss()
-    if sct.monitors[1]["width"] >= 2560:
-        blockwidth = 15
-    else:
-        blockwidth = 10
+    blockwidth = 10
     # Defining PlayerColors
     playerColors = {
         -1: (255, 255, 255),  # Zwei Spieler auf gleicher koordinate
@@ -45,7 +40,6 @@ class PlaygroundPresenter(object):
         self.displayWidth = width * blockwidth
         self.displayHeight = height * blockwidth
         self.gameWindow = py.display.set_mode((self.displayWidth, self.displayHeight))
-        self.generateGameField()
 
     def update(self, playground: Playground):
         self.playground = playground
