@@ -19,7 +19,7 @@ ONLINE = True
 
 class Game(object):
 
-    def __init__(self, url="", key="", docker=False):
+    def __init__(self, docker=False, url="", key=""):
         self.ownPlayer = None
         self.URL = url
         self.KEY = key
@@ -30,7 +30,8 @@ class Game(object):
         self.playground = None
         self.playgroundPresenter = None
         self.printedStatistics = False
-        self.docker = docker
+        if docker:
+            os.environ["SDL_VIDEODRIVER"] = "dummy"
 
     def printInfo(self, data):
         print("Playfield: " + str(self.width) + " x " + str(self.height))
@@ -56,9 +57,10 @@ class Game(object):
         self.height = data[0]['height']
 
         self.printInfo(data)
-
         self.playground = Playground(self.interpreter.getCellsFromLoadedJson(data),
                                      self.interpreter.getPlayersFromLoadedJson(data))
+        # Den eigenen Spieler heraussuchen
+        self.ownPlayer = self.playground.players[int(data[0]['you']) - 1]
         self.playgroundPresenter = PlaygroundPresenter(self.playground, self.width, self.height)
         self.playgroundPresenter.generateGameField()
         running = True
@@ -76,7 +78,7 @@ class Game(object):
             # pygame.time.delay(500//60)
             # self.clock.tick(30)
             # clock.tick(10000)
-            self.clock.tick(1000 // 400)
+            self.clock.tick(1000 // 200)
 
             # Benutzereingabe prüfen
             keys = pygame.key.get_pressed()
@@ -136,20 +138,19 @@ class Game(object):
                 if self.playground is None:
                     self.width = data[0]['width']
                     self.height = data[0]['height']
+
                     self.printInfo(data)
                     self.playground = Playground(self.interpreter.getCellsFromLoadedJson(data),
                                                  self.interpreter.getPlayersFromLoadedJson(data))
 
-                # TODO Write some Update methods, to not completly loose the last Playground Data
+                    # Den eigenen Spieler heraussuchen
+                    self.ownPlayer = self.playground.players[int(data[0]['you']) - 1]
                 else:
                     self.playground.update(self.interpreter.getCellsFromLoadedJson(data),
                                            self.interpreter.getPlayersFromLoadedJson(data))
-                if not self.docker:
-                    self.playgroundPresenter = PlaygroundPresenter(self.playground, self.width, self.height)
-                    self.playgroundPresenter.generateGameField()
 
-                # Den eigenen Spieler heraussuchen
-                self.ownPlayer = self.playground.players[int(data[0]['you']) - 1]
+                self.playgroundPresenter = PlaygroundPresenter(self.playground, self.width, self.height)
+                self.playgroundPresenter.generateGameField()
 
                 for player in self.playground.players:
                     if player.active:
@@ -159,12 +160,12 @@ class Game(object):
                     self.ownPlayer.tryToSurvive(self.playground)
 
                 self.playground.addTurn()
-                if not self.docker:
-                    self.playgroundPresenter.update(self.playground)
-                    self.playgroundPresenter.updateGameField()
+
+                self.playgroundPresenter.update(self.playground)
+                self.playgroundPresenter.updateGameField()
 
                 action = self.ownPlayer.choosenTurn
-                # print("API-Zug: " + action)
+                print("API-Zug: " + action)
                 time.sleep(0.1)
                 action_json = json.dumps({"action": action})
                 await websocket.send(action_json)
@@ -178,12 +179,14 @@ class Game(object):
             print("Wir haben gewonnen !!!     PS: Weil wir einfach Boss sind ;)")
         elif self.ownPlayer.fitness == players[0].fitness:
             print("Unentschieden. Ihr deppen seid einfach ineinander gerasselt. Zwei Dumme, ein Gedanke...")
+            # Screenshot des Spielfeldes speichern
+            pygame.image.save(game.playgroundPresenter.gameWindow,
+                              "results/result_" + str(datetime.timestamp(datetime.now())) + ".jpg")
         else:
             print("Haben leider verloren... :/ Alles Hacker hier...")
-            if ONLINE and not self.docker:
-                # Screenshot des Spielfeldes speichern
-                pygame.image.save(game.playgroundPresenter.gameWindow,
-                                  "result_" + str(datetime.timestamp(datetime.now())) + ".jpg")
+            # Screenshot des Spielfeldes speichern
+            pygame.image.save(game.playgroundPresenter.gameWindow,
+                              "results/result_" + str(datetime.timestamp(datetime.now())) + ".jpg")
         print("---------Statistiken---------")
 
         for player in players:
@@ -200,14 +203,18 @@ def sleep(secs):
         time.sleep(1)
 
 
+docker = bool(os.environ["Docker"])
 if ONLINE:
     url = os.environ["URL"]
     key = os.environ["KEY"]
-    docker = bool(os.environ["Docker"])
+
+    print("API-SERVER-URL: " + url)
+    print("API-KEY: " + key)
+    print("DOCKER: " + str(docker))
 
     while True:
         # TODO Auslagern in Parameterübergabe beim Programstart
-        game = Game(url, key, docker)
+        game = Game(docker, url, key)
         try:
             asyncio.get_event_loop().run_until_complete(game.playOnline())
         except websockets.InvalidStatusCode as e:
@@ -226,7 +233,7 @@ if ONLINE:
                 game.printStatistics()
                 sleep(10)
 else:
-    game = Game()
+    game = Game(docker)
     asyncio.get_event_loop().run_until_complete(game.playOffline())
     while True:
         time.sleep(1)
