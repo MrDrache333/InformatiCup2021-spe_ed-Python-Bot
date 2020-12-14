@@ -121,43 +121,46 @@ class Player(object):
             nextPlayground.players[self.id - 1].speedUp()
             # Richtig advanced -> Jeden möglichen Zug anderer Spieler auch noch prüfen und weitesten Weg nehmen
             nextPlayground.movePlayer(self.id - 1)
-            temp_maxval, temp_maxvalX, temp_maxvalY, temp_tempCS = self.findFurthestField(nextPlayground,
-                                                                                          self.speed + 1)
-
-            if temp_maxval - maxval > 1:
-                logger.debug("SpeedUp bringt was! Schritte: Alt=" + str(maxval) + " Neu=" + str(
-                    temp_maxval) + " NewSpeed=" + str(self.speed + 1))
-                self.speedUp()
-                return
-            if self.speed < 9:
-                nextPlayground = copy.deepcopy(playground)
-                nextPlayground.players[self.id - 1].speedUp()
-                nextPlayground.movePlayer(self.id - 1)
-                nextPlayground.players[self.id - 1].speedUp()
-                # Richtig advanced -> Jeden möglichen Zug anderer Spieler auch noch prüfen und weitesten Weg nehmen
-                nextPlayground.movePlayer(self.id - 1)
+            if nextPlayground.players[self.id - 1].active:
                 temp_maxval, temp_maxvalX, temp_maxvalY, temp_tempCS = self.findFurthestField(nextPlayground,
-                                                                                              self.speed + 2)
+                                                                                              self.speed + 1)
 
                 if temp_maxval - maxval > 1:
                     logger.debug("SpeedUp bringt was! Schritte: Alt=" + str(maxval) + " Neu=" + str(
                         temp_maxval) + " NewSpeed=" + str(self.speed + 1))
                     self.speedUp()
                     return
+                if self.speed < 9:
+                    nextPlayground = copy.deepcopy(playground)
+                    nextPlayground.players[self.id - 1].speedUp()
+                    nextPlayground.movePlayer(self.id - 1)
+                    nextPlayground.players[self.id - 1].speedUp()
+                    nextPlayground.movePlayer(self.id - 1)
+                    if nextPlayground.players[self.id - 1].active:
+                        # Richtig advanced -> Jeden möglichen Zug anderer Spieler auch noch prüfen und weitesten Weg nehmen
+                        temp_maxval, temp_maxvalX, temp_maxvalY, temp_tempCS = self.findFurthestField(nextPlayground,
+                                                                                                      self.speed + 2)
+
+                        if temp_maxval - maxval > 1:
+                            logger.debug("SpeedUp bringt was! Schritte: Alt=" + str(maxval) + " Neu=" + str(
+                                temp_maxval) + " NewSpeed=" + str(self.speed + 1))
+                            self.speedUp()
+                            return
 
         if self.speed > 1:
             nextPlayground = copy.deepcopy(playground)
             nextPlayground.players[self.id - 1].speedDown()
             # Richtig advanced -> Jeden möglichen Zug anderer Spieler auch noch prüfen und weitesten Weg nehmen
             nextPlayground.movePlayer(self.id - 1)
-            temp_maxval, temp_maxvalX, temp_maxvalY, temp_tempCS = self.findFurthestField(nextPlayground,
-                                                                                          self.speed - 1)
+            if nextPlayground.players[self.id - 1].active:
+                temp_maxval, temp_maxvalX, temp_maxvalY, temp_tempCS = self.findFurthestField(nextPlayground,
+                                                                                              self.speed - 1)
 
-            if temp_maxval - maxval > 5:
-                logger.debug("SpeedDown bringt was! Schritte: Alt=" + str(maxval) + " Neu=" + str(
-                    temp_maxval) + " NewSpeed=" + str(self.speed - 1))
-                self.speedDown()
-                return
+                if temp_maxval - maxval > 5:
+                    logger.debug("SpeedDown bringt was! Schritte: Alt=" + str(maxval) + " Neu=" + str(
+                        temp_maxval) + " NewSpeed=" + str(self.speed - 1))
+                    self.speedDown()
+                    return
 
         if (
                 maxval != 0
