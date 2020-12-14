@@ -114,6 +114,7 @@ class Player(object):
         maxval, maxvalX, maxvalY, tempCS = self.findFurthestField(playground, self.speed)
 
         # Check other Speeds
+        logger.disabled = False
         if self.speed < 10:
             nextPlayground = copy.deepcopy(playground)
             nextPlayground.players[self.id - 1].speedUp()
@@ -127,6 +128,20 @@ class Player(object):
                     temp_maxval) + " NewSpeed=" + str(self.speed + 1))
                 self.speedUp()
                 return
+            if self.speed < 9:
+                nextPlayground = copy.deepcopy(playground)
+                nextPlayground.players[self.id - 1].speedUp()
+                nextPlayground.players[self.id - 1].speedUp()
+                # Richtig advanced -> Jeden möglichen Zug anderer Spieler auch noch prüfen und weitesten Weg nehmen
+                nextPlayground.movePlayer(self.id - 1)
+                temp_maxval, temp_maxvalX, temp_maxvalY, temp_tempCS = self.findFurthestField(nextPlayground,
+                                                                                              self.speed + 2)
+
+                if temp_maxval - maxval > 2:
+                    logger.debug("SpeedUp bringt was! Schritte: Alt=" + str(maxval) + " Neu=" + str(
+                        temp_maxval) + " NewSpeed=" + str(self.speed + 1))
+                    self.speedUp()
+                    return
 
         if self.speed > 1:
             nextPlayground = copy.deepcopy(playground)
@@ -142,12 +157,11 @@ class Player(object):
                 self.speedDown()
                 return
 
-        if maxval != 0:
-            if not self.moveToFurthestField(
-                    playgroundPresenter, maxval, maxvalX, maxvalY, tempCS):
-                logger.debug("CANT FIND ZE PATH, I TRY TO BIEG AB!")
-                self.fallBackPlan(playground)
-        else:
+        if (
+                maxval != 0
+                and not self.moveToFurthestField(playgroundPresenter, maxvalX, maxvalY)
+                or maxval == 0
+        ):
             logger.debug("CANT FIND ZE PATH, I TRY TO BIEG AB!")
             self.fallBackPlan(playground)
 
@@ -406,13 +420,13 @@ class Player(object):
 
         logger.debug("[" + str(currentPlayer.id) + "]: Konnte keinen Punkt finden.")
         for c in tempCS:
-            logger.debug()
+            logger.debug("")
             for d in c:
                 if 10 > d >= 0:
                     logger.debug(" " + str(d) + ", ", end='')
                 else:
                     logger.debug(str(d) + ", ", end='')
-        logger.debug()
+        logger.debug("")
         return 0, 0, 0, tempCS
 
     def checkAllNodesSurround(self, tempCS, x, y, count, turn, speed):
@@ -513,7 +527,7 @@ class Player(object):
                     tempCS[checkY][checkX] = -1
                     return False
 
-    def moveToFurthestField(self, playgroundPresenter, maxval, maxvalX, maxvalY, tempCS):
+    def moveToFurthestField(self, playgroundPresenter, maxvalX, maxvalY):
         playground = playgroundPresenter.getPlayground()
         logger.disabled = True
 

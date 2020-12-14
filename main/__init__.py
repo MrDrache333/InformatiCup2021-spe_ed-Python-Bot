@@ -137,13 +137,12 @@ class Game(object):
                     self.printInfo(data)
                     self.playground = Playground(self.interpreter.getCellsFromLoadedJson(data),
                                                  self.interpreter.getPlayersFromLoadedJson(data))
-                    self.playgroundPresenter = PlaygroundPresenter(self.playground, self.width, self.height)
 
                 # TODO Write some Update methods, to not completly loose the last Playground Data
                 else:
                     self.playground.update(self.interpreter.getCellsFromLoadedJson(data),
                                            self.interpreter.getPlayersFromLoadedJson(data))
-                    self.playgroundPresenter.update(self.playground)
+                self.playgroundPresenter = PlaygroundPresenter(self.playground, self.width, self.height)
 
                 # Den eigenen Spieler heraussuchen
                 self.ownPlayer = self.playground.players[int(data[0]['you']) - 1]
@@ -156,11 +155,12 @@ class Game(object):
                     self.ownPlayer.tryToSurvive(self.playgroundPresenter)
 
                 self.playground.addTurn()
+                self.playgroundPresenter.update(self.playground)
                 self.playgroundPresenter.updateGameField()
 
                 action = self.ownPlayer.choosenTurn
                 print("API-Zug: " + action)
-                time.sleep(0.2)
+                time.sleep(0.1)
                 action_json = json.dumps({"action": action})
                 await websocket.send(action_json)
 
@@ -204,7 +204,7 @@ if ONLINE:
                 for player in game.playground.players:
                     print("Spieler " + str(player.id) + ": " + str(player.fitness) + " Status: " + str(
                         "Lebend" if player.active else "Gestorben") + " Farbe: " + game.playgroundPresenter.getColorName(
-                        player.id) + "  <---WIR" if game.ownPlayer.id == player.id else "")
+                        player.id) + ("  <---WIR" if game.ownPlayer.id == player.id else ""))
                     game.printedStatistics = True
                 print("-------------------------------")
                 sleep(10)
