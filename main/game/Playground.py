@@ -1,9 +1,11 @@
+import logging
+import sys
+
 from game.player.DirectionOfLooking import DirectionOfLooking
 
-
-def killPlayer(player):
-    print("Player: " + str(player.id) + " died at X: " + str(player.x) + " and Y: " + str(player.y))
-    player.die()
+logging.basicConfig(stream=sys.stderr, level=logging.DEBUG)
+logger = logging.getLogger()
+logger.disabled = True
 
 
 class Playground(object):
@@ -11,6 +13,19 @@ class Playground(object):
         self.coordinateSystem = coordinateSystem
         self.players = players
         self.turn = 1
+
+    def update(self, coordinateSystem, players):
+        self.coordinateSystem = coordinateSystem
+        for player in self.players:
+            player.x = players[player.id - 1].x
+            player.y = players[player.id - 1].y
+            player.active = players[player.id - 1].active
+            player.speed = players[player.id - 1].speed
+            player.directionOfLooking = players[player.id - 1].directionOfLooking
+
+    def killPlayer(self, player):
+        logger.debug("Player: " + str(player.id) + " died at X: " + str(player.x) + " and Y: " + str(player.y))
+        player.die()
 
     def addTurn(self):
         if self.turn == 6:
@@ -90,7 +105,7 @@ class Playground(object):
 
                 #   6. turn & not the last move position (head) &
                 if self.turn == 6 and speed != 1 and speed != speedOfPlayer:
-                    print("Ima skip dat field (Speed:" + str(speedOfPlayer) + ")")
+                    logger.debug("Ima skip dat field (Speed:" + str(speedOfPlayer) + ")")
                 else:
                     # determine whether player would collide with a wall
                     # determine whether coordinates are within coordinatesystem
@@ -106,8 +121,8 @@ class Playground(object):
                             # update coordinate system
                             self.coordinateSystem[yCoordinateOfPlayer][xCoordinateOfPlayer] = int(player.id)
                         else:
-                            killPlayer(player)
+                            self.killPlayer(player)
                             break
                     else:
-                        killPlayer(player)
+                        self.killPlayer(player)
                         break

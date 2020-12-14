@@ -8,9 +8,7 @@ from game.Playground import Playground
 
 class PlaygroundPresenter(object):
     # Defining Constants
-    global playerColors
-    global blockwidth
-    global py
+    global playerColors, colorNames, blockwidth, py
     py = pygame
     sct = mss()
     if sct.monitors[1]["width"] >= 2560:
@@ -28,6 +26,19 @@ class PlaygroundPresenter(object):
         5: (255, 51, 153),  # Pink
         6: (96, 96, 96)  # Grey
     }
+    colorNames = {
+        -1: "White",
+        0: "White",
+        1: "Green",
+        2: "Red",
+        3: "Blue",
+        4: "Orange",
+        5: "Pink",
+        6: "Grey"
+    }
+
+    def getColorName(self, id):
+        return colorNames[id]
 
     def __init__(self, playground: Playground, width, height):
         self.playground = playground
@@ -35,6 +46,9 @@ class PlaygroundPresenter(object):
         self.displayHeight = height * blockwidth
         self.gameWindow = py.display.set_mode((self.displayWidth, self.displayHeight))
         self.generateGameField()
+
+    def update(self, playground: Playground):
+        self.playground = playground
 
     def getPlayground(self):
         return self.playground

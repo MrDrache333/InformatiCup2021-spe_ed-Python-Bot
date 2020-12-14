@@ -14,9 +14,10 @@ logger.disabled = True
 
 
 def checkIfCoordinateIsInCoordinateSystem(givenX, givenY, coordinateSystem):
-    if len(coordinateSystem) > givenY >= 0 and len(coordinateSystem[0]) > givenX >= 0:
-        return True
-    return False
+    return (
+            len(coordinateSystem) > givenY >= 0
+            and len(coordinateSystem[0]) > givenX >= 0
+    )
 
 
 class Player(object):
@@ -33,10 +34,11 @@ class Player(object):
 
     def printMatrix(self, matrix):
         for y in matrix:
-            line = ""
-            for x in y:
-                line += ((str(x) if len(str(x)) == 2 else "0" + str(x)) + " ")
-            print(line)
+            line = "".join(
+                ((str(x) if len(str(x)) == 2 else "0" + str(x)) + " ") for x in y
+            )
+
+            logger.debug(line)
 
     def isCoordinateFree(self, x, y, playground):
         return playground.coordinateSystem[y][x] == 0
@@ -121,7 +123,7 @@ class Player(object):
                                                                                           self.speed + 1)
 
             if temp_maxval - maxval > 2:
-                print("SpeedUp bringt was! Schritte: Alt=" + str(maxval) + " Neu=" + str(
+                logger.debug("SpeedUp bringt was! Schritte: Alt=" + str(maxval) + " Neu=" + str(
                     temp_maxval) + " NewSpeed=" + str(self.speed + 1))
                 self.speedUp()
                 return
@@ -135,7 +137,7 @@ class Player(object):
                                                                                           self.speed - 1)
 
             if temp_maxval - maxval > 5:
-                print("SpeedDown bringt was! Schritte: Alt=" + str(maxval) + " Neu=" + str(
+                logger.debug("SpeedDown bringt was! Schritte: Alt=" + str(maxval) + " Neu=" + str(
                     temp_maxval) + " NewSpeed=" + str(self.speed - 1))
                 self.speedDown()
                 return
@@ -143,10 +145,10 @@ class Player(object):
         if maxval != 0:
             if not self.moveToFurthestField(
                     playgroundPresenter, maxval, maxvalX, maxvalY, tempCS):
-                print("CANT FIND ZE PATH, I TRY TO BIEG AB!")
+                logger.debug("CANT FIND ZE PATH, I TRY TO BIEG AB!")
                 self.fallBackPlan(playground)
         else:
-            print("CANT FIND ZE PATH, I TRY TO BIEG AB!")
+            logger.debug("CANT FIND ZE PATH, I TRY TO BIEG AB!")
             self.fallBackPlan(playground)
 
     def rideAlongSideWall(self, playground):
@@ -163,7 +165,7 @@ class Player(object):
         # 6. ride alongside wall
         # 7. If next wallpiece is straight, reduce speed
         # 8. Go to 4.
-        print("Ride alongside wall")
+        logger.debug("Ride alongside wall")
 
         freeBlocks = {DirectionOfLooking.UP: playground.countBlocksInStraightLine(self, DirectionOfLooking.UP),
                       DirectionOfLooking.RIGHT: playground.countBlocksInStraightLine(self, DirectionOfLooking.RIGHT),
@@ -297,16 +299,14 @@ class Player(object):
         givenY += tmpY
 
         if checkIfCoordinateIsInCoordinateSystem(givenX, givenY, temporaryCoordinateSystem):
-            if not temporaryCoordinateSystem[givenY][givenX] == 0:
+            if temporaryCoordinateSystem[givenY][givenX] != 0:
                 return 0
             else:
                 temporaryCoordinateSystem[givenY][givenX] = -1
 
-
-
-        amountOfFreeSpaces = self.checkSurroundingCellsForEmptiness(givenX, givenY, temporaryCoordinateSystem)
-
-        return amountOfFreeSpaces
+        return self.checkSurroundingCellsForEmptiness(
+            givenX, givenY, temporaryCoordinateSystem
+        )
 
     def checkSurroundingCellsForEmptiness(self, givenX, givenY, coordinateSystem):
         """ATTENTION: This method is reserved fot the 'getAmountOfFreeSpaces' method. It recursively counts free
@@ -321,11 +321,15 @@ class Player(object):
             tmpX, tmpY = direction.value
             toBeAnalysedX = givenX + tmpX
             toBeAnalysedY = givenY + tmpY
-            if checkIfCoordinateIsInCoordinateSystem(toBeAnalysedX, toBeAnalysedY, coordinateSystem):
-                if coordinateSystem[toBeAnalysedY][toBeAnalysedX] == 0:
-                    coordinateSystem[toBeAnalysedY][toBeAnalysedX] = -1
-                    amountOfFreeSpaces = self.checkSurroundingCellsForEmptiness(toBeAnalysedX, toBeAnalysedY,
-                                                                                coordinateSystem) + 1
+            if (
+                    checkIfCoordinateIsInCoordinateSystem(
+                        toBeAnalysedX, toBeAnalysedY, coordinateSystem
+                    )
+                    and coordinateSystem[toBeAnalysedY][toBeAnalysedX] == 0
+            ):
+                coordinateSystem[toBeAnalysedY][toBeAnalysedX] = -1
+                amountOfFreeSpaces = self.checkSurroundingCellsForEmptiness(toBeAnalysedX, toBeAnalysedY,
+                                                                            coordinateSystem) + 1
 
         return amountOfFreeSpaces
 
@@ -369,7 +373,7 @@ class Player(object):
             for c in tempCS:
                 logger.debug(c)
 
-        print("---------------")
+        logger.debug("---------------")
         for c in tempCS:
             logger.debug(c)
 
@@ -384,7 +388,8 @@ class Player(object):
                         if (maxvalX % speed != currentPlayer.x % speed) or (maxvalY % speed != currentPlayer.y % speed):
                             logger.debug("Maximal entfernte gegebenen Koordinate ist NICHT erreichbar!")
                         else:
-                            print("Max Val ("+ str(maxval)+ ") at ["+ str(maxvalX)+ ", "+ str(maxvalY) + "]")
+                            logger.debug(
+                                "Max Val (" + str(maxval) + ") at [" + str(maxvalX) + ", " + str(maxvalY) + "]")
                             return maxval, maxvalX, maxvalY, tempCS
             maxval -= 1
             for (i, row) in enumerate(tempCS):
@@ -395,18 +400,19 @@ class Player(object):
                         if (maxvalX % speed != currentPlayer.x % speed) or (maxvalY % speed != currentPlayer.y % speed):
                             logger.debug("Maximal entfernte gegebenen Koordinate ist NICHT erreichbar!")
                         else:
-                            print("Max Val ("+ str(maxval)+ ") at ["+ str(maxvalX)+ ", "+ str(maxvalY) + "]")
+                            logger.debug(
+                                "Max Val (" + str(maxval) + ") at [" + str(maxvalX) + ", " + str(maxvalY) + "]")
                             return maxval, maxvalX, maxvalY, tempCS
 
-        print("[" + str(currentPlayer.id) + "]: Konnte keinen Punkt finden.")
+        logger.debug("[" + str(currentPlayer.id) + "]: Konnte keinen Punkt finden.")
         for c in tempCS:
-            print()
+            logger.debug()
             for d in c:
                 if 10 > d >= 0:
-                    print(" " + str(d) + ", ", end='')
+                    logger.debug(" " + str(d) + ", ", end='')
                 else:
-                    print(str(d) + ", ", end='')
-        print()
+                    logger.debug(str(d) + ", ", end='')
+        logger.debug()
         return 0, 0, 0, tempCS
 
     def checkAllNodesSurround(self, tempCS, x, y, count, turn, speed):
@@ -493,12 +499,12 @@ class Player(object):
                     break
 
     def checkPos(self, tempCS, checkX, checkY, count, jump, add):
-        '''Checks if the given node is free or occupied'''
+        """Checks if the given node is free or occupied"""
         if 0 <= checkX < len(tempCS[0]) and 0 <= checkY < len(tempCS):
             if tempCS[checkY][checkX] == 0 or (jump and tempCS[checkY][checkX] < 10):
                 if count != -1:  # dont update temp coordinate system if -1 is given
                     tempCS[checkY][checkX] = count
-                # print("New Node Entry: [" + str(checkX) + ", " + str(checkY) + "]")
+                # logger.debug("New Node Entry: [" + str(checkX) + ", " + str(checkY) + "]")
                 if add:
                     newNodes.append((checkX, checkY))
                 return True
@@ -509,45 +515,47 @@ class Player(object):
 
     def moveToFurthestField(self, playgroundPresenter, maxval, maxvalX, maxvalY, tempCS):
         playground = playgroundPresenter.getPlayground()
+        logger.disabled = True
 
         if not self.isCoordinateFree(maxvalX, maxvalY, playground):
-            print("Maximal entfernte gegebenen Koordinate ist bereits belegt!")
+            logger.debug("Maximal entfernte gegebenen Koordinate ist bereits belegt!")
             return False
         if (maxvalX % self.speed != self.x % self.speed) or (maxvalY % self.speed != self.y % self.speed):
             hasToBeCorrected = True
-            print("Maximal entfernte gegebenen Koordinate ist NICHT erreichbar!")
+            logger.debug("Maximal entfernte gegebenen Koordinate ist NICHT erreichbar!")
             return False
 
         finder = AStar(playground.coordinateSystem, self.x, self.y, self.speed, playground.getTurn())
         self.path = finder.solve((maxvalX, maxvalY))
 
         if self.path is not None and len(self.path) > 0:
-            print("Neuer Pfad:" + str(self.path))
+            logger.debug("Neuer Pfad:" + str(self.path))
         else:
             # self.printMatrix(tempCS)
-            print("Nix Pfad gefunden :/ von " + str(self.x) + ":" + str(self.y) + " nach " + str(maxvalX) + ":" + str(
-                maxvalY))
+            logger.debug(
+                "Nix Pfad gefunden :/ von " + str(self.x) + ":" + str(self.y) + " nach " + str(maxvalX) + ":" + str(
+                    maxvalY))
             return False
 
         firstPathX = self.path[1][0]
         firstPathY = self.path[1][1]
 
-        print(
+        logger.debug(
             "I'm at [" + str(self.x) + ", " + str(self.y) + "] ant want to go to [" + str(firstPathX) + ", " + str(
                 firstPathY) + "]")
 
         if firstPathX > self.x:
             self.turnDirectionOfLooking(DirectionOfLooking.RIGHT)
-            print("Turn right")
+            logger.debug("Turn right")
         elif firstPathX < self.x:
             self.turnDirectionOfLooking(DirectionOfLooking.LEFT)
-            print("Turn left")
+            logger.debug("Turn left")
         elif firstPathY > self.y:
             self.turnDirectionOfLooking(DirectionOfLooking.DOWN)
-            print("Turn down")
+            logger.debug("Turn down")
         elif firstPathY < self.y:
             self.turnDirectionOfLooking(DirectionOfLooking.UP)
-            print("Turn up")
+            logger.debug("Turn up")
 
         return True
 
@@ -561,20 +569,20 @@ class Player(object):
 
         # Ändere Kurs, zur Richtung wo am meisten Blöcke frei sind
         if self.speed > 1 and max(freeBlocks) < self.speed:
-            print("[" + str(self.id) + "] I slow down")
+            logger.debug("[" + str(self.id) + "] I slow down")
             self.speedDown()
         elif freeBlocks.index(max(freeBlocks)) == 0:  # UP
-            print("[" + str(self.id) + "] I try to turn Up")
+            logger.debug("[" + str(self.id) + "] I try to turn Up")
             self.turnDirectionOfLooking(DirectionOfLooking.UP)
         # try right
         elif freeBlocks.index(max(freeBlocks)) == 1:  # RIGHT
-            print("[" + str(self.id) + "] I try to turn Right")
+            logger.debug("[" + str(self.id) + "] I try to turn Right")
             self.turnDirectionOfLooking(DirectionOfLooking.RIGHT)
         # try down
         elif freeBlocks.index(max(freeBlocks)) == 2:  # DOWN
-            print("[" + str(self.id) + "] I try to turn Down")
+            logger.debug("[" + str(self.id) + "] I try to turn Down")
             self.turnDirectionOfLooking(DirectionOfLooking.DOWN)
         # try left
         elif freeBlocks.index(max(freeBlocks)) == 3:  # LEFT
-            print("[" + str(self.id) + "] I try to turn Left")
+            logger.debug("[" + str(self.id) + "] I try to turn Left")
             self.turnDirectionOfLooking(DirectionOfLooking.LEFT)

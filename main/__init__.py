@@ -1,5 +1,6 @@
 import asyncio
 import json
+import logging
 import time
 
 import pygame
@@ -16,7 +17,7 @@ ONLINE = True
 
 class Game(object):
 
-    def __init__(self, url, key):
+    def __init__(self, url="", key=""):
         self.ownPlayer = None
         self.URL = url
         self.KEY = key
@@ -118,63 +119,50 @@ class Game(object):
 
     async def playOnline(self):
 
-        async with websockets.connect(f"{self.URL}?key={self.KEY}") as websocket:
-            print("Waiting for initial state...", flush=True)
+        logger = logging.getLogger('websockets')
+        logger.setLevel(logging.ERROR)
+        logger.addHandler(logging.StreamHandler())
 
+        async with websockets.connect(f"{self.URL}?key={self.KEY}") as websocket:
+            print("Mit Server verbunden. Warte in Lobby...Dies kann bis zu 5 Min. dauern!", flush=True)
+            self.clock.tick(1000)
             while True:
                 state_json = await websocket.recv()
                 data = json.loads(state_json)
                 data = [data]
 
-                self.width = data[0]['width']
-                self.height = data[0]['height']
-
-                self.printInfo(data)
+                if self.playground is None:
+                    self.width = data[0]['width']
+                    self.height = data[0]['height']
+                    self.printInfo(data)
+                    self.playground = Playground(self.interpreter.getCellsFromLoadedJson(data),
+                                                 self.interpreter.getPlayersFromLoadedJson(data))
+                    self.playgroundPresenter = PlaygroundPresenter(self.playground, self.width, self.height)
 
                 # TODO Write some Update methods, to not completly loose the last Playground Data
-                self.interpreter = JsonInterpreter()
-                self.playground = Playground(self.interpreter.getCellsFromLoadedJson(data),
-                                             self.interpreter.getPlayersFromLoadedJson(data))
-                self.playgroundPresenter = PlaygroundPresenter(self.playground, self.width, self.height)
-                self.clock = pygame.time.Clock()
-                running = True
+                else:
+                    self.playground.update(self.interpreter.getCellsFromLoadedJson(data),
+                                           self.interpreter.getPlayersFromLoadedJson(data))
+                    self.playgroundPresenter.update(self.playground)
 
                 # Den eigenen Spieler heraussuchen
-                for player in self.playground.players:
-                    if player.id == data[0]['you']:
-                        self.ownPlayer = player
-                        break
-                if self.ownPlayer is None:
-                    exit("Invalid Players")
+                self.ownPlayer = self.playground.players[int(data[0]['you']) - 1]
 
-                active = 0
                 for player in self.playground.players:
                     if player.active:
-                        active += 1
                         player.fitness += 1
 
                 if self.ownPlayer.active and data[0]['running']:
                     self.ownPlayer.tryToSurvive(self.playgroundPresenter)
 
-                if active == 0 and not self.printedStatistics:
-                    print("--- Statistiken ---")
-                    for player in self.playground.players:
-                        print("Spieler " + str(player.id) + ": " + str(player.fitness))
-                        self.printedStatistics = True
-                else:
-                    self.playground.addTurn()
-                    self.playgroundPresenter.playground = self.playground
-                    self.playgroundPresenter.updateGameField()
+                self.playground.addTurn()
+                self.playgroundPresenter.updateGameField()
 
                 action = self.ownPlayer.choosenTurn
                 print("API-Zug: " + action)
-                time.sleep(0.3)
+                time.sleep(0.2)
                 action_json = json.dumps({"action": action})
                 await websocket.send(action_json)
-
-
-# TODO Auslagern in Parameterübergabe beim Programstart
-game = Game("wss://msoll.de/spe_ed", "72ILGT3YVIW5DV2UR3L5E6VCMFB6TJPR6LAX2ZLGMYGRQSVTW2C4G4E2")
 
 
 def getPlaygroundPresenter():
@@ -183,12 +171,15 @@ def getPlaygroundPresenter():
 
 def sleep(secs):
     for i in range(secs, 0, -1):
-        print("Warte " + str(i - 1) + " Sekunden, bis zum erneuten Start!", flush=True)
+        if i <= 5 or i % 10 == 0:
+            print("Warte " + str(i) + " Sekunden, bis zum erneuten Start!", flush=True)
         time.sleep(1)
 
 
 if ONLINE:
     while True:
+        # TODO Auslagern in Parameterübergabe beim Programstart
+        game = Game("wss://msoll.de/spe_ed", "72ILGT3YVIW5DV2UR3L5E6VCMFB6TJPR6LAX2ZLGMYGRQSVTW2C4G4E2")
         try:
             asyncio.get_event_loop().run_until_complete(game.playOnline())
         except websockets.InvalidStatusCode as e:
@@ -212,11 +203,15 @@ if ONLINE:
                 print("---Statistiken---")
                 for player in game.playground.players:
                     print("Spieler " + str(player.id) + ": " + str(player.fitness) + " Status: " + str(
-                        "Lebend" if player.active else "Gestorben"))
+                        "Lebend" if player.active else "Gestorben") + " Farbe: " + game.playgroundPresenter.getColorName(
+                        player.id) + "  <---WIR" if game.ownPlayer.id == player.id else "")
                     game.printedStatistics = True
                 print("-------------------------------")
                 sleep(10)
 
 
 else:
+    game = Game()
     asyncio.get_event_loop().run_until_complete(game.playOffline())
+    while True:
+        time.sleep(1)
