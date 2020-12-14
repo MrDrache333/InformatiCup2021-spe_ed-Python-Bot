@@ -159,7 +159,7 @@ class Game(object):
                 self.playgroundPresenter.updateGameField()
 
                 action = self.ownPlayer.choosenTurn
-                print("API-Zug: " + action)
+                # print("API-Zug: " + action)
                 time.sleep(0.1)
                 action_json = json.dumps({"action": action})
                 await websocket.send(action_json)
