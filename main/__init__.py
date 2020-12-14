@@ -101,10 +101,8 @@ class Game(object):
                     print("API-Zug: " + player.choosenTurn)
                     player.fitness += 1
             if active == 0 and not self.printedStatistics:
-                print("--- Statistiken ---")
-                for player in self.playground.players:
-                    print("Spieler " + str(player.id) + ": " + str(player.fitness))
-                    self.printedStatistics = True
+                self.printStatistics()
+                self.printedStatistics = True
             else:
                 for player in self.playground.players:
                     self.playground.movePlayer(player.id - 1)
@@ -164,6 +162,25 @@ class Game(object):
                 action_json = json.dumps({"action": action})
                 await websocket.send(action_json)
 
+    def printStatistics(self):
+        # Sortiere die Spieler anhand Ihrer Fitness
+        players = sorted(self.playground.players, key=lambda p: p.fitness, reverse=True)
+
+        print("---------Spiel Vorbei---------")
+        if self.ownPlayer.active:
+            print("Wir haben gewonnen !!!     PS: Weil wir einfach Boss sind ;)")
+        elif self.ownPlayer.fitness == players[0].fitness:
+            print("Unentschieden. Ihr deppen seid einfach ineinander gerasselt. Zwei Dumme, ein Gedanke...")
+        else:
+            print("Haben leider verloren... :/ Alles Hacker hier...")
+        print("---------Statistiken---------")
+
+        for player in players:
+            print("Spieler " + str(player.id) + ": " + str(player.fitness) + " Status: " + str(
+                "Lebend" if player.active else "Gestorben") + " Farbe: " + self.playgroundPresenter.getColorName(
+                player.id) + ("  <---WIR" if self.ownPlayer.id == player.id else ""))
+        print("-------------------------------")
+
 
 def getPlaygroundPresenter():
     return game.playgroundPresenter
@@ -195,24 +212,7 @@ if ONLINE:
             sleep(5)
         except websockets.ConnectionClosedError as e:
             if e.code == 1006:
-                # Sortiere die Spieler anhand Ihrer Fitness
-                players = sorted(game.playground.players, key=lambda p: p.fitness, reverse=True)
-
-                print("---------Spiel Vorbei---------")
-                if game.ownPlayer.active:
-                    print("Wir haben gewonnen !!!     PS: Weil wir einfach Boss sind ;)")
-                elif game.ownPlayer.fitness == players[0].fitness:
-                    print("Unentschieden. Ihr deppen seid einfach ineinander gerasselt. Zwei Dumme, ein Gedanke...")
-                else:
-                    print("Haben leider verloren... :/ Alles Hacker hier...")
-                print("---------Statistiken---------")
-
-                for player in players:
-                    print("Spieler " + str(player.id) + ": " + str(player.fitness) + " Status: " + str(
-                        "Lebend" if player.active else "Gestorben") + " Farbe: " + game.playgroundPresenter.getColorName(
-                        player.id) + ("  <---WIR" if game.ownPlayer.id == player.id else ""))
-                    game.printedStatistics = True
-                print("-------------------------------")
+                game.printStatistics()
                 sleep(10)
 
 
