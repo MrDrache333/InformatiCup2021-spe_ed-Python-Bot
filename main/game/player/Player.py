@@ -31,6 +31,7 @@ class Player(object):
         self.path = []
         self.fitness = 0
         self.choosenTurn = "change_nothing"
+        self.nextTurn = None
 
     def printMatrix(self, matrix):
         for y in matrix:
@@ -109,11 +110,32 @@ class Player(object):
         if not self.active:
             return
         self.choosenTurn = "change_nothing"
+        if self.nextTurn is not None:
+            self.choosenTurn = copy.copy(self.nextTurn)
+            self.nextTurn = None
+            return
         # Strategie: Weit entferntestes Feld finden
         maxval, maxvalX, maxvalY, tempCS = self.findFurthestField(playground, self.speed)
 
         # Check other Speeds
-        logger.disabled = False
+        if self.speed > 1:
+            nextPlayground = copy.deepcopy(playground)
+            nextPlayground.players[self.id - 1].speedDown()
+            # Richtig advanced -> Jeden möglichen Zug anderer Spieler auch noch prüfen und weitesten Weg nehmen
+            nextPlayground.movePlayer(self.id - 1)
+            if nextPlayground.players[self.id - 1].active:
+                temp_maxval, temp_maxvalX, temp_maxvalY, temp_tempCS = self.findFurthestField(nextPlayground,
+                                                                                              self.speed - 1)
+
+                if temp_maxval / self.speed * (self.speed - 1) - maxval + self.speed > 1:
+                    logger.disabled = False
+                    logger.debug("SpeedDown bringt was! Schritte: Alt=" + str(maxval) + " Neu=" + str(
+                        int(temp_maxval / self.speed * (self.speed - 1))) + " NewSpeed=" + str(self.speed - 1))
+                    finder = AStar(nextPlayground.coordinateSystem, nextPlayground.players[self.id - 1].x,
+                                   nextPlayground.players[self.id - 1].y, self.speed - 1, nextPlayground.getTurn())
+                    self.path = finder.solve((temp_maxvalX, temp_maxvalY))
+                    self.speedDown()
+                    return
         # TODO Bessere Bestimmung und evtl. Lock der Entscheidung die Geschwindigkeit zwei mal zu erhöhen um bessere Alternative durchzusetzen
         if self.speed < 10:
             nextPlayground = copy.deepcopy(playground)
@@ -124,9 +146,14 @@ class Player(object):
                 temp_maxval, temp_maxvalX, temp_maxvalY, temp_tempCS = self.findFurthestField(nextPlayground,
                                                                                               self.speed + 1)
 
-                if temp_maxval - maxval > 1:
-                    logger.debug("SpeedUp bringt was! Schritte: Alt=" + str(maxval) + " Neu=" + str(
+                if temp_maxval - maxval / (self.speed + 1) * self.speed > 4:
+                    logger.disabled = False
+                    logger.debug("SpeedUp bringt was! Schritte: Alt=" + str(
+                        int(maxval / (self.speed + 1) * self.speed)) + " Neu=" + str(
                         temp_maxval) + " NewSpeed=" + str(self.speed + 1))
+                    finder = AStar(nextPlayground.coordinateSystem, nextPlayground.players[self.id - 1].x,
+                                   nextPlayground.players[self.id - 1].y, self.speed - 1, nextPlayground.getTurn())
+                    self.path = finder.solve((temp_maxvalX, temp_maxvalY))
                     self.speedUp()
                     return
                 if self.speed < 9:
@@ -140,26 +167,19 @@ class Player(object):
                         temp_maxval, temp_maxvalX, temp_maxvalY, temp_tempCS = self.findFurthestField(nextPlayground,
                                                                                                       self.speed + 2)
 
-                        if temp_maxval - maxval > 1:
-                            logger.debug("SpeedUp bringt was! Schritte: Alt=" + str(maxval) + " Neu=" + str(
-                                temp_maxval) + " NewSpeed=" + str(self.speed + 1))
+                        if temp_maxval - maxval / (self.speed + 2) * self.speed - self.speed > 4:
+                            logger.disabled = False
+                            logger.debug("Doppelter SpeedUp bringt was! Schritte: Alt=" + str(
+                                int(maxval / (self.speed + 2) * self.speed)) + " Neu=" + str(
+                                temp_maxval) + " NewSpeed=" + str(self.speed + 2))
+                            finder = AStar(nextPlayground.coordinateSystem, nextPlayground.players[self.id - 1].x,
+                                           nextPlayground.players[self.id - 1].y, self.speed - 1,
+                                           nextPlayground.getTurn())
+                            self.path = finder.solve((temp_maxvalX, temp_maxvalY))
                             self.speedUp()
+                            self.nextTurn = "speed_up"
                             return
 
-        if self.speed > 1:
-            nextPlayground = copy.deepcopy(playground)
-            nextPlayground.players[self.id - 1].speedDown()
-            # Richtig advanced -> Jeden möglichen Zug anderer Spieler auch noch prüfen und weitesten Weg nehmen
-            nextPlayground.movePlayer(self.id - 1)
-            if nextPlayground.players[self.id - 1].active:
-                temp_maxval, temp_maxvalX, temp_maxvalY, temp_tempCS = self.findFurthestField(nextPlayground,
-                                                                                              self.speed - 1)
-
-                if temp_maxval - maxval > 5:
-                    logger.debug("SpeedDown bringt was! Schritte: Alt=" + str(maxval) + " Neu=" + str(
-                        temp_maxval) + " NewSpeed=" + str(self.speed - 1))
-                    self.speedDown()
-                    return
 
         if (
                 maxval != 0
@@ -547,8 +567,8 @@ class Player(object):
 
         if self.path is not None and len(self.path) > 0:
             logger.debug("Neuer Pfad:" + str(self.path))
-        else:
             # self.printMatrix(tempCS)
+        else:
             logger.debug(
                 "Nix Pfad gefunden :/ von " + str(self.x) + ":" + str(self.y) + " nach " + str(maxvalX) + ":" + str(
                     maxvalY))

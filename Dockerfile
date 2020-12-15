@@ -3,6 +3,9 @@ FROM python:3.8
 
 WORKDIR /usr/src/app
 RUN mkdir results
+RUN mkdir results/won
+RUN mkdir results/draw
+RUN mkdir results/lost
 
 COPY requirements.txt ./
 

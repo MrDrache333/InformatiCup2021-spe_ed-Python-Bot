@@ -45,12 +45,10 @@ class Game(object):
             else:
                 print("Player " + p + " is out.")
 
-        for c in data[0]['cells']:
-            print(c)
         print("Your are Player " + str(data[0]['you']))
 
     async def playOffline(self):
-        with open('spe_ed-10x15.json') as f:
+        with open('spe_ed-culDeSac.json') as f:
             data = json.load(f)
 
         self.width = data[0]['width']
@@ -78,7 +76,7 @@ class Game(object):
             # pygame.time.delay(500//60)
             # self.clock.tick(30)
             # clock.tick(10000)
-            self.clock.tick(1000 // 200)
+            self.clock.tick(1000 // 500)
 
             # Benutzereingabe prüfen
             keys = pygame.key.get_pressed()
@@ -165,10 +163,16 @@ class Game(object):
                 self.playgroundPresenter.updateGameField()
 
                 action = self.ownPlayer.choosenTurn
-                print("API-Zug: " + action)
+                # print("API-Zug: " + action)
                 time.sleep(0.1)
                 action_json = json.dumps({"action": action})
                 await websocket.send(action_json)
+
+    def saveImage(self, path):
+        try:
+            pygame.image.save(game.playgroundPresenter.gameWindow, path)
+        except pygame.error:
+            print("Konnte kein Bild speichern in \"" + path + "\"")
 
     def printStatistics(self):
         # Sortiere die Spieler anhand Ihrer Fitness
@@ -177,16 +181,16 @@ class Game(object):
         print("---------Spiel Vorbei---------")
         if self.ownPlayer.active:
             print("Wir haben gewonnen !!!     PS: Weil wir einfach Boss sind ;)")
+            # Screenshot des Spielfeldes speichern
+            self.saveImage("results/won/result_" + str(datetime.timestamp(datetime.now())) + ".jpg")
         elif self.ownPlayer.fitness == players[0].fitness:
             print("Unentschieden. Ihr deppen seid einfach ineinander gerasselt. Zwei Dumme, ein Gedanke...")
             # Screenshot des Spielfeldes speichern
-            pygame.image.save(game.playgroundPresenter.gameWindow,
-                              "results/result_" + str(datetime.timestamp(datetime.now())) + ".jpg")
+            self.saveImage("results/draw/result_" + str(datetime.timestamp(datetime.now())) + ".jpg")
         else:
             print("Haben leider verloren... :/ Alles Hacker hier...")
             # Screenshot des Spielfeldes speichern
-            pygame.image.save(game.playgroundPresenter.gameWindow,
-                              "results/result_" + str(datetime.timestamp(datetime.now())) + ".jpg")
+            self.saveImage("results/lost/result_" + str(datetime.timestamp(datetime.now())) + ".jpg")
         print("---------Statistiken---------")
 
         for player in players:
@@ -203,7 +207,7 @@ def sleep(secs):
         time.sleep(1)
 
 
-docker = bool(os.environ["Docker"])
+docker = os.environ["Docker"] == "True"
 if ONLINE:
     url = os.environ["URL"]
     key = os.environ["KEY"]
