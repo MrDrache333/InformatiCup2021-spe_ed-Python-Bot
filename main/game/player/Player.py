@@ -111,9 +111,20 @@ class Player(object):
             return
         self.choosenTurn = "change_nothing"
         if self.nextTurn is not None:
-            self.choosenTurn = copy.copy(self.nextTurn)
-            self.nextTurn = None
-            return
+            # TODO Nächten Zug überprüfen auf andere Umgebungsbedingungen
+            if self.nextTurn == "speed_up":
+                logger.disabled = False
+                nextPlayground = copy.deepcopy(playground)
+                nextPlayground.players[self.id - 1].speedUp()
+                # Richtig advanced -> Jeden möglichen Zug anderer Spieler auch noch prüfen und weitesten Weg nehmen
+                nextPlayground.movePlayer(self.id - 1)
+                if nextPlayground.players[self.id - 1].active:
+                    self.choosenTurn = copy.copy(self.nextTurn)
+                    self.nextTurn = None
+                    return
+                else:
+                    logger.debug("Doppelter Speedup abgebrochen! Hindernis erkannt.")
+                    self.nextTurn = None
         # Strategie: Weit entferntestes Feld finden
         maxval, maxvalX, maxvalY, tempCS = self.findFurthestField(playground, self.speed)
 
@@ -146,7 +157,7 @@ class Player(object):
                 temp_maxval, temp_maxvalX, temp_maxvalY, temp_tempCS = self.findFurthestField(nextPlayground,
                                                                                               self.speed + 1)
 
-                if temp_maxval - maxval / (self.speed + 1) * self.speed > 4:
+                if temp_maxval - maxval / (self.speed + 1) * self.speed > 5:
                     logger.disabled = False
                     logger.debug("SpeedUp bringt was! Schritte: Alt=" + str(
                         int(maxval / (self.speed + 1) * self.speed)) + " Neu=" + str(
@@ -167,7 +178,7 @@ class Player(object):
                         temp_maxval, temp_maxvalX, temp_maxvalY, temp_tempCS = self.findFurthestField(nextPlayground,
                                                                                                       self.speed + 2)
 
-                        if temp_maxval - maxval / (self.speed + 2) * self.speed - self.speed > 4:
+                        if temp_maxval - maxval / (self.speed + 2) * self.speed - self.speed > 5:
                             logger.disabled = False
                             logger.debug("Doppelter SpeedUp bringt was! Schritte: Alt=" + str(
                                 int(maxval / (self.speed + 2) * self.speed)) + " Neu=" + str(

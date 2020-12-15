@@ -63,37 +63,28 @@ class Game(object):
         self.playgroundPresenter.generateGameField()
         running = True
 
-        # Den eigenen Spieler heraussuchen
-        ownPlayer = None
-        for player in self.playground.players:
-            if player.id == data[0]['you']:
-                ownPlayer = player
-                break
-        if ownPlayer is None:
-            exit("Invalid Players")
-
         while running:
             # pygame.time.delay(500//60)
             # self.clock.tick(30)
             # clock.tick(10000)
-            self.clock.tick(1000 // 500)
+            self.clock.tick(1000)
 
             # Benutzereingabe prüfen
             keys = pygame.key.get_pressed()
-            if ownPlayer.active:
+            if self.ownPlayer.active:
                 if keys[pygame.K_UP] or keys[pygame.K_w]:
-                    ownPlayer.turnDirectionOfLooking(DirectionOfLooking.UP)
+                    self.ownPlayer.turnDirectionOfLooking(DirectionOfLooking.UP)
                 elif keys[pygame.K_DOWN] or keys[pygame.K_s]:
-                    ownPlayer.turnDirectionOfLooking(DirectionOfLooking.DOWN)
+                    self.ownPlayer.turnDirectionOfLooking(DirectionOfLooking.DOWN)
                 elif keys[pygame.K_LEFT] or keys[pygame.K_a]:
-                    ownPlayer.turnDirectionOfLooking(DirectionOfLooking.LEFT)
+                    self.ownPlayer.turnDirectionOfLooking(DirectionOfLooking.LEFT)
                 elif keys[pygame.K_RIGHT] or keys[pygame.K_d]:
-                    ownPlayer.turnDirectionOfLooking(DirectionOfLooking.RIGHT)
+                    self.ownPlayer.turnDirectionOfLooking(DirectionOfLooking.RIGHT)
                 elif keys[pygame.K_RSHIFT] or keys[pygame.K_LSHIFT]:
                     print("Speed Up!")
-                    ownPlayer.speedUp()
+                    self.ownPlayer.speedUp()
                 elif keys[pygame.K_RCTRL] or keys[pygame.K_LCTRL]:
-                    ownPlayer.speedDown()
+                    self.ownPlayer.speedDown()
             if keys[pygame.K_q]:
                 pygame.quit()
 
@@ -102,7 +93,7 @@ class Game(object):
                 if player.active:
                     active += 1
                     player.tryToSurvive(self.playground)
-                    print("API-Zug: " + player.choosenTurn)
+                    # print("API-Zug: " + player.choosenTurn)
                     player.fitness += 1
             if active == 0 and not self.printedStatistics:
                 self.printStatistics()
@@ -224,7 +215,7 @@ if ONLINE:
         except websockets.InvalidStatusCode as e:
             if e.status_code == 429:
                 print("Zu viele Anfragen in zu kurzer Zeit!")
-                sleep(60)
+                sleep(30)
             else:
                 print(e)
         except websockets.ConnectionClosedOK as e:
@@ -235,7 +226,7 @@ if ONLINE:
         except websockets.ConnectionClosedError as e:
             if e.code == 1006:
                 game.printStatistics()
-                sleep(10)
+                sleep(5)
 else:
     game = Game(docker)
     asyncio.get_event_loop().run_until_complete(game.playOffline())
