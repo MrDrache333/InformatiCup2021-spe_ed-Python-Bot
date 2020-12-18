@@ -1,27 +1,27 @@
 <component name="ProjectRunConfigurationManager">
-    <configuration default="false" name="Starte Bot" type="PythonConfigurationType" factoryName="Python">
-        <module name="InformatiCup2021-spe_ed"/>
-        <option name="INTERPRETER_OPTIONS" value=""/>
-        <option name="PARENT_ENVS" value="true"/>
-        <envs>
-            <env name="PYTHONUNBUFFERED" value="1"/>
-            <env name="URL" value="wss://msoll.de/spe_ed"/>
-            <env name="KEY" value="72ILGT3YVIW5DV2UR3L5E6VCMFB6TJPR6LAX2ZLGMYGRQSVTW2C4G4E2"/>
-            <env name="Docker" value="False"/>
-        </envs>
-        <option name="SDK_HOME" value="$PROJECT_DIR$/../venv/bin/python"/>
-        <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/main"/>
-        <option name="IS_MODULE_SDK" value="false"/>
-        <option name="ADD_CONTENT_ROOTS" value="true"/>
-        <option name="ADD_SOURCE_ROOTS" value="true"/>
-        <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py"/>
-        <option name="SCRIPT_NAME" value="$PROJECT_DIR$/main/__init__.py"/>
-        <option name="PARAMETERS" value=""/>
-        <option name="SHOW_COMMAND_LINE" value="false"/>
-        <option name="EMULATE_TERMINAL" value="false"/>
-        <option name="MODULE_MODE" value="false"/>
-        <option name="REDIRECT_INPUT" value="false"/>
-        <option name="INPUT_FILE" value=""/>
-        <method v="2"/>
-    </configuration>
+  <configuration default="false" name="Starte Bot" type="PythonConfigurationType" factoryName="Python">
+    <module name="InformatiCup" />
+    <option name="INTERPRETER_OPTIONS" value="" />
+    <option name="PARENT_ENVS" value="true" />
+    <envs>
+      <env name="PYTHONUNBUFFERED" value="1" />
+      <env name="URL" value="wss://msoll.de/spe_ed" />
+      <env name="KEY" value="72ILGT3YVIW5DV2UR3L5E6VCMFB6TJPR6LAX2ZLGMYGRQSVTW2C4G4E2" />
+      <env name="Docker" value="False" />
+    </envs>
+    <option name="SDK_HOME" value="C:\Users\DD-Ga\AppData\Local\Programs\Python\Python38\python.exe" />
+    <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/main" />
+    <option name="IS_MODULE_SDK" value="false" />
+    <option name="ADD_CONTENT_ROOTS" value="true" />
+    <option name="ADD_SOURCE_ROOTS" value="true" />
+    <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
+    <option name="SCRIPT_NAME" value="$PROJECT_DIR$/main/__init__.py" />
+    <option name="PARAMETERS" value="" />
+    <option name="SHOW_COMMAND_LINE" value="false" />
+    <option name="EMULATE_TERMINAL" value="false" />
+    <option name="MODULE_MODE" value="false" />
+    <option name="REDIRECT_INPUT" value="false" />
+    <option name="INPUT_FILE" value="" />
+    <method v="2" />
+  </configuration>
 </component>

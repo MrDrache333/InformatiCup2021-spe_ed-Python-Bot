@@ -12,13 +12,10 @@ def generateFreePlaceMap(coordinatesystem):
                 freePlaceMap[y][x] = -1
     for y in range(len(coordinatesystem)):
         for x in range(len(coordinatesystem[0])):
-            if coordinatesystem[y][x] != 0:
-                freePlaceMap[y][x] = -1
-            else:
-                if freePlaceMap[y][x] == 0:
-                    freePlaceMap[y][x] = count
-                    replaceAdjacent_cells(freePlaceMap, x, y, count)
-                    count += 1
+            if freePlaceMap[y][x] == 0:
+                freePlaceMap[y][x] = count
+                replaceAdjacent_cells(freePlaceMap, x, y, count)
+                count += 1
     return freePlaceMap
 
 

@@ -130,7 +130,7 @@ class Player(object):
             # Berechnen, ob SpeedUp mehr schritte erlaubt
             if temp_maxval - maxval / (self.speed + speedchange) * self.speed - self.speed > 5:
                 logger.disabled = False
-                logger.debug("SpeedUp makes sense!  Steps: Old=" + str(
+                logger.debug("[" + str(self.id) + "]: SpeedUp makes sense!  Steps: Old=" + str(
                     int(maxval / (self.speed + speedchange) * self.speed)) + " New=" + str(
                     temp_maxval) + " NewSpeed=" + str(self.speed + speedchange))
 
@@ -165,7 +165,7 @@ class Player(object):
                     return
                 else:
                     logger.disabled = False
-                    logger.debug("Doppelter Speedup abgebrochen! Hindernis erkannt.")
+                    logger.debug("[" + str(self.id) + "]: Doppelter Speedup abgebrochen! Hindernis erkannt.")
                     self.nextTurn = None
         # Strategie: Weit entferntestes Feld finden
         maxval, maxvalX, maxvalY, tempCS = self.findFurthestField(playground, self.speed)
@@ -178,15 +178,16 @@ class Player(object):
                 freeMapValues[ownFreePlaceIndex] == freeMapValues[maxFreePlaceIndex]:
             if self.speed > 1:
                 logger.disabled = False
-                logger.debug("P" + str(self.id) + ": Already in Area with max free Space of " + str(
+                logger.debug("[" + str(self.id) + "]: Already in Area with max free Space of " + str(
                     freeMapValues[maxFreePlaceIndex]) + " Pixels. Slowing down to maximize Livetime!")
                 self.speedDown()
                 return
             # else TODO Max Algo. Möglichst viel Zeit schinden
+
         else:
             # Wenn die Maximalgeschwindigkeit noch nicht erreicht ist
             if self.speed < 10:
-                # Prüfen ob ich ein SPeedup lohnt
+                # Prüfen ob ich ein Speedup lohnt
                 if self.doesSpeedUpMakeSense(playground, maxval, 1, freeMap):
                     # Prüfen, ob sich ein doppelter Speedup lohnt
                     if self.doesSpeedUpMakeSense(playground, maxval, 2, freeMap):

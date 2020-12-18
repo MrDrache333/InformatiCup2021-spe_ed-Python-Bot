@@ -19,7 +19,7 @@ class PlaygroundPresenter(object):
         3: (0, 128, 255),  # Blue
         4: (255, 128, 51),  # Orange
         5: (255, 51, 153),  # Pink
-        6: (96, 96, 96)  # Grey
+        6: (129, 26, 232)  # Purple
     }
     colorNames = {
         -1: "White",
@@ -29,7 +29,7 @@ class PlaygroundPresenter(object):
         3: "Blue",
         4: "Orange",
         5: "Pink",
-        6: "Grey"
+        6: "Purple"
     }
 
     def getColorName(self, id):
