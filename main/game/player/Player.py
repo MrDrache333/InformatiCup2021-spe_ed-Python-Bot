@@ -107,7 +107,7 @@ class Player(object):
         self.path = []
         self.active = False
 
-    def doesSpeedUpMakeSense(self, playground, maxval, speedchange):
+    def doesSpeedUpMakeSense(self, playground, speedchange):
         if speedchange <= 0:
             return None
         nextPlayground = copy.deepcopy(playground)
@@ -187,29 +187,44 @@ class Player(object):
                 logger.disabled = False
                 logger.debug("[" + str(self.id) + "]: Already in Area with max free Space of " + str(
                     freeMapValues[maxFreePlaceIndex]) + " Pixels. Slowing down to maximize Livetime!")
-                self.speedDown()
-                return
-            # else TODO Max Algo. Möglichst viel Zeit schinden
+
+                # Check if Speedup kills us
+                nextPlayground = copy.deepcopy(playground)
+                nextPlayground.players[self.id - 1].speedDown()
+                # Richtig advanced -> Jeden möglichen Zug anderer Spieler auch noch prüfen und weitesten Weg nehmen
+                for player in nextPlayground.players:
+                    nextPlayground.movePlayer(player.id - 1)
+                if nextPlayground.players[self.id - 1].active:
+                    self.speedDown()
+                    return
+            self.rideAlongSideWall(playground)
 
         else:
+            if maxFreePlaceIndex is not None and freeMapValues is not None and ownFreePlaceIndex is not None and \
+                    freeMapValues[ownFreePlaceIndex] != freeMapValues[maxFreePlaceIndex]:
+                moveMap = FreePlaceFinder.convertFindFurthestFieldMapToFreePlaceFormat(tempCS)
+                nearestCoordinateOnFurthestFieldMap = FreePlaceFinder.findNearestCoordinateOnFurthestFieldMap(freeMap,
+                                                                                                              moveMap,
+                                                                                                              maxFreePlaceIndex + 1,
+                                                                                                              self.speed,
+                                                                                                              self.x,
+                                                                                                              self.y)
+
+                if nearestCoordinateOnFurthestFieldMap is not None:
+                    self.moveToFurthestField(playground, nearestCoordinateOnFurthestFieldMap[0],
+                                             nearestCoordinateOnFurthestFieldMap[1])
             # Wenn die Maximalgeschwindigkeit noch nicht erreicht ist
             if self.speed < 10:
                 # Prüfen ob ich ein Speedup lohnt
-                if self.doesSpeedUpMakeSense(playground, maxval, 1):
+                if self.doesSpeedUpMakeSense(playground, 1):
                     return
-                elif self.doesSpeedUpMakeSense(playground, maxval, 2):
+                elif self.doesSpeedUpMakeSense(playground, 2):
                     return
-                elif self.doesSpeedUpMakeSense(playground, maxval, 3):
+                elif self.doesSpeedUpMakeSense(playground, 3):
                     return
-                elif self.doesSpeedUpMakeSense(playground, maxval, 4):
+                elif self.doesSpeedUpMakeSense(playground, 4):
                     return
 
-        if (
-                maxval != 0
-                and not self.moveToFurthestField(playground, maxvalX, maxvalY)
-                or maxval == 0
-        ):
-            logger.debug("CANT FIND ZE PATH, I TRY TO BIEG AB!")
             self.fallBackPlan(playground)
 
     def rideAlongSideWall(self, playground):
@@ -329,7 +344,7 @@ class Player(object):
                     # player is turned into the closes wall, but does not have enough space to go near it. Player has to
                     # turn in another direction
                     setOfDirections.remove(directionOfClosestWall)
-                    self.turnDirectionOfLooking(random.choices(setOfDirections))
+                    self.turnDirectionOfLooking(random.choices(setOfDirections)[0])
                     return
             else:
                 if distanceOfNearestWall >= self.speed:

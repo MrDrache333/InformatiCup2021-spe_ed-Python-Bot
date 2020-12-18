@@ -27,18 +27,21 @@ def convertFindFurthestFieldMapToFreePlaceFormat(inputMap):
 
 
 def findNearestCoordinateOnFurthestFieldMap(freeMap, moveMap, maxFreePlaceIndex, speed, ownx, owny):
-    minimal_reachable = None
+    minimalValue = None
+    minimalCoord = None
+
     for y in range(len(freeMap)):
         for x in range(len(freeMap[0])):
             if freeMap[y][x] == maxFreePlaceIndex:
                 if moveMap[y][x] != -1:
                     # check if pos is reachable
-                    if (x % speed != ownx % speed) or (y % speed != owny % speed):
-                        if moveMap[y][x] < minimal_reachable or minimal_reachable is None:
-                            minimal_reachable = moveMap[y][x]
+                    if not (x % speed != ownx % speed) or (y % speed != owny % speed):
+                        if minimalValue is None or moveMap[y][x] < minimalValue:
+                            minimalValue = moveMap[y][x]
+                            minimalCoord = (x, y)
 
-    if minimal_reachable is not None:
-        return (x, y)
+    if minimalValue is not None:
+        return minimalCoord
     else:
         return None
 
