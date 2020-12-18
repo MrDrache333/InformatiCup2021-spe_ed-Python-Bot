@@ -107,7 +107,7 @@ class Player(object):
         self.path = []
         self.active = False
 
-    def doesSpeedUpMakeSense(self, playground, maxval, speedchange):
+    def doesSpeedUpMakeSense(self, playground, maxval, speedchange, freePlaceMap):
         if speedchange <= 0:
             return None
         nextPlayground = copy.deepcopy(playground)
@@ -124,6 +124,8 @@ class Player(object):
             temp_maxval, temp_maxvalX, temp_maxvalY, temp_tempCS = self.findFurthestField(
                 nextPlayground,
                 self.speed + speedchange)
+
+            # TODO Prüfen, ob größste FreeplaceArea errreichbar -> Sonst nächst kleinere
 
             # Berechnen, ob SpeedUp mehr schritte erlaubt
             if temp_maxval - maxval / (self.speed + speedchange) * self.speed - self.speed > 5:
@@ -180,15 +182,16 @@ class Player(object):
                     freeMapValues[maxFreePlaceIndex]) + " Pixels. Slowing down to maximize Livetime!")
                 self.speedDown()
                 return
+            # else TODO Max Algo. Möglichst viel Zeit schinden
         else:
             # Wenn die Maximalgeschwindigkeit noch nicht erreicht ist
             if self.speed < 10:
                 # Prüfen ob ich ein SPeedup lohnt
-                if self.doesSpeedUpMakeSense(playground, maxval, 1):
+                if self.doesSpeedUpMakeSense(playground, maxval, 1, freeMap):
                     # Prüfen, ob sich ein doppelter Speedup lohnt
-                    if self.doesSpeedUpMakeSense(playground, maxval, 2):
-                        if self.doesSpeedUpMakeSense(playground, maxval, 3):
-                            if self.doesSpeedUpMakeSense(playground, maxval, 4):
+                    if self.doesSpeedUpMakeSense(playground, maxval, 2, freeMap):
+                        if self.doesSpeedUpMakeSense(playground, maxval, 3, freeMap):
+                            if self.doesSpeedUpMakeSense(playground, maxval, 4, freeMap):
                                 return
                             return
                         return
