@@ -2,6 +2,12 @@ import copy
 
 
 def generateFreePlaceMap(coordinatesystem):
+    """
+    Generiert eine Karte, die alle verbundenen freien Pixel in Areale einteilt
+    :param coordinatesystem: Das Koordinatensystem des Spiels
+    :return: Die erstelle Karte mit markierten Arealen
+    """
+    # Wenn das Koordinatensystem ungültig ist
     if coordinatesystem is None or len(coordinatesystem) <= 1 or len(coordinatesystem[0]) <= 1:
         return
     count = 1

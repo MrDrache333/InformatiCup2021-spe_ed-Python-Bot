@@ -204,7 +204,6 @@ class Player(object):
                         return
                 # Da wir uns im größten freien Bereich befinden -> Zeit schinden
                 self.rideAlongSideWall(playground)
-
             else:
                 # Wenn wir uns nicht im größten freien Bereich befinden
                 moveMap = FreePlaceFinder.convertFindFurthestFieldMapToFreePlaceFormat(tempCS)
@@ -217,8 +216,9 @@ class Player(object):
                                                                                                               self.y)
 
                 if nearestCoordinateOnFurthestFieldMap is not None:
-                    self.moveToFurthestField(playground, nearestCoordinateOnFurthestFieldMap[0],
-                                             nearestCoordinateOnFurthestFieldMap[1])
+                    if self.moveToFurthestField(playground, nearestCoordinateOnFurthestFieldMap[0],
+                                                nearestCoordinateOnFurthestFieldMap[1]):
+                        return
                 else:
                     # Wenn wir den größtmöglichen freien Bereich nicht erreichen können mit der aktuellen geschwindigkeit
                     # Wenn die Maximalgeschwindigkeit noch nicht erreicht ist
