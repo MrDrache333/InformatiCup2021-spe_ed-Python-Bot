@@ -128,6 +128,7 @@ class Player(object):
             freeMap = FreePlaceFinder.generateFreePlaceMap(playground.coordinateSystem)
             freeMapValues = FreePlaceFinder.getFreePlaceValues(freeMap)
             maxFreePlaceIndex = freeMapValues.index(max(freeMapValues))
+            ownFreePlaceIndex = FreePlaceFinder.getFreePlaceIndexForCoordinate(freeMap, self.x, self.y)
 
             moveMap = FreePlaceFinder.convertFindFurthestFieldMapToFreePlaceFormat(temp_tempCS)
 
@@ -138,7 +139,8 @@ class Player(object):
                                                                                                           self.x,
                                                                                                           self.y)
 
-            if nearestCoordinateOnFurthestFieldMap is not None:
+            if nearestCoordinateOnFurthestFieldMap is not None and freeMapValues[maxFreePlaceIndex] - freeMapValues[
+                ownFreePlaceIndex] > 30:
 
                 # Neuen Pfad berechnen
                 finder = AStar(nextPlayground.coordinateSystem, nextPlayground.players[self.id - 1].x,
@@ -292,8 +294,6 @@ class Player(object):
                     currentX += self.directionOfLooking.value[0]
                     currentY += self.directionOfLooking.value[1]
 
-                    freeBlocks.pop(self.directionOfLooking)
-
                     isGapOneCellWide = 0
                     for direction in freeBlocks.keys():
                         tempX = currentX + direction.value[0]
@@ -303,7 +303,7 @@ class Player(object):
                             if not playground.coordinateSystem[tempY][tempX] == 0:
                                 isGapOneCellWide += 1
 
-                    if isGapOneCellWide == 2:
+                    if isGapOneCellWide <= 2:
                         # Cell is one wide. check if space behind cell is larger, than the
                         lookDirectionAlongSideWallLeft, lookDirectionAlongSideWallRight = setOfDirections[
                                                                                               (setOfDirections.index(

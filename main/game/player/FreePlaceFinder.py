@@ -34,22 +34,6 @@ def convertFindFurthestFieldMapToFreePlaceFormat(inputMap):
 
 
 def findNearestCoordinateOnFurthestFieldMap(freeMap, moveMap, maxFreePlaceIndex, speed, ownx, owny):
-    for y in freeMap:
-        line = "".join(
-            ((str(x) if len(str(x)) == 2 else "0" + str(x)) + " ") for x in y
-        )
-
-        print(line)
-    for y in moveMap:
-        line = "".join(
-            ((str(x) if len(str(x)) == 2 else "0" + str(x)) + " ") for x in y
-        )
-
-        print(line)
-
-    print("maxFreePlaceIndex: " + str(maxFreePlaceIndex))
-
-
     minimalValue = None
     minimalCoord = None
 
