@@ -107,7 +107,7 @@ class Player(object):
         self.path = []
         self.active = False
 
-    def doesSpeedUpMakeSense(self, playground, maxval, speedchange, freePlaceMap):
+    def doesSpeedUpMakeSense(self, playground, maxval, speedchange):
         if speedchange <= 0:
             return None
         nextPlayground = copy.deepcopy(playground)
@@ -124,25 +124,28 @@ class Player(object):
             temp_maxval, temp_maxvalX, temp_maxvalY, temp_tempCS = self.findFurthestField(
                 nextPlayground, self.speed + speedchange)
 
-            # TODO Prüfen, ob größste FreeplaceArea errreichbar -> Sonst nächst kleinere
+            #Iteriere über größtes feld, prüfe ob punkt erreichbar, merke, siehe nächsten bis alle fertig
+            freeMap = FreePlaceFinder.generateFreePlaceMap(playground.coordinateSystem)
+            freeMapValues = FreePlaceFinder.getFreePlaceValues(freeMap)
+            maxFreePlaceIndex = freeMapValues.index(max(freeMapValues))
 
-            # Berechnen, ob SpeedUp mehr schritte erlaubt
-            if temp_maxval - maxval / (self.speed + speedchange) * self.speed - self.speed > 5:
-                logger.disabled = False
-                logger.debug("[" + str(self.id) + "]: SpeedUp makes sense!  Steps: Old=" + str(
-                    int(maxval / (self.speed + speedchange) * self.speed)) + " New=" + str(
-                    temp_maxval) + " NewSpeed=" + str(self.speed + speedchange))
+            moveMap = FreePlaceFinder.convertFindFurthestFieldMapToFreePlaceFormat(temp_tempCS)
+
+            nearestCoordinateOnFurthestFieldMapX, nearestCoordinateOnFurthestFieldMapY = FreePlaceFinder.findNearestCoordinateOnFurthestFieldMap(freeMap, moveMap, maxFreePlaceIndex+1, self.speed+speedchange, self.x, self.y)
+
+            if nearestCoordinateOnFurthestFieldMapX != -1 and nearestCoordinateOnFurthestFieldMapY != -1:
 
                 # Neuen Pfad berechnen
                 finder = AStar(nextPlayground.coordinateSystem, nextPlayground.players[self.id - 1].x,
                                nextPlayground.players[self.id - 1].y, self.speed + speedchange,
                                nextPlayground.getTurn())
-                self.path = finder.solve((temp_maxvalX, temp_maxvalY))
+                self.path = finder.solve((nearestCoordinateOnFurthestFieldMapX, nearestCoordinateOnFurthestFieldMapY))
                 self.speedUp()
                 # Falls Doppelsprung -> nächsten Zug als SpeedUp festlegen
                 if speedchange > 1:
                     self.nextTurn = "speed_up"
                 return True
+
         return False
 
     def tryToSurvive(self, playground):
@@ -187,14 +190,13 @@ class Player(object):
             # Wenn die Maximalgeschwindigkeit noch nicht erreicht ist
             if self.speed < 10:
                 # Prüfen ob ich ein Speedup lohnt
-                if self.doesSpeedUpMakeSense(playground, maxval, 1, freeMap):
-                    # Prüfen, ob sich ein doppelter Speedup lohnt
-                    if self.doesSpeedUpMakeSense(playground, maxval, 2, freeMap):
-                        if self.doesSpeedUpMakeSense(playground, maxval, 3, freeMap):
-                            if self.doesSpeedUpMakeSense(playground, maxval, 4, freeMap):
-                                return
-                            return
-                        return
+                if self.doesSpeedUpMakeSense(playground, maxval, 1):
+                    return
+                elif self.doesSpeedUpMakeSense(playground, maxval, 2):
+                    return
+                elif self.doesSpeedUpMakeSense(playground, maxval, 3):
+                    return
+                elif self.doesSpeedUpMakeSense(playground, maxval, 4):
                     return
 
         if (
