@@ -177,32 +177,38 @@ class Player(object):
         # Strategie: Weit entferntestes Feld finden
         maxval, maxvalX, maxvalY, tempCS = self.findFurthestField(playground, self.speed)
 
+        # FreeMap erstellen
         freeMap = FreePlaceFinder.generateFreePlaceMap(playground.coordinateSystem)
         freeMapValues = FreePlaceFinder.getFreePlaceValues(freeMap)
         maxFreePlaceIndex = freeMapValues.index(max(freeMapValues))
         ownFreePlaceIndex = FreePlaceFinder.getFreePlaceIndexForCoordinate(freeMap, self.x, self.y)
-        if freeMapValues is not None and ownFreePlaceIndex is not None and maxFreePlaceIndex is not None and \
-                freeMapValues[ownFreePlaceIndex] == freeMapValues[maxFreePlaceIndex]:
-            if self.speed > 1:
-                logger.disabled = False
-                logger.debug("[" + str(self.id) + "]: Already in Area with max free Space of " + str(
-                    freeMapValues[maxFreePlaceIndex]) + " Pixels. Slowing down to maximize Livetime!")
 
-                # Check if Speedup kills us
-                nextPlayground = copy.deepcopy(playground)
-                nextPlayground.players[self.id - 1].speedDown()
-                # Richtig advanced -> Jeden möglichen Zug anderer Spieler auch noch prüfen und weitesten Weg nehmen
-                for player in nextPlayground.players:
-                    nextPlayground.movePlayer(player.id - 1)
-                if nextPlayground.players[self.id - 1].active:
-                    self.speedDown()
-                    return
-            self.rideAlongSideWall(playground)
+        # Wenn keine Fehler beim erstellen der FreePlaceMap auftreten
+        if freeMapValues is not None and ownFreePlaceIndex is not None and maxFreePlaceIndex is not None:
+            # Wenn wir uns bereits in dem größten freien Platz befinden
+            if freeMapValues[ownFreePlaceIndex] == freeMapValues[maxFreePlaceIndex]:
+                # Wenn wir schneller als die Mindestgeschwindigkeit sind
+                if self.speed > 1:
+                    logger.disabled = False
+                    logger.debug("[" + str(self.id) + "]: Already in Area with max free Space of " + str(
+                        freeMapValues[maxFreePlaceIndex]) + " Pixels. Slowing down to maximize Livetime!")
 
-        else:
-            if maxFreePlaceIndex is not None and freeMapValues is not None and ownFreePlaceIndex is not None and \
-                    freeMapValues[ownFreePlaceIndex] != freeMapValues[maxFreePlaceIndex]:
+                    # Prüfen, ob der nächste SpeedDown uns töten würde. Wenn nicht -> Slow Down
+                    nextPlayground = copy.deepcopy(playground)
+                    nextPlayground.players[self.id - 1].speedDown()
+                    # Richtig advanced -> Jeden möglichen Zug anderer Spieler auch noch prüfen und weitesten Weg nehmen
+                    for player in nextPlayground.players:
+                        nextPlayground.movePlayer(player.id - 1)
+                    if nextPlayground.players[self.id - 1].active:
+                        self.speedDown()
+                        return
+                # Da wir uns im größten freien Bereich befinden -> Zeit schinden
+                self.rideAlongSideWall(playground)
+
+            else:
+                # Wenn wir uns nicht im größten freien Bereich befinden
                 moveMap = FreePlaceFinder.convertFindFurthestFieldMapToFreePlaceFormat(tempCS)
+                # Prüfen, ob wir mit der aktuellen Geschwindigkeit in den größten freien Bereich kommen würden
                 nearestCoordinateOnFurthestFieldMap = FreePlaceFinder.findNearestCoordinateOnFurthestFieldMap(freeMap,
                                                                                                               moveMap,
                                                                                                               maxFreePlaceIndex + 1,
@@ -213,19 +219,21 @@ class Player(object):
                 if nearestCoordinateOnFurthestFieldMap is not None:
                     self.moveToFurthestField(playground, nearestCoordinateOnFurthestFieldMap[0],
                                              nearestCoordinateOnFurthestFieldMap[1])
-            # Wenn die Maximalgeschwindigkeit noch nicht erreicht ist
-            if self.speed < 10:
-                # Prüfen ob ich ein Speedup lohnt
-                if self.doesSpeedUpMakeSense(playground, 1):
-                    return
-                elif self.doesSpeedUpMakeSense(playground, 2):
-                    return
-                elif self.doesSpeedUpMakeSense(playground, 3):
-                    return
-                elif self.doesSpeedUpMakeSense(playground, 4):
-                    return
+                else:
+                    # Wenn wir den größtmöglichen freien Bereich nicht erreichen können mit der aktuellen geschwindigkeit
+                    # Wenn die Maximalgeschwindigkeit noch nicht erreicht ist
+                    if self.speed < 10:
+                        # Prüfen ob eine Geschwindigkeitsänderung was bringt
+                        if self.doesSpeedUpMakeSense(playground, 1):
+                            return
+                        elif self.doesSpeedUpMakeSense(playground, 2):
+                            return
+                        elif self.doesSpeedUpMakeSense(playground, 3):
+                            return
+                        elif self.doesSpeedUpMakeSense(playground, 4):
+                            return
 
-            self.fallBackPlan(playground)
+        self.fallBackPlan(playground)
 
     def rideAlongSideWall(self, playground):
         """Finds the nearest Wall and tries to ride alongside it while reducing the players speed to 1. The resulting

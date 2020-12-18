@@ -1,5 +1,6 @@
 import copy
 
+
 def generateFreePlaceMap(coordinatesystem):
     if coordinatesystem is None or len(coordinatesystem) <= 1 or len(coordinatesystem[0]) <= 1:
         return
@@ -44,6 +45,7 @@ def findNearestCoordinateOnFurthestFieldMap(freeMap, moveMap, maxFreePlaceIndex,
         return minimalCoord
     else:
         return None
+
 
 def replaceAdjacent_cells(freePlaceMap, x, y, count):
     if freePlaceMap is None or len(freePlaceMap) <= 1 or len(freePlaceMap[0]) <= 1:
