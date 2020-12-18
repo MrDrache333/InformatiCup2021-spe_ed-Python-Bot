@@ -204,6 +204,7 @@ class Player(object):
                         return
                 # Da wir uns im größten freien Bereich befinden -> Zeit schinden
                 self.rideAlongSideWall(playground)
+                return
             else:
                 # Wenn wir uns nicht im größten freien Bereich befinden
                 moveMap = FreePlaceFinder.convertFindFurthestFieldMapToFreePlaceFormat(tempCS)
@@ -233,7 +234,8 @@ class Player(object):
                         elif self.doesSpeedUpMakeSense(playground, 4):
                             return
 
-        self.fallBackPlan(playground)
+        self.rideAlongSideWall(playground)
+        return
 
     def rideAlongSideWall(self, playground):
         """Finds the nearest Wall and tries to ride alongside it while reducing the players speed to 1. The resulting
@@ -315,14 +317,18 @@ class Player(object):
                                                            playground.coordinateSystem) or self.getAmountOfFreeSpaces(
                             self.x, self.y, lookDirectionAlongSideWallRight, playground.coordinateSystem)):
                             self.speedDown()
+                            return
                         elif self.getAmountOfFreeSpaces(self.x, self.y, lookDirectionAlongSideWallLeft,
                                                         playground.coordinateSystem) >= self.getAmountOfFreeSpaces(
                             self.x, self.y, lookDirectionAlongSideWallRight, playground.coordinateSystem):
                             self.turnDirectionOfLooking(lookDirectionAlongSideWallLeft)
+                            return
                         else:
                             self.turnDirectionOfLooking(lookDirectionAlongSideWallRight)
+                            return
                     else:
                         self.speedDown()
+                        return
 
             else:
                 # player is adjacent to wall and looking into it. Player has to change his direction of looking
@@ -339,8 +345,10 @@ class Player(object):
                                                                                                         lookDirectionAlongSideWallRight,
                                                                                                         playground.coordinateSystem):
                     self.turnDirectionOfLooking(lookDirectionAlongSideWallLeft)
+                    return
                 else:
                     self.turnDirectionOfLooking(lookDirectionAlongSideWallRight)
+                    return
 
         else:
             if self.directionOfLooking == directionOfClosestWall:
@@ -365,6 +373,8 @@ class Player(object):
                     # down to stall and prepare for turning into wall
                     self.speedDown()
                     return
+
+        self.fallBackPlan(playground)
 
     def getAmountOfFreeSpaces(self, givenX, givenY, directionOfLooking, coordinateSystem):
         """returns the amount of free spaces in the given coordinatesystem from a given coordinate and direction"""
