@@ -19,6 +19,19 @@ def generateFreePlaceMap(coordinatesystem):
     return freePlaceMap
 
 
+def convertFindFurthestFieldMapToFreePlaceFormat(inputMap):
+    outputMap = copy.deepcopy(inputMap)
+    for y in range(len(outputMap)):
+        for x in range(len(outputMap[0])):
+            outputMap[y][x] = -1 if outputMap[y][x] < 10 else outputMap[y][x] - 10
+    return outputMap
+
+
+def findNearestCoordinateOnFurthestFieldMap():
+    # TODO Zeug
+    print("")
+
+
 def replaceAdjacent_cells(freePlaceMap, x, y, count):
     if freePlaceMap is None or len(freePlaceMap) <= 1 or len(freePlaceMap[0]) <= 1:
         return
@@ -28,7 +41,7 @@ def replaceAdjacent_cells(freePlaceMap, x, y, count):
     if x < len(freePlaceMap[0]) - 1 and freePlaceMap[y][x + 1] != -1 and freePlaceMap[y][x + 1] != count:
         freePlaceMap[y][x + 1] = count
         replaceAdjacent_cells(freePlaceMap, x + 1, y, count)
-    if y > 0 and freePlaceMap[y - 1][x] != -1 and freePlaceMap[y - 1][x] != count:
+    if y > 0 and freePlaceMap[y - 1][x] != -1 and freePlaceMap[y - 1][x] < count:
         freePlaceMap[y - 1][x] = count
         replaceAdjacent_cells(freePlaceMap, x, y - 1, count)
     if y < len(freePlaceMap) - 1 and freePlaceMap[y + 1][x] != -1 and freePlaceMap[y + 1][x] != count:

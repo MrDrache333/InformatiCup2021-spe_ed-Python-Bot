@@ -122,8 +122,7 @@ class Player(object):
         if nextPlayground.players[self.id - 1].active:
             # Richtig advanced -> Jeden möglichen Zug anderer Spieler auch noch prüfen und weitesten Weg nehmen
             temp_maxval, temp_maxvalX, temp_maxvalY, temp_tempCS = self.findFurthestField(
-                nextPlayground,
-                self.speed + speedchange)
+                nextPlayground, self.speed + speedchange)
 
             # TODO Prüfen, ob größste FreeplaceArea errreichbar -> Sonst nächst kleinere
 
@@ -575,7 +574,6 @@ class Player(object):
             logger.debug("Maximal entfernte gegebenen Koordinate ist bereits belegt!")
             return False
         if (maxvalX % self.speed != self.x % self.speed) or (maxvalY % self.speed != self.y % self.speed):
-            hasToBeCorrected = True
             logger.debug("Maximal entfernte gegebenen Koordinate ist NICHT erreichbar!")
             return False
 
