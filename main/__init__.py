@@ -2,6 +2,7 @@ import asyncio
 import json
 import logging
 import os
+import sys
 import time
 from datetime import datetime
 
@@ -11,10 +12,11 @@ import websockets as websockets
 from JsonInterpreter import JsonInterpreter
 from game.Playground import Playground
 from game.graphic.PlaygroundPresenter import PlaygroundPresenter
-# Play online via API-Key, or Offline
 from game.player.DirectionOfLooking import DirectionOfLooking
 
-ONLINE = True
+sys.setrecursionlimit(1000000)
+
+ONLINE = False
 
 
 class Game(object):
@@ -48,7 +50,7 @@ class Game(object):
         print("Your are Player " + str(data[0]['you']))
 
     async def playOffline(self):
-        with open('spe_ed-culDeSac.json') as f:
+        with open('spe_ed-1603447830516.json') as f:
             data = json.load(f)
 
         self.width = data[0]['width']
@@ -67,7 +69,7 @@ class Game(object):
             # pygame.time.delay(500//60)
             # self.clock.tick(30)
             # clock.tick(10000)
-            self.clock.tick(1000)
+            self.clock.tick(1000 // 300)
 
             # Benutzereingabe prüfen
             keys = pygame.key.get_pressed()
@@ -195,7 +197,10 @@ def sleep(secs):
     for i in range(secs, 0, -1):
         if i <= 3 or i % 10 == 0:
             print("Warte " + str(i) + " Sekunden, bis zum erneuten Start!", flush=True)
-        time.sleep(1)
+        try:
+            time.sleep(1)
+        except KeyboardInterrupt:
+            print("---Programm wurde unterbrochen!---")
 
 
 docker = os.environ["Docker"] == "True"
@@ -227,8 +232,13 @@ if ONLINE:
             if e.code == 1006:
                 game.printStatistics()
                 sleep(5)
+        except KeyboardInterrupt:
+            print("\n---Programm wurde unterbrochen!---")
 else:
     game = Game(docker)
-    asyncio.get_event_loop().run_until_complete(game.playOffline())
-    while True:
-        time.sleep(1)
+    try:
+        asyncio.get_event_loop().run_until_complete(game.playOffline())
+        while True:
+            time.sleep(1)
+    except KeyboardInterrupt:
+        print("\n---Programm wurde unterbrochen!---")

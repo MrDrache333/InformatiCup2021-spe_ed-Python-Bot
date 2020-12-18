@@ -5,6 +5,7 @@ import sys
 
 import numpy as np
 
+from game.player import FreePlaceFinder
 from game.player.DirectionOfLooking import DirectionOfLooking
 from game.player.Pathfinding import AStar
 
@@ -20,6 +21,15 @@ def checkIfCoordinateIsInCoordinateSystem(givenX, givenY, coordinateSystem):
     )
 
 
+def printMatrix(matrix):
+    for y in matrix:
+        line = "".join(
+            ((str(x) if len(str(x)) == 2 else "0" + str(x)) + " ") for x in y
+        )
+
+        print(line)
+
+
 class Player(object):
     def __init__(self, id: int, x: int, y: int, directionOfLooking: str, active: bool, speed: int):
         self.id = id
@@ -32,14 +42,6 @@ class Player(object):
         self.fitness = 0
         self.choosenTurn = "change_nothing"
         self.nextTurn = None
-
-    def printMatrix(self, matrix):
-        for y in matrix:
-            line = "".join(
-                ((str(x) if len(str(x)) == 2 else "0" + str(x)) + " ") for x in y
-            )
-
-            logger.debug(line)
 
     def isCoordinateFree(self, x, y, playground):
         return playground.coordinateSystem[y][x] == 0
@@ -105,6 +107,43 @@ class Player(object):
         self.path = []
         self.active = False
 
+    def doesSpeedUpMakeSense(self, playground, maxval, speedchange):
+        if speedchange <= 0:
+            return None
+        nextPlayground = copy.deepcopy(playground)
+
+        # Spieler und eigenen Spieler virtuell weiter bewegen
+        for _ in range(speedchange):
+            nextPlayground.players[self.id - 1].speedUp()
+            for player in playground.players:
+                nextPlayground.movePlayer(player.id - 1)
+
+        # Prüfen, ob virtuelle Bewegung eigenen Spieler schadet
+        if nextPlayground.players[self.id - 1].active:
+            # Richtig advanced -> Jeden möglichen Zug anderer Spieler auch noch prüfen und weitesten Weg nehmen
+            temp_maxval, temp_maxvalX, temp_maxvalY, temp_tempCS = self.findFurthestField(
+                nextPlayground,
+                self.speed + speedchange)
+
+            # Berechnen, ob SpeedUp mehr schritte erlaubt
+            if temp_maxval - maxval / (self.speed + speedchange) * self.speed - self.speed > 5:
+                logger.disabled = False
+                logger.debug("SpeedUp makes sense!  Steps: Old=" + str(
+                    int(maxval / (self.speed + speedchange) * self.speed)) + " New=" + str(
+                    temp_maxval) + " NewSpeed=" + str(self.speed + speedchange))
+
+                # Neuen Pfad berechnen
+                finder = AStar(nextPlayground.coordinateSystem, nextPlayground.players[self.id - 1].x,
+                               nextPlayground.players[self.id - 1].y, self.speed + speedchange,
+                               nextPlayground.getTurn())
+                self.path = finder.solve((temp_maxvalX, temp_maxvalY))
+                self.speedUp()
+                # Falls Doppelsprung -> nächsten Zug als SpeedUp festlegen
+                if speedchange > 1:
+                    self.nextTurn = "speed_up"
+                return True
+        return False
+
     def tryToSurvive(self, playground):
         """Different strategies to keep the player alive"""
         if not self.active:
@@ -113,84 +152,47 @@ class Player(object):
         if self.nextTurn is not None:
             # TODO Nächten Zug überprüfen auf andere Umgebungsbedingungen
             if self.nextTurn == "speed_up":
-                logger.disabled = False
                 nextPlayground = copy.deepcopy(playground)
                 nextPlayground.players[self.id - 1].speedUp()
                 # Richtig advanced -> Jeden möglichen Zug anderer Spieler auch noch prüfen und weitesten Weg nehmen
-                nextPlayground.movePlayer(self.id - 1)
+                for player in nextPlayground.players:
+                    nextPlayground.movePlayer(player.id - 1)
                 if nextPlayground.players[self.id - 1].active:
-                    self.choosenTurn = copy.copy(self.nextTurn)
+                    self.choosenTurn = copy.deepcopy(self.nextTurn)
                     self.nextTurn = None
                     return
                 else:
+                    logger.disabled = False
                     logger.debug("Doppelter Speedup abgebrochen! Hindernis erkannt.")
                     self.nextTurn = None
         # Strategie: Weit entferntestes Feld finden
         maxval, maxvalX, maxvalY, tempCS = self.findFurthestField(playground, self.speed)
 
-        # Check other Speeds
-        if self.speed > 1:
-            nextPlayground = copy.deepcopy(playground)
-            nextPlayground.players[self.id - 1].speedDown()
-            # Richtig advanced -> Jeden möglichen Zug anderer Spieler auch noch prüfen und weitesten Weg nehmen
-            nextPlayground.movePlayer(self.id - 1)
-            if nextPlayground.players[self.id - 1].active:
-                temp_maxval, temp_maxvalX, temp_maxvalY, temp_tempCS = self.findFurthestField(nextPlayground,
-                                                                                              self.speed - 1)
-
-                if temp_maxval / self.speed * (self.speed - 1) - maxval + self.speed > 1:
-                    logger.disabled = False
-                    logger.debug("SpeedDown bringt was! Schritte: Alt=" + str(maxval) + " Neu=" + str(
-                        int(temp_maxval / self.speed * (self.speed - 1))) + " NewSpeed=" + str(self.speed - 1))
-                    finder = AStar(nextPlayground.coordinateSystem, nextPlayground.players[self.id - 1].x,
-                                   nextPlayground.players[self.id - 1].y, self.speed - 1, nextPlayground.getTurn())
-                    self.path = finder.solve((temp_maxvalX, temp_maxvalY))
-                    self.speedDown()
-                    return
-        # TODO Bessere Bestimmung und evtl. Lock der Entscheidung die Geschwindigkeit zwei mal zu erhöhen um bessere Alternative durchzusetzen
-        if self.speed < 10:
-            nextPlayground = copy.deepcopy(playground)
-            nextPlayground.players[self.id - 1].speedUp()
-            # Richtig advanced -> Jeden möglichen Zug anderer Spieler auch noch prüfen und weitesten Weg nehmen
-            nextPlayground.movePlayer(self.id - 1)
-            if nextPlayground.players[self.id - 1].active:
-                temp_maxval, temp_maxvalX, temp_maxvalY, temp_tempCS = self.findFurthestField(nextPlayground,
-                                                                                              self.speed + 1)
-
-                if temp_maxval - maxval / (self.speed + 1) * self.speed > 5:
-                    logger.disabled = False
-                    logger.debug("SpeedUp bringt was! Schritte: Alt=" + str(
-                        int(maxval / (self.speed + 1) * self.speed)) + " Neu=" + str(
-                        temp_maxval) + " NewSpeed=" + str(self.speed + 1))
-                    finder = AStar(nextPlayground.coordinateSystem, nextPlayground.players[self.id - 1].x,
-                                   nextPlayground.players[self.id - 1].y, self.speed - 1, nextPlayground.getTurn())
-                    self.path = finder.solve((temp_maxvalX, temp_maxvalY))
-                    self.speedUp()
-                    return
-                if self.speed < 9:
-                    nextPlayground = copy.deepcopy(playground)
-                    nextPlayground.players[self.id - 1].speedUp()
-                    nextPlayground.movePlayer(self.id - 1)
-                    nextPlayground.players[self.id - 1].speedUp()
-                    nextPlayground.movePlayer(self.id - 1)
-                    if nextPlayground.players[self.id - 1].active:
-                        # Richtig advanced -> Jeden möglichen Zug anderer Spieler auch noch prüfen und weitesten Weg nehmen
-                        temp_maxval, temp_maxvalX, temp_maxvalY, temp_tempCS = self.findFurthestField(nextPlayground,
-                                                                                                      self.speed + 2)
-
-                        if temp_maxval - maxval / (self.speed + 2) * self.speed - self.speed > 5:
-                            logger.disabled = False
-                            logger.debug("Doppelter SpeedUp bringt was! Schritte: Alt=" + str(
-                                int(maxval / (self.speed + 2) * self.speed)) + " Neu=" + str(
-                                temp_maxval) + " NewSpeed=" + str(self.speed + 2))
-                            finder = AStar(nextPlayground.coordinateSystem, nextPlayground.players[self.id - 1].x,
-                                           nextPlayground.players[self.id - 1].y, self.speed - 1,
-                                           nextPlayground.getTurn())
-                            self.path = finder.solve((temp_maxvalX, temp_maxvalY))
-                            self.speedUp()
-                            self.nextTurn = "speed_up"
+        freeMap = FreePlaceFinder.generateFreePlaceMap(playground.coordinateSystem)
+        freeMapValues = FreePlaceFinder.getFreePlaceValues(freeMap)
+        maxFreePlaceIndex = freeMapValues.index(max(freeMapValues))
+        ownFreePlaceIndex = FreePlaceFinder.getFreePlaceIndexForCoordinate(freeMap, self.x, self.y)
+        if freeMapValues is not None and ownFreePlaceIndex is not None and maxFreePlaceIndex is not None and \
+                freeMapValues[ownFreePlaceIndex] == freeMapValues[maxFreePlaceIndex]:
+            if self.speed > 1:
+                logger.disabled = False
+                logger.debug("P" + str(self.id) + ": Already in Area with max free Space of " + str(
+                    freeMapValues[maxFreePlaceIndex]) + " Pixels. Slowing down to maximize Livetime!")
+                self.speedDown()
+                return
+        else:
+            # Wenn die Maximalgeschwindigkeit noch nicht erreicht ist
+            if self.speed < 10:
+                # Prüfen ob ich ein SPeedup lohnt
+                if self.doesSpeedUpMakeSense(playground, maxval, 1):
+                    # Prüfen, ob sich ein doppelter Speedup lohnt
+                    if self.doesSpeedUpMakeSense(playground, maxval, 2):
+                        if self.doesSpeedUpMakeSense(playground, maxval, 3):
+                            if self.doesSpeedUpMakeSense(playground, maxval, 4):
+                                return
                             return
-
+                        return
+                    return
 
         if (
                 maxval != 0
