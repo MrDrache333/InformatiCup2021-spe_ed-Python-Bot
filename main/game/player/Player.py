@@ -124,22 +124,27 @@ class Player(object):
             temp_maxval, temp_maxvalX, temp_maxvalY, temp_tempCS = self.findFurthestField(
                 nextPlayground, self.speed + speedchange)
 
-            #Iteriere über größtes feld, prüfe ob punkt erreichbar, merke, siehe nächsten bis alle fertig
+            # Iteriere über größtes feld, prüfe ob punkt erreichbar, merke, siehe nächsten bis alle fertig
             freeMap = FreePlaceFinder.generateFreePlaceMap(playground.coordinateSystem)
             freeMapValues = FreePlaceFinder.getFreePlaceValues(freeMap)
             maxFreePlaceIndex = freeMapValues.index(max(freeMapValues))
 
             moveMap = FreePlaceFinder.convertFindFurthestFieldMapToFreePlaceFormat(temp_tempCS)
 
-            nearestCoordinateOnFurthestFieldMapX, nearestCoordinateOnFurthestFieldMapY = FreePlaceFinder.findNearestCoordinateOnFurthestFieldMap(freeMap, moveMap, maxFreePlaceIndex+1, self.speed+speedchange, self.x, self.y)
+            nearestCoordinateOnFurthestFieldMap = FreePlaceFinder.findNearestCoordinateOnFurthestFieldMap(freeMap,
+                                                                                                          moveMap,
+                                                                                                          maxFreePlaceIndex + 1,
+                                                                                                          self.speed + speedchange,
+                                                                                                          self.x,
+                                                                                                          self.y)
 
-            if nearestCoordinateOnFurthestFieldMapX != -1 and nearestCoordinateOnFurthestFieldMapY != -1:
+            if nearestCoordinateOnFurthestFieldMap is not None:
 
                 # Neuen Pfad berechnen
                 finder = AStar(nextPlayground.coordinateSystem, nextPlayground.players[self.id - 1].x,
                                nextPlayground.players[self.id - 1].y, self.speed + speedchange,
                                nextPlayground.getTurn())
-                self.path = finder.solve((nearestCoordinateOnFurthestFieldMapX, nearestCoordinateOnFurthestFieldMapY))
+                self.path = finder.solve(nearestCoordinateOnFurthestFieldMap)
                 self.speedUp()
                 # Falls Doppelsprung -> nächsten Zug als SpeedUp festlegen
                 if speedchange > 1:

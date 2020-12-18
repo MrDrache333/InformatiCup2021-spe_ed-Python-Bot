@@ -27,20 +27,20 @@ def convertFindFurthestFieldMapToFreePlaceFormat(inputMap):
 
 
 def findNearestCoordinateOnFurthestFieldMap(freeMap, moveMap, maxFreePlaceIndex, speed, ownx, owny):
-    minimal_reachable = -1
+    minimal_reachable = None
     for y in range(len(freeMap)):
         for x in range(len(freeMap[0])):
             if freeMap[y][x] == maxFreePlaceIndex:
                 if moveMap[y][x] != -1:
-                    #check if pos is reachable
+                    # check if pos is reachable
                     if (x % speed != ownx % speed) or (y % speed != owny % speed):
-                        if moveMap[y][x] < minimal_reachable or minimal_reachable == -1:
+                        if moveMap[y][x] < minimal_reachable or minimal_reachable is None:
                             minimal_reachable = moveMap[y][x]
 
-    if minimal_reachable > -1:
-        return x,y
+    if minimal_reachable is not None:
+        return (x, y)
     else:
-        return -1,-1
+        return None
 
 def replaceAdjacent_cells(freePlaceMap, x, y, count):
     if freePlaceMap is None or len(freePlaceMap) <= 1 or len(freePlaceMap[0]) <= 1:
