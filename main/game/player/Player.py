@@ -154,6 +154,7 @@ class Player(object):
         return False
 
     def tryToSurvive(self, playground):
+        self.path = None
         """Different strategies to keep the player alive"""
         if not self.active:
             return

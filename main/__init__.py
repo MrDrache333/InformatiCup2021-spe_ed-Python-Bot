@@ -16,7 +16,7 @@ from game.player.DirectionOfLooking import DirectionOfLooking
 
 sys.setrecursionlimit(1000000)
 
-ONLINE = True
+ONLINE = False
 
 
 class Game(object):
