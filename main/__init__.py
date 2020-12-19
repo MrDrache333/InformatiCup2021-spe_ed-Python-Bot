@@ -50,7 +50,7 @@ class Game(object):
         print("Your are Player " + str(data[0]['you']))
 
     async def playOffline(self):
-        with open('spe_ed-small.json') as f:
+        with open('spe_ed-10x15_FreePlaceFinder-Test.json') as f:
             data = json.load(f)
 
         self.width = data[0]['width']
@@ -157,7 +157,7 @@ class Game(object):
 
                 action = self.ownPlayer.choosenTurn
                 # print("API-Zug: " + action)
-                time.sleep(0.1)
+                # time.sleep(0.1)
                 action_json = json.dumps({"action": action})
                 await websocket.send(action_json)
 

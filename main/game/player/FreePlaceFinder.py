@@ -20,7 +20,11 @@ def generateFreePlaceMap(coordinatesystem):
         for x in range(len(coordinatesystem[0])):
             if freePlaceMap[y][x] == 0:
                 freePlaceMap[y][x] = count
-                replaceAdjacent_cells(freePlaceMap, x, y, count)
+                stack = []
+                stack.extend(replaceAdjacent_cells(freePlaceMap, x, y, count))
+                while len(stack) > 0:
+                    coord = stack.pop()
+                    stack.extend(replaceAdjacent_cells(freePlaceMap, coord[0], coord[1], count))
                 count += 1
     return freePlaceMap
 
@@ -54,20 +58,22 @@ def findNearestCoordinateOnFurthestFieldMap(freeMap, moveMap, maxFreePlaceIndex,
 
 
 def replaceAdjacent_cells(freePlaceMap, x, y, count):
+    list = []
     if freePlaceMap is None or len(freePlaceMap) <= 1 or len(freePlaceMap[0]) <= 1:
         return
     if x > 0 and freePlaceMap[y][x - 1] != -1 and freePlaceMap[y][x - 1] != count:
         freePlaceMap[y][x - 1] = count
-        replaceAdjacent_cells(freePlaceMap, x - 1, y, count)
+        list.append((x - 1, y))
     if x < len(freePlaceMap[0]) - 1 and freePlaceMap[y][x + 1] != -1 and freePlaceMap[y][x + 1] != count:
         freePlaceMap[y][x + 1] = count
-        replaceAdjacent_cells(freePlaceMap, x + 1, y, count)
+        list.append((x + 1, y))
     if y > 0 and freePlaceMap[y - 1][x] != -1 and freePlaceMap[y - 1][x] < count:
         freePlaceMap[y - 1][x] = count
-        replaceAdjacent_cells(freePlaceMap, x, y - 1, count)
+        list.append((x, y - 1))
     if y < len(freePlaceMap) - 1 and freePlaceMap[y + 1][x] != -1 and freePlaceMap[y + 1][x] != count:
         freePlaceMap[y + 1][x] = count
-        replaceAdjacent_cells(freePlaceMap, x, y + 1, count)
+        list.append((x, y + 1))
+    return list
 
 
 def getFreePlaceIndexForCoordinate(freePlaceMap, x, y):
