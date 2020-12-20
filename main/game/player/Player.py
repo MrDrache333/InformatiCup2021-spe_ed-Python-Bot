@@ -41,6 +41,7 @@ class Player(object):
         self.path = []
         self.fitness = 0
         self.choosenTurn = "change_nothing"
+        self.followPath = False
         self.nextTurn = None
 
     def isCoordinateFree(self, x, y, playground):
@@ -120,7 +121,6 @@ class Player(object):
 
         # Prüfen, ob virtuelle Bewegung eigenen Spieler schadet
         if nextPlayground.players[self.id - 1].active:
-            # Richtig advanced -> Jeden möglichen Zug anderer Spieler auch noch prüfen und weitesten Weg nehmen
             temp_maxval, temp_maxvalX, temp_maxvalY, temp_tempCS = self.findFurthestField(
                 nextPlayground, self.speed + speedchange)
 
@@ -147,6 +147,7 @@ class Player(object):
                                nextPlayground.players[self.id - 1].y, self.speed + speedchange,
                                nextPlayground.getTurn())
                 self.path = finder.solve(nearestCoordinateOnFurthestFieldMap)
+                self.followPath = True
                 self.speedUp()
                 # Falls Doppelsprung -> nächsten Zug als SpeedUp festlegen
                 if speedchange > 1:
@@ -177,6 +178,42 @@ class Player(object):
                     logger.disabled = False
                     logger.debug("[" + str(self.id) + "]: Doppelter Speedup abgebrochen! Hindernis erkannt.")
                     self.nextTurn = None
+
+        if self.followPath and self.path is not None and len(self.path) > 0:
+            # Teste nächsten Pfadpunkt einmal und prüfe, ob noch lebend. -> Wenn ja, dann übernehmen.
+            nextCoord = self.path.pop(0)
+            while nextCoord[0] == self.x and nextCoord[1] == self.y:
+                nextCoord = self.path.pop(0)
+
+            # Neuen Pfad berechnen
+            finder = AStar(playground.coordinateSystem, playground.players[self.id - 1].x,
+                           playground.players[self.id - 1].y, self.speed,
+                           playground.getTurn())
+            path = finder.solve(nextCoord)
+            if path is not None and len(path) > 0:
+                nextDirection = None
+                if nextCoord[0] > self.x:
+                    nextDirection = DirectionOfLooking.RIGHT
+                elif nextCoord[0] < self.x:
+                    nextDirection = DirectionOfLooking.LEFT
+                elif nextCoord[1] > self.y:
+                    nextDirection = DirectionOfLooking.DOWN
+                elif nextCoord[1] < self.y:
+                    nextDirection = DirectionOfLooking.UP
+
+                # Simulate Turn
+                nextPlayground = copy.deepcopy(playground)
+                nextPlayground.players[self.id - 1].turnDirectionOfLooking(nextDirection)
+                for player in nextPlayground.players:
+                    nextPlayground.movePlayer(player.id - 1)
+                if nextPlayground.players[self.id - 1].active:
+                    self.turnDirectionOfLooking(nextDirection)
+                    return
+            self.path = None
+            self.followPath = False
+        elif self.followPath:
+            self.followPath = False
+
         # Strategie: Weit entferntestes Feld finden
         maxval, maxvalX, maxvalY, tempCS = self.findFurthestField(playground, self.speed)
 
@@ -303,7 +340,7 @@ class Player(object):
                             if not playground.coordinateSystem[tempY][tempX] == 0:
                                 isGapOneCellWide += 1
 
-                    if isGapOneCellWide <= 2:
+                    if isGapOneCellWide < 2:
                         # Cell is one wide. check if space behind cell is larger, than the
                         lookDirectionAlongSideWallLeft, lookDirectionAlongSideWallRight = setOfDirections[
                                                                                               (setOfDirections.index(

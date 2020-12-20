@@ -2,7 +2,6 @@ import asyncio
 import json
 import logging
 import os
-import sys
 import time
 from datetime import datetime
 
@@ -13,8 +12,6 @@ from JsonInterpreter import JsonInterpreter
 from game.Playground import Playground
 from game.graphic.PlaygroundPresenter import PlaygroundPresenter
 from game.player.DirectionOfLooking import DirectionOfLooking
-
-sys.setrecursionlimit(1000000)
 
 ONLINE = False
 
@@ -50,7 +47,7 @@ class Game(object):
         print("Your are Player " + str(data[0]['you']))
 
     async def playOffline(self):
-        with open('spe_ed-10x15_FreePlaceFinder-Test.json') as f:
+        with open('spe_ed-small.json') as f:
             data = json.load(f)
 
         self.width = data[0]['width']
