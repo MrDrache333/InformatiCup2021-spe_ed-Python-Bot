@@ -393,8 +393,24 @@ class Player(object):
                                                                                           0],
                                                                                       lookDirectionAlongSideWallRightXY[
                                                                                           1], freePlaceValues)):
-                            self.speedDown()
-                            return
+                            if self.simulateNextTurn(playground, self.id, self.directionOfLooking):
+                                self.speedDown()
+                                return
+                            elif FreePlaceFinder.getAmountOfFreePlacesForCoordinate(freePlaceMap,
+                                                                                    lookDirectionAlongsideWallLeftXY[0],
+                                                                                    lookDirectionAlongsideWallLeftXY[1],
+                                                                                    freePlaceValues) \
+                                    >= FreePlaceFinder.getAmountOfFreePlacesForCoordinate(freePlaceMap,
+                                                                                          lookDirectionAlongSideWallRightXY[
+                                                                                              0],
+                                                                                          lookDirectionAlongSideWallRightXY[
+                                                                                              1], freePlaceValues):
+                                self.turnDirectionOfLooking(lookDirectionAlongSideWallLeft)
+                                return
+                            else:
+                                self.turnDirectionOfLooking(lookDirectionAlongSideWallRight)
+                                return
+
                         elif FreePlaceFinder.getAmountOfFreePlacesForCoordinate(freePlaceMap,
                                                                                 lookDirectionAlongsideWallLeftXY[0],
                                                                                 lookDirectionAlongsideWallLeftXY[1],
