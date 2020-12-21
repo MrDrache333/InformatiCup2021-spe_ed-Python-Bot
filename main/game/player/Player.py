@@ -430,6 +430,24 @@ class Player(object):
                     self.turnDirectionOfLooking(lookDirectionAlongSideWallRight)
                     return
         else:
+            #check if a wall is behind the player, if so, go there
+            # get direction of wall behind player
+            setOfDirectionsWithDiagonals = [DirectionOfLooking.UP, DirectionOfLooking.UPRIGHT, DirectionOfLooking.RIGHT,
+                                            DirectionOfLooking.DOWNRIGHT, DirectionOfLooking.DOWN,
+                                            DirectionOfLooking.DOWNLEFT, DirectionOfLooking.LEFT,
+                                            DirectionOfLooking.UPLEFT]
+
+            directionBehindPlayerLeft = setOfDirectionsWithDiagonals[(setOfDirectionsWithDiagonals.index(self.directionOfLooking) + 5) % 8]
+            directionBehindPlayerRight = setOfDirectionsWithDiagonals[(setOfDirectionsWithDiagonals.index(self.directionOfLooking) + 3) % 8]
+
+            #check if there is a wall behind the player on the left
+            if playground.coordinateSystem[self.y + directionBehindPlayerLeft[1]][self.x + directionBehindPlayerLeft[0]] != 0 :
+                self.turnDirectionOfLooking(setOfDirectionsWithDiagonals[(setOfDirectionsWithDiagonals.index(self.directionOfLooking) + 6) % 8])
+                return
+            elif playground.coordinateSystem[self.y + directionBehindPlayerRight[1]][self.x + directionBehindPlayerRight[0]] != 0 :
+                self.turnDirectionOfLooking(setOfDirectionsWithDiagonals[(setOfDirectionsWithDiagonals.index(self.directionOfLooking) + 2) % 8])
+                return
+
             if self.directionOfLooking == directionOfClosestWall:
                 if distanceOfNearestWall >= self.speed:
                     # Player is already going to the closest wall and has enough space to go into it. Slow down to stall
