@@ -16,7 +16,7 @@ from game.player.DirectionOfLooking import DirectionOfLooking
 
 sys.setrecursionlimit(1000000)
 
-ONLINE = False
+ONLINE = True
 
 
 class Game(object):
@@ -168,6 +168,9 @@ class Game(object):
             print("Konnte kein Bild speichern in \"" + path + "\"")
 
     def printStatistics(self):
+        if self.playground is None or self.playground.players is None:
+            print("Playground must not be None!")
+            return
         # Sortiere die Spieler anhand Ihrer Fitness
         players = sorted(self.playground.players, key=lambda p: p.fitness, reverse=True)
 

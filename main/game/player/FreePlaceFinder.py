@@ -90,7 +90,7 @@ def replaceAdjacent_cells(freePlaceMap, x, y, count):
     return list
 
 
-def getFreePlaceIndexForCoordinate(freePlaceMap, x, y):
+def getRelativeFreePlaceIndexForCoordinate(freePlaceMap, x, y):
     """
     Returns the Index in the FreePlaceValueArray in witch the given Coordinate is in
     :param freePlaceMap: The FreePlaceMap to check on
@@ -116,6 +116,38 @@ def getFreePlaceIndexForCoordinate(freePlaceMap, x, y):
     elif y < len(freePlaceMap) - 1 and freePlaceMap[y + 1][x] != -1:
         return freePlaceMap[y + 1][x] - 1
     return None
+
+
+def getExactFreePlaceIndexForCoordinate(freePlaceMap, x, y):
+    """
+    Returns the Exact Value for a given Coordinate on the FreePlaceMap
+    :param freePlaceMap: The generated FreePlaceMap
+    :param x: The X Coordinate on the FreePlaceMap
+    :param y: The Y Coordinate on the FreePlaceMap
+    :return: The Indexvalue on the FreePlaceMap
+    """
+    if freePlaceMap is None or len(freePlaceMap) < y or len(freePlaceMap[0]) < x or x < 0 or y < 0:
+        return None
+    if freePlaceMap[y][x] != -1:
+        return freePlaceMap[y][x] - 1
+    return None
+
+
+def getAmountOfFreePlacesForCoordinate(freePlaceMap, x, y, freePlaceValues=None):
+    """
+    Returns the Amount of free Places for a given Coordinate
+    :param freePlaceMap:
+    :param x: The X Coordinate on the FreePlaceMap
+    :param y: The Y Coordinate on the FreePlaceMap
+    :param freePlaceValues: Optional the FreePlaceValues for the Map. If nt set, the Method will calculate there Values on its own
+    :return: The Amount of free Places
+    """
+    if freePlaceValues is None:
+        freePlaceValues = getFreePlaceValues(freePlaceMap)
+    freePlaceIndex = getExactFreePlaceIndexForCoordinate(freePlaceMap, x, y)
+    if freePlaceIndex is None or freePlaceIndex >= len(freePlaceValues):
+        return 0
+    return freePlaceValues[freePlaceIndex]
 
 
 def getFreePlaceValues(freePlaceMap):

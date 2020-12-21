@@ -348,6 +348,9 @@ class Player(object):
                                                                                           setOfDirections[
                                                                                               (setOfDirections.index(
                                                                                                   self.directionOfLooking) + 1) % 4]
+                        freePlaceMap = FreePlaceFinder.generateFreePlaceMap(playground.coordinateSystem)
+                        freePlaceValues = FreePlaceFinder.getFreePlaceValues(freePlaceMap)
+                        amount = FreePlaceFinder.getAmountOfFreePlacesForCoordinate(freePlaceMap, 1, 1, freePlaceValues)
 
                         if self.getAmountOfFreeSpaces(self.x, self.y, self.directionOfLooking,
                                                       playground.coordinateSystem) >= (
