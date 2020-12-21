@@ -126,7 +126,7 @@ def getExactFreePlaceIndexForCoordinate(freePlaceMap, x, y):
     :param y: The Y Coordinate on the FreePlaceMap
     :return: The Indexvalue on the FreePlaceMap
     """
-    if freePlaceMap is None or len(freePlaceMap) < y or len(freePlaceMap[0]) < x or x < 0 or y < 0:
+    if freePlaceMap is None or len(freePlaceMap) <= y or len(freePlaceMap[0]) <= x or x < 0 or y < 0:
         return None
     if freePlaceMap[y][x] != -1:
         return freePlaceMap[y][x] - 1

@@ -128,7 +128,7 @@ class Player(object):
             freeMap = FreePlaceFinder.generateFreePlaceMap(playground.coordinateSystem)
             freeMapValues = FreePlaceFinder.getFreePlaceValues(freeMap)
             maxFreePlaceIndex = freeMapValues.index(max(freeMapValues))
-            ownFreePlaceIndex = FreePlaceFinder.getFreePlaceIndexForCoordinate(freeMap, self.x, self.y)
+            ownFreePlaceIndex = FreePlaceFinder.getRelativeFreePlaceIndexForCoordinate(freeMap, self.x, self.y)
 
             moveMap = FreePlaceFinder.convertFindFurthestFieldMapToFreePlaceFormat(temp_tempCS)
 
@@ -221,7 +221,7 @@ class Player(object):
         freeMap = FreePlaceFinder.generateFreePlaceMap(playground.coordinateSystem)
         freeMapValues = FreePlaceFinder.getFreePlaceValues(freeMap)
         maxFreePlaceIndex = freeMapValues.index(max(freeMapValues))
-        ownFreePlaceIndex = FreePlaceFinder.getFreePlaceIndexForCoordinate(freeMap, self.x, self.y)
+        ownFreePlaceIndex = FreePlaceFinder.getRelativeFreePlaceIndexForCoordinate(freeMap, self.x, self.y)
 
         # Wenn keine Fehler beim erstellen der FreePlaceMap auftreten
         if freeMapValues is not None and ownFreePlaceIndex is not None and maxFreePlaceIndex is not None:
@@ -313,6 +313,23 @@ class Player(object):
         distanceOfNearestWall, directionOfClosestWall = min(
             zip(freeBlocksWithoutDuplicateValues.values(), freeBlocksWithoutDuplicateValues.keys()))
 
+
+        lookDirectionAlongSideWallLeft, lookDirectionAlongSideWallRight = setOfDirections[
+                                                                              (setOfDirections.index(
+                                                                                  self.directionOfLooking) + 3) % 4], \
+                                                                          setOfDirections[
+                                                                              (setOfDirections.index(
+                                                                                  self.directionOfLooking) + 1) % 4]
+
+
+        freePlaceMap = FreePlaceFinder.generateFreePlaceMap(playground.coordinateSystem)
+        freePlaceValues = FreePlaceFinder.getFreePlaceValues(freePlaceMap)
+
+
+        directionOfLookinXY = self.x + self.directionOfLooking.value[0], self.y + self.directionOfLooking.value[1]
+        lookDirectionAlongsideWallLeftXY =  self.x + lookDirectionAlongSideWallLeft.value[0], self.y + lookDirectionAlongSideWallLeft.value[1]
+        lookDirectionAlongSideWallRightXY = self.x + lookDirectionAlongSideWallRight.value[0], self.y + lookDirectionAlongSideWallRight.value[1]
+
         if distanceOfNearestWall == 0:
             if not playground.countBlocksInStraightLine(self, self.directionOfLooking) == 0:
                 # the player is adjacent to a wall and not looking at it. Commence plan.
@@ -342,26 +359,16 @@ class Player(object):
 
                     if isGapOneCellWide < 2:
                         # Cell is one wide. check if space behind cell is larger, than the
-                        lookDirectionAlongSideWallLeft, lookDirectionAlongSideWallRight = setOfDirections[
-                                                                                              (setOfDirections.index(
-                                                                                                  self.directionOfLooking) + 3) % 4], \
-                                                                                          setOfDirections[
-                                                                                              (setOfDirections.index(
-                                                                                                  self.directionOfLooking) + 1) % 4]
-                        freePlaceMap = FreePlaceFinder.generateFreePlaceMap(playground.coordinateSystem)
-                        freePlaceValues = FreePlaceFinder.getFreePlaceValues(freePlaceMap)
-                        amount = FreePlaceFinder.getAmountOfFreePlacesForCoordinate(freePlaceMap, 1, 1, freePlaceValues)
 
-                        if self.getAmountOfFreeSpaces(self.x, self.y, self.directionOfLooking,
-                                                      playground.coordinateSystem) >= (
-                                self.getAmountOfFreeSpaces(self.x, self.y, lookDirectionAlongSideWallLeft,
-                                                           playground.coordinateSystem) or self.getAmountOfFreeSpaces(
-                            self.x, self.y, lookDirectionAlongSideWallRight, playground.coordinateSystem)):
+                        amount = FreePlaceFinder.getAmountOfFreePlacesForCoordinate(freePlaceMap, directionOfLookinXY[0], directionOfLookinXY[1], freePlaceValues)
+
+                        if FreePlaceFinder.getAmountOfFreePlacesForCoordinate(freePlaceMap, directionOfLookinXY[0], directionOfLookinXY[1], freePlaceValues) >= (
+                                FreePlaceFinder.getAmountOfFreePlacesForCoordinate(freePlaceMap,lookDirectionAlongsideWallLeftXY[0], lookDirectionAlongsideWallLeftXY[1], freePlaceValues)
+                                or FreePlaceFinder.getAmountOfFreePlacesForCoordinate(freePlaceMap, lookDirectionAlongSideWallRightXY[0], lookDirectionAlongSideWallRightXY[1], freePlaceValues)) :
                             self.speedDown()
                             return
-                        elif self.getAmountOfFreeSpaces(self.x, self.y, lookDirectionAlongSideWallLeft,
-                                                        playground.coordinateSystem) >= self.getAmountOfFreeSpaces(
-                            self.x, self.y, lookDirectionAlongSideWallRight, playground.coordinateSystem):
+                        elif FreePlaceFinder.getAmountOfFreePlacesForCoordinate(freePlaceMap,lookDirectionAlongsideWallLeftXY[0], lookDirectionAlongsideWallLeftXY[1], freePlaceValues) \
+                                >= FreePlaceFinder.getAmountOfFreePlacesForCoordinate(freePlaceMap, lookDirectionAlongSideWallRightXY[0], lookDirectionAlongSideWallRightXY[1], freePlaceValues) :
                             self.turnDirectionOfLooking(lookDirectionAlongSideWallLeft)
                             return
                         else:
@@ -374,17 +381,9 @@ class Player(object):
             else:
                 # player is adjacent to wall and looking into it. Player has to change his direction of looking
                 # Change direction of looking to the direction with the most space available
-                lookDirectionAlongSideWallLeft, lookDirectionAlongSideWallRight = setOfDirections[
-                                                                                      (setOfDirections.index(
-                                                                                          self.directionOfLooking) + 3) % 4], \
-                                                                                  setOfDirections[
-                                                                                      (setOfDirections.index(
-                                                                                          self.directionOfLooking) + 1) % 4]
 
-                if self.getAmountOfFreeSpaces(self.x, self.y, lookDirectionAlongSideWallLeft,
-                                              playground.coordinateSystem) > self.getAmountOfFreeSpaces(self.x, self.y,
-                                                                                                        lookDirectionAlongSideWallRight,
-                                                                                                        playground.coordinateSystem):
+                if FreePlaceFinder.getAmountOfFreePlacesForCoordinate(freePlaceMap,lookDirectionAlongsideWallLeftXY[0], lookDirectionAlongsideWallLeftXY[1], freePlaceValues) \
+                        > FreePlaceFinder.getAmountOfFreePlacesForCoordinate(freePlaceMap, lookDirectionAlongSideWallRightXY[0], lookDirectionAlongSideWallRightXY[1], freePlaceValues) :
                     self.turnDirectionOfLooking(lookDirectionAlongSideWallLeft)
                     return
                 else:
@@ -417,56 +416,6 @@ class Player(object):
 
         self.fallBackPlan(playground)
 
-    def getAmountOfFreeSpaces(self, givenX, givenY, directionOfLooking, coordinateSystem):
-        """returns the amount of free spaces in the given coordinatesystem from a given coordinate and direction"""
-        # 1. black out coordinate behind given coordinate
-        # 2. check coordinate up if coordinate == 0 add 1 to free space counter run 2. on this coordinate
-        # 3. check coordinate right if coordinate == 0 add 1 to free space counter run 3. on this coordinate
-        # 4. check coordinate down if coordinate == 0 add 1 to free space counter run 2. on this coordinate
-        # 5. ...
-        # 6. return free space
-
-        temporaryCoordinateSystem = copy.deepcopy(coordinateSystem)
-
-        tmpX, tmpY = directionOfLooking.value
-
-        givenX += tmpX
-        givenY += tmpY
-
-        if checkIfCoordinateIsInCoordinateSystem(givenX, givenY, temporaryCoordinateSystem):
-            if temporaryCoordinateSystem[givenY][givenX] != 0:
-                return 0
-            else:
-                temporaryCoordinateSystem[givenY][givenX] = -1
-
-        return self.checkSurroundingCellsForEmptiness(
-            givenX, givenY, temporaryCoordinateSystem
-        )
-
-    def checkSurroundingCellsForEmptiness(self, givenX, givenY, coordinateSystem):
-        """ATTENTION: This method is reserved fot the 'getAmountOfFreeSpaces' method. It recursively counts free
-        spaces in a given coordinatesystem and marks them as they are counted """
-        setOfDirections = [DirectionOfLooking.UP, DirectionOfLooking.RIGHT, DirectionOfLooking.DOWN,
-                           DirectionOfLooking.LEFT]
-
-        amountOfFreeSpaces = 0
-
-        # check surrounding nodes for emptiness
-        for direction in setOfDirections:
-            tmpX, tmpY = direction.value
-            toBeAnalysedX = givenX + tmpX
-            toBeAnalysedY = givenY + tmpY
-            if (
-                    checkIfCoordinateIsInCoordinateSystem(
-                        toBeAnalysedX, toBeAnalysedY, coordinateSystem
-                    )
-                    and coordinateSystem[toBeAnalysedY][toBeAnalysedX] == 0
-            ):
-                coordinateSystem[toBeAnalysedY][toBeAnalysedX] = -1
-                amountOfFreeSpaces = self.checkSurroundingCellsForEmptiness(toBeAnalysedX, toBeAnalysedY,
-                                                                            coordinateSystem) + 1
-
-        return amountOfFreeSpaces
 
     def findFurthestField(self, playground, speed):
         """Fills out a coordinate system, to tell how far the player can move"""
