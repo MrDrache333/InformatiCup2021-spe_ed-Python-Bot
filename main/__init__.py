@@ -16,7 +16,7 @@ from game.player.DirectionOfLooking import DirectionOfLooking
 
 sys.setrecursionlimit(1000000)
 
-ONLINE = True
+ONLINE = False
 
 
 class Game(object):
@@ -50,7 +50,7 @@ class Game(object):
         print("Your are Player " + str(data[0]['you']))
 
     async def playOffline(self):
-        with open('spe_ed-1603447830516.json') as f:
+        with open('spe_ed-small.json') as f:
             data = json.load(f)
 
         self.width = data[0]['width']

@@ -5,6 +5,7 @@ import sys
 
 import numpy as np
 
+from game.Playground import Playground
 from game.player import FreePlaceFinder
 from game.player.DirectionOfLooking import DirectionOfLooking
 from game.player.Pathfinding import AStar
@@ -74,6 +75,26 @@ class Player(object):
                 elif directionOfLooking == DirectionOfLooking.DOWN:
                     self.choosenTurn = "turn_right"
             self.directionOfLooking = directionOfLooking
+
+    def simulateNextTurn(self, playground: Playground, playerId, directionOfLooking: DirectionOfLooking = None,
+                         speedChange=0):
+        if directionOfLooking is not None and speedChange != 0:
+            print("Invalid Parameters")
+            return None
+        nextPlayground = copy.deepcopy(playground)
+
+        if speedChange != 0:
+            if speedChange < 0:
+                nextPlayground.players[playerId - 1].slowDown()
+            elif speedChange > 0:
+                nextPlayground.players[playerId - 1].speedUp()
+        elif directionOfLooking is not None:
+            nextPlayground.players[playerId - 1].turnDirectionOfLooking(directionOfLooking)
+
+        # Richtig advanced -> Jeden möglichen Zug anderer Spieler auch noch prüfen und weitesten Weg nehmen
+        for player in nextPlayground.players:
+            nextPlayground.movePlayer(player.id - 1)
+        return nextPlayground.players[playerId - 1].active
 
     def speedUp(self):
         """Accelerate one speed"""
@@ -313,7 +334,6 @@ class Player(object):
         distanceOfNearestWall, directionOfClosestWall = min(
             zip(freeBlocksWithoutDuplicateValues.values(), freeBlocksWithoutDuplicateValues.keys()))
 
-
         lookDirectionAlongSideWallLeft, lookDirectionAlongSideWallRight = setOfDirections[
                                                                               (setOfDirections.index(
                                                                                   self.directionOfLooking) + 3) % 4], \
@@ -321,14 +341,14 @@ class Player(object):
                                                                               (setOfDirections.index(
                                                                                   self.directionOfLooking) + 1) % 4]
 
-
         freePlaceMap = FreePlaceFinder.generateFreePlaceMap(playground.coordinateSystem)
         freePlaceValues = FreePlaceFinder.getFreePlaceValues(freePlaceMap)
 
-
         directionOfLookinXY = self.x + self.directionOfLooking.value[0], self.y + self.directionOfLooking.value[1]
-        lookDirectionAlongsideWallLeftXY =  self.x + lookDirectionAlongSideWallLeft.value[0], self.y + lookDirectionAlongSideWallLeft.value[1]
-        lookDirectionAlongSideWallRightXY = self.x + lookDirectionAlongSideWallRight.value[0], self.y + lookDirectionAlongSideWallRight.value[1]
+        lookDirectionAlongsideWallLeftXY = self.x + lookDirectionAlongSideWallLeft.value[0], self.y + \
+                                           lookDirectionAlongSideWallLeft.value[1]
+        lookDirectionAlongSideWallRightXY = self.x + lookDirectionAlongSideWallRight.value[0], self.y + \
+                                            lookDirectionAlongSideWallRight.value[1]
 
         if distanceOfNearestWall == 0:
             if not playground.countBlocksInStraightLine(self, self.directionOfLooking) == 0:
@@ -360,15 +380,45 @@ class Player(object):
                     if isGapOneCellWide < 2:
                         # Cell is one wide. check if space behind cell is larger, than the
 
-                        amount = FreePlaceFinder.getAmountOfFreePlacesForCoordinate(freePlaceMap, directionOfLookinXY[0], directionOfLookinXY[1], freePlaceValues)
+                        if FreePlaceFinder.getAmountOfFreePlacesForCoordinate(freePlaceMap, directionOfLookinXY[0],
+                                                                              directionOfLookinXY[1],
+                                                                              freePlaceValues) >= (
+                                FreePlaceFinder.getAmountOfFreePlacesForCoordinate(freePlaceMap,
+                                                                                   lookDirectionAlongsideWallLeftXY[0],
+                                                                                   lookDirectionAlongsideWallLeftXY[1],
+                                                                                   freePlaceValues)
+                                or FreePlaceFinder.getAmountOfFreePlacesForCoordinate(freePlaceMap,
+                                                                                      lookDirectionAlongSideWallRightXY[
+                                                                                          0],
+                                                                                      lookDirectionAlongSideWallRightXY[
+                                                                                          1], freePlaceValues)):
+                            if self.simulateNextTurn(playground, self.id, self.directionOfLooking):
+                                self.speedDown()
+                                return
+                            elif FreePlaceFinder.getAmountOfFreePlacesForCoordinate(freePlaceMap,
+                                                                                    lookDirectionAlongsideWallLeftXY[0],
+                                                                                    lookDirectionAlongsideWallLeftXY[1],
+                                                                                    freePlaceValues) \
+                                    >= FreePlaceFinder.getAmountOfFreePlacesForCoordinate(freePlaceMap,
+                                                                                          lookDirectionAlongSideWallRightXY[
+                                                                                              0],
+                                                                                          lookDirectionAlongSideWallRightXY[
+                                                                                              1], freePlaceValues):
+                                self.turnDirectionOfLooking(lookDirectionAlongSideWallLeft)
+                                return
+                            else:
+                                self.turnDirectionOfLooking(lookDirectionAlongSideWallRight)
+                                return
 
-                        if FreePlaceFinder.getAmountOfFreePlacesForCoordinate(freePlaceMap, directionOfLookinXY[0], directionOfLookinXY[1], freePlaceValues) >= (
-                                FreePlaceFinder.getAmountOfFreePlacesForCoordinate(freePlaceMap,lookDirectionAlongsideWallLeftXY[0], lookDirectionAlongsideWallLeftXY[1], freePlaceValues)
-                                or FreePlaceFinder.getAmountOfFreePlacesForCoordinate(freePlaceMap, lookDirectionAlongSideWallRightXY[0], lookDirectionAlongSideWallRightXY[1], freePlaceValues)) :
-                            self.speedDown()
-                            return
-                        elif FreePlaceFinder.getAmountOfFreePlacesForCoordinate(freePlaceMap,lookDirectionAlongsideWallLeftXY[0], lookDirectionAlongsideWallLeftXY[1], freePlaceValues) \
-                                >= FreePlaceFinder.getAmountOfFreePlacesForCoordinate(freePlaceMap, lookDirectionAlongSideWallRightXY[0], lookDirectionAlongSideWallRightXY[1], freePlaceValues) :
+                        elif FreePlaceFinder.getAmountOfFreePlacesForCoordinate(freePlaceMap,
+                                                                                lookDirectionAlongsideWallLeftXY[0],
+                                                                                lookDirectionAlongsideWallLeftXY[1],
+                                                                                freePlaceValues) \
+                                >= FreePlaceFinder.getAmountOfFreePlacesForCoordinate(freePlaceMap,
+                                                                                      lookDirectionAlongSideWallRightXY[
+                                                                                          0],
+                                                                                      lookDirectionAlongSideWallRightXY[
+                                                                                          1], freePlaceValues):
                             self.turnDirectionOfLooking(lookDirectionAlongSideWallLeft)
                             return
                         else:
@@ -382,8 +432,13 @@ class Player(object):
                 # player is adjacent to wall and looking into it. Player has to change his direction of looking
                 # Change direction of looking to the direction with the most space available
 
-                if FreePlaceFinder.getAmountOfFreePlacesForCoordinate(freePlaceMap,lookDirectionAlongsideWallLeftXY[0], lookDirectionAlongsideWallLeftXY[1], freePlaceValues) \
-                        > FreePlaceFinder.getAmountOfFreePlacesForCoordinate(freePlaceMap, lookDirectionAlongSideWallRightXY[0], lookDirectionAlongSideWallRightXY[1], freePlaceValues) :
+                if FreePlaceFinder.getAmountOfFreePlacesForCoordinate(freePlaceMap, lookDirectionAlongsideWallLeftXY[0],
+                                                                      lookDirectionAlongsideWallLeftXY[1],
+                                                                      freePlaceValues) \
+                        > FreePlaceFinder.getAmountOfFreePlacesForCoordinate(freePlaceMap,
+                                                                             lookDirectionAlongSideWallRightXY[0],
+                                                                             lookDirectionAlongSideWallRightXY[1],
+                                                                             freePlaceValues):
                     self.turnDirectionOfLooking(lookDirectionAlongSideWallLeft)
                     return
                 else:
@@ -415,7 +470,6 @@ class Player(object):
                     return
 
         self.fallBackPlan(playground)
-
 
     def findFurthestField(self, playground, speed):
         """Fills out a coordinate system, to tell how far the player can move"""

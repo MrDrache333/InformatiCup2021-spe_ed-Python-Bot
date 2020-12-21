@@ -3,15 +3,16 @@ import copy
 
 def generateFreePlaceMap(coordinatesystem):
     """
-    Generiert eine Karte, die alle verbundenen freien Pixel in Areale einteilt
-    :param coordinatesystem: Das Koordinatensystem des Spiels
-    :return: Die erstelle Karte mit markierten Arealen
+    Generates a Map, were every free Area is marked with an Index starting by 1
+    :param coordinatesystem: The Coordinate System of the Playground
+    :return: The Map with marked Areas
     """
-    # Wenn das Koordinatensystem ungültig ist
+    # Return, if the CoordinateSystem is not valid
     if coordinatesystem is None or len(coordinatesystem) <= 1 or len(coordinatesystem[0]) <= 1:
         return
     count = 1
     freePlaceMap = copy.deepcopy(coordinatesystem)
+    # Iterate over the Map and
     for y in range(len(coordinatesystem)):
         for x in range(len(coordinatesystem[0])):
             if coordinatesystem[y][x] != 0:
@@ -20,9 +21,8 @@ def generateFreePlaceMap(coordinatesystem):
         for x in range(len(coordinatesystem[0])):
             if freePlaceMap[y][x] == 0:
                 freePlaceMap[y][x] = count
-                stack = []
-                stack.extend(replaceAdjacent_cells(freePlaceMap, x, y, count))
-                while len(stack) > 0:
+                stack = list(replaceAdjacent_cells(freePlaceMap, x, y, count))
+                while stack:
                     coord = stack.pop()
                     stack.extend(replaceAdjacent_cells(freePlaceMap, coord[0], coord[1], count))
                 count += 1
@@ -142,22 +142,34 @@ def getAmountOfFreePlacesForCoordinate(freePlaceMap, x, y, freePlaceValues=None)
     :param freePlaceValues: Optional the FreePlaceValues for the Map. If nt set, the Method will calculate there Values on its own
     :return: The Amount of free Places
     """
+    # If no FreePlaceValues are given -> Calculate them first
     if freePlaceValues is None:
         freePlaceValues = getFreePlaceValues(freePlaceMap)
+    # Get the Area-Index for a given Coordinate
     freePlaceIndex = getExactFreePlaceIndexForCoordinate(freePlaceMap, x, y)
+    # Return 0, if no Index was given or the Index is not Valid. Else return the Value on the Index Position
     if freePlaceIndex is None or freePlaceIndex >= len(freePlaceValues):
         return 0
     return freePlaceValues[freePlaceIndex]
 
 
 def getFreePlaceValues(freePlaceMap):
+    """
+    Returns the Amount of Free Places for every Area Marked on the FreePlaceMap
+    by iterating over the Map and counting each Cell of each Area together
+    The Returned list starts with Area 1 on Index 0
+    :param freePlaceMap: The generated FreePlaceMap
+    :return: The Amounts of free Places for each Area on the FreePlaceMap
+    """
     if freePlaceMap is None or len(freePlaceMap) <= 1 or len(freePlaceMap[0]) <= 1:
         return
     values = []
+    # Iterate over the Map
     for y in range(len(freePlaceMap)):
         for x in range(len(freePlaceMap[0])):
             pointValue = freePlaceMap[y][x]
             if pointValue != -1:
+                # Add one to the Area-Counter
                 if len(values) >= pointValue:
                     values[pointValue - 1] += 1
                 else:
