@@ -96,7 +96,6 @@ class Player(object):
             nextPlayground.movePlayer(player.id - 1)
         return nextPlayground.players[playerId - 1].active
 
-
     def speedUp(self):
         """Accelerate one speed"""
         if self.speed == 10:
@@ -446,22 +445,30 @@ class Player(object):
                     self.turnDirectionOfLooking(lookDirectionAlongSideWallRight)
                     return
         else:
-            #check if a wall is behind the player, if so, go there
+            # check if a wall is behind the player, if so, go there
             # get direction of wall behind player
             setOfDirectionsWithDiagonals = [DirectionOfLooking.UP, DirectionOfLooking.UPRIGHT, DirectionOfLooking.RIGHT,
                                             DirectionOfLooking.DOWNRIGHT, DirectionOfLooking.DOWN,
                                             DirectionOfLooking.DOWNLEFT, DirectionOfLooking.LEFT,
                                             DirectionOfLooking.UPLEFT]
 
-            directionBehindPlayerLeft = setOfDirectionsWithDiagonals[(setOfDirectionsWithDiagonals.index(self.directionOfLooking) + 5) % 8]
-            directionBehindPlayerRight = setOfDirectionsWithDiagonals[(setOfDirectionsWithDiagonals.index(self.directionOfLooking) + 3) % 8]
+            directionBehindPlayerLeft = setOfDirectionsWithDiagonals[
+                (setOfDirectionsWithDiagonals.index(self.directionOfLooking) + 5) % 8]
+            directionBehindPlayerRight = setOfDirectionsWithDiagonals[
+                (setOfDirectionsWithDiagonals.index(self.directionOfLooking) + 3) % 8]
 
-            #check if there is a wall behind the player on the left
-            if playground.coordinateSystem[self.y + directionBehindPlayerLeft[1]][self.x + directionBehindPlayerLeft[0]] != 0 :
-                self.turnDirectionOfLooking(setOfDirectionsWithDiagonals[(setOfDirectionsWithDiagonals.index(self.directionOfLooking) + 6) % 8])
+
+
+            # check if there is a wall behind the player on the left
+            if playground.coordinateSystem[self.y + directionBehindPlayerLeft.value[1]][
+                self.x + directionBehindPlayerLeft.value[0]] != 0:
+                self.turnDirectionOfLooking(
+                    setOfDirectionsWithDiagonals[(setOfDirectionsWithDiagonals.index(self.directionOfLooking) + 6) % 8])
                 return
-            elif playground.coordinateSystem[self.y + directionBehindPlayerRight[1]][self.x + directionBehindPlayerRight[0]] != 0 :
-                self.turnDirectionOfLooking(setOfDirectionsWithDiagonals[(setOfDirectionsWithDiagonals.index(self.directionOfLooking) + 2) % 8])
+            elif playground.coordinateSystem[self.y + directionBehindPlayerRight.value[1]][
+                self.x + directionBehindPlayerRight.value[0]] != 0:
+                self.turnDirectionOfLooking(
+                    setOfDirectionsWithDiagonals[(setOfDirectionsWithDiagonals.index(self.directionOfLooking) + 2) % 8])
                 return
 
             if self.directionOfLooking == directionOfClosestWall:

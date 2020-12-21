@@ -66,10 +66,7 @@ class Game(object):
         running = True
 
         while running:
-            # pygame.time.delay(500//60)
-            # self.clock.tick(30)
-            # clock.tick(10000)
-            self.clock.tick(1000 // 300)
+            self.clock.tick(30)
 
             # Benutzereingabe prüfen
             keys = pygame.key.get_pressed()
