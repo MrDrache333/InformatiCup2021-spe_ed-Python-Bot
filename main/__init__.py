@@ -50,7 +50,7 @@ class Game(object):
         print("Your are Player " + str(data[0]['you']))
 
     async def playOffline(self):
-        with open('spe_ed-small.json') as f:
+        with open('spe_ed-1603447830516.json') as f:
             data = json.load(f)
 
         self.width = data[0]['width']
@@ -66,7 +66,7 @@ class Game(object):
         running = True
 
         while running:
-            self.clock.tick(10)
+            self.clock.tick(60)
 
             # Benutzereingabe prüfen
             keys = pygame.key.get_pressed()

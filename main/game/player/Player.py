@@ -470,7 +470,7 @@ class Player(object):
             if playground.coordinateSystem[self.y + directionBehindPlayerLeft.value[1]][
                 self.x + directionBehindPlayerLeft.value[0]] != 0 \
                     and FreePlaceFinder.getAmountOfFreePlacesForCoordinate(freePlaceMap, leftXYOfPlayer[0],leftXYOfPlayer[1],freePlaceValues)\
-                    > FreePlaceFinder.getAmountOfFreePlacesForCoordinate(freePlaceMap, rightXYOfPlayer[0],rightXYOfPlayer[1],freePlaceValues):
+                    >= FreePlaceFinder.getAmountOfFreePlacesForCoordinate(freePlaceMap, rightXYOfPlayer[0],rightXYOfPlayer[1],freePlaceValues):
 
                 self.turnDirectionOfLooking(directionLeftOfPlayer)
                 return
@@ -479,7 +479,7 @@ class Player(object):
             elif playground.coordinateSystem[self.y + directionBehindPlayerRight.value[1]][
                 self.x + directionBehindPlayerRight.value[0]] != 0 \
                     and FreePlaceFinder.getAmountOfFreePlacesForCoordinate(freePlaceMap, leftXYOfPlayer[0],leftXYOfPlayer[1],freePlaceValues) \
-                    < FreePlaceFinder.getAmountOfFreePlacesForCoordinate(freePlaceMap, rightXYOfPlayer[0],rightXYOfPlayer[1],freePlaceValues):
+                    <= FreePlaceFinder.getAmountOfFreePlacesForCoordinate(freePlaceMap, rightXYOfPlayer[0],rightXYOfPlayer[1],freePlaceValues):
 
                 self.turnDirectionOfLooking(directionRightOfPlayer)
                 return
