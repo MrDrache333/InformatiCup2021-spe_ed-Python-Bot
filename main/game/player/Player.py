@@ -460,15 +460,28 @@ class Player(object):
 
 
             # check if there is a wall behind the player on the left
+            # and if left is more space than right
+
+            directionLeftOfPlayer = setOfDirectionsWithDiagonals[(setOfDirectionsWithDiagonals.index(self.directionOfLooking) + 6) % 8]
+            directionRightOfPlayer = setOfDirectionsWithDiagonals[(setOfDirectionsWithDiagonals.index(self.directionOfLooking) + 2) % 8]
+            leftXYOfPlayer = self.x + directionLeftOfPlayer.value[0], self.y + directionLeftOfPlayer.value[1]
+            rightXYOfPlayer = self.x + directionRightOfPlayer.value[0], self.y + directionRightOfPlayer.value[1]
+
             if playground.coordinateSystem[self.y + directionBehindPlayerLeft.value[1]][
-                self.x + directionBehindPlayerLeft.value[0]] != 0:
-                self.turnDirectionOfLooking(
-                    setOfDirectionsWithDiagonals[(setOfDirectionsWithDiagonals.index(self.directionOfLooking) + 6) % 8])
+                self.x + directionBehindPlayerLeft.value[0]] != 0 \
+                    and FreePlaceFinder.getAmountOfFreePlacesForCoordinate(freePlaceMap, leftXYOfPlayer[0],leftXYOfPlayer[1],freePlaceValues)\
+                    > FreePlaceFinder.getAmountOfFreePlacesForCoordinate(freePlaceMap, rightXYOfPlayer[0],rightXYOfPlayer[1],freePlaceValues):
+
+                self.turnDirectionOfLooking(directionLeftOfPlayer)
                 return
+
+            #check if there is a wall right behind the player, and there is more space than on the left
             elif playground.coordinateSystem[self.y + directionBehindPlayerRight.value[1]][
-                self.x + directionBehindPlayerRight.value[0]] != 0:
-                self.turnDirectionOfLooking(
-                    setOfDirectionsWithDiagonals[(setOfDirectionsWithDiagonals.index(self.directionOfLooking) + 2) % 8])
+                self.x + directionBehindPlayerRight.value[0]] != 0 \
+                    and FreePlaceFinder.getAmountOfFreePlacesForCoordinate(freePlaceMap, leftXYOfPlayer[0],leftXYOfPlayer[1],freePlaceValues) \
+                    < FreePlaceFinder.getAmountOfFreePlacesForCoordinate(freePlaceMap, rightXYOfPlayer[0],rightXYOfPlayer[1],freePlaceValues):
+
+                self.turnDirectionOfLooking(directionRightOfPlayer)
                 return
 
             if self.directionOfLooking == directionOfClosestWall:
