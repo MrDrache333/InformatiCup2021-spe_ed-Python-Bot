@@ -139,6 +139,7 @@ class Player(object):
             nextPlayground.players[self.id - 1].speedUp()
             for player in playground.players:
                 nextPlayground.movePlayer(player.id - 1)
+            nextPlayground.addTurn()
 
         # Prüfen, ob virtuelle Bewegung eigenen Spieler schadet
         if nextPlayground.players[self.id - 1].active:
@@ -178,7 +179,6 @@ class Player(object):
         return False
 
     def tryToSurvive(self, playground):
-        self.path = None
         """Different strategies to keep the player alive"""
         if not self.active:
             return
@@ -452,12 +452,10 @@ class Player(object):
                                             DirectionOfLooking.DOWNLEFT, DirectionOfLooking.LEFT,
                                             DirectionOfLooking.UPLEFT]
 
-            directionBehindPlayerLeft = setOfDirectionsWithDiagonals[
+            """directionBehindPlayerLeft = setOfDirectionsWithDiagonals[
                 (setOfDirectionsWithDiagonals.index(self.directionOfLooking) + 5) % 8]
             directionBehindPlayerRight = setOfDirectionsWithDiagonals[
                 (setOfDirectionsWithDiagonals.index(self.directionOfLooking) + 3) % 8]
-
-
 
             # check if there is a wall behind the player on the left
             # and if left is more space than right
@@ -482,7 +480,7 @@ class Player(object):
                     <= FreePlaceFinder.getAmountOfFreePlacesForCoordinate(freePlaceMap, rightXYOfPlayer[0],rightXYOfPlayer[1],freePlaceValues):
 
                 self.turnDirectionOfLooking(directionRightOfPlayer)
-                return
+                return"""
 
             if self.directionOfLooking == directionOfClosestWall:
                 if distanceOfNearestWall >= self.speed:

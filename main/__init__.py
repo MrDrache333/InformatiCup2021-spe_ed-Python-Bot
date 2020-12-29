@@ -16,7 +16,7 @@ from game.player.DirectionOfLooking import DirectionOfLooking
 
 sys.setrecursionlimit(1000000)
 
-ONLINE = False
+ONLINE = True
 
 
 class Game(object):
@@ -152,11 +152,10 @@ class Game(object):
                 self.playgroundPresenter.update(self.playground)
                 self.playgroundPresenter.updateGameField()
 
-                action = self.ownPlayer.choosenTurn
-                # print("API-Zug: " + action)
-                # time.sleep(0.1)
-                action_json = json.dumps({"action": action})
-                await websocket.send(action_json)
+                if self.ownPlayer.active and data[0]['running']:
+                    action = self.ownPlayer.choosenTurn
+                    action_json = json.dumps({"action": action})
+                    await websocket.send(action_json)
 
     def saveImage(self, path):
         try:
@@ -225,9 +224,8 @@ if ONLINE:
                 print(e)
         except websockets.ConnectionClosedOK as e:
             if e.code == 1000:
-                print("Zeitüberschreitung bei Verbindungsaufbau!")
-            print(e)
-            sleep(5)
+                game.printStatistics()
+                sleep(5)
         except websockets.ConnectionClosedError as e:
             if e.code == 1006:
                 game.printStatistics()
