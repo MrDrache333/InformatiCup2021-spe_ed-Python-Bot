@@ -200,6 +200,7 @@ def sleep(secs):
             time.sleep(1)
         except KeyboardInterrupt:
             print("---Programm wurde unterbrochen!---")
+            exit()
 
 
 docker = os.environ["Docker"] == "True"
@@ -232,6 +233,7 @@ if ONLINE:
                 sleep(5)
         except KeyboardInterrupt:
             print("\n---Programm wurde unterbrochen!---")
+            exit()
 else:
     game = Game(docker)
     try:
