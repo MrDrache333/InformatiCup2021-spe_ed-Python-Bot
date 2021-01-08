@@ -85,16 +85,91 @@ class Player(object):
 
         if speedChange != 0:
             if speedChange < 0:
-                nextPlayground.players[playerId - 1].slowDown()
+                nextPlayground.players[playerId - 1].speedDown()
             elif speedChange > 0:
                 nextPlayground.players[playerId - 1].speedUp()
         elif directionOfLooking is not None:
             nextPlayground.players[playerId - 1].turnDirectionOfLooking(directionOfLooking)
 
-        # Richtig advanced -> Jeden möglichen Zug anderer Spieler auch noch prüfen und weitesten Weg nehmen
+        # Filter nearest Players to avoid irrelevant calculations
+        nearestPlayers = []
+        ownPlayer = nextPlayground.players[playerId - 1]
         for player in nextPlayground.players:
-            nextPlayground.movePlayer(player.id - 1)
-        return nextPlayground.players[playerId - 1].active
+            if player.id == ownPlayer.id:
+                continue
+            if abs(ownPlayer.x - player.x) + abs(ownPlayer.y - player.y) < 10:
+                nearestPlayers.append(player)
+
+        # Create Array to store current Turn
+        playerTurnCountArray = [0 for _ in nearestPlayers]
+        if not playerTurnCountArray:
+            return True
+        # Iterate over all possible Combinations of enemy Turns
+        IterationsDone = False
+        # Alive Iterations
+        alive = 0
+        # Iteration Cout
+        iterations = 0
+        while not IterationsDone:
+
+            for nearestPlayer in nearestPlayers:
+                playgroundPlayer = nextPlayground.getPlayerForId(nearestPlayer.id)
+                if playgroundPlayer is not None:
+                    """Turns:
+                    0: Go Left
+                    1: Go Right
+                    2: Change Nothing
+                    3: Slow Down
+                    4: Speed Up
+                    """
+                    if playerTurnCountArray is 0:
+                        if playgroundPlayer.directionOfLooking == DirectionOfLooking.UP:
+                            playgroundPlayer.turnDirectionOfLooking(DirectionOfLooking.LEFT)
+                        elif playgroundPlayer.directionOfLooking == DirectionOfLooking.DOWN:
+                            playgroundPlayer.turnDirectionOfLooking(DirectionOfLooking.RIGHT)
+                        elif playgroundPlayer.directionOfLooking == DirectionOfLooking.LEFT:
+                            playgroundPlayer.turnDirectionOfLooking(DirectionOfLooking.DOWN)
+                        elif playgroundPlayer.directionOfLooking == DirectionOfLooking.RIGHT:
+                            playgroundPlayer.turnDirectionOfLooking(DirectionOfLooking.UP)
+                    elif playerTurnCountArray is 1:
+                        if playgroundPlayer.directionOfLooking == DirectionOfLooking.UP:
+                            playgroundPlayer.turnDirectionOfLooking(DirectionOfLooking.RIGHT)
+                        elif playgroundPlayer.directionOfLooking == DirectionOfLooking.DOWN:
+                            playgroundPlayer.turnDirectionOfLooking(DirectionOfLooking.LEFT)
+                        elif playgroundPlayer.directionOfLooking == DirectionOfLooking.LEFT:
+                            playgroundPlayer.turnDirectionOfLooking(DirectionOfLooking.UP)
+                        elif playgroundPlayer.directionOfLooking == DirectionOfLooking.RIGHT:
+                            playgroundPlayer.turnDirectionOfLooking(DirectionOfLooking.DOWN)
+                    elif playerTurnCountArray is 3:
+                        playgroundPlayer.speedDown()
+                    elif playerTurnCountArray is 4:
+                        playgroundPlayer.speedUp()
+
+            # Move every player and check if own player is alive
+            for player in nextPlayground.players:
+                nextPlayground.movePlayer(player.id - 1)
+            if nextPlayground.players[playerId - 1].active:
+                alive += 1
+
+            # Count up the Iterations
+            iterations += 1
+            playerTurnCountArray[0] += 1
+
+            # Count up if current turn is >= 4 and stop if its last entry in list
+            for index in range(len(playerTurnCountArray)):
+                current = playerTurnCountArray[index]
+                if current > 4 and index < len(playerTurnCountArray) - 1:
+                    playerTurnCountArray[index] = 0
+                    playerTurnCountArray[index + 1] += 1
+
+            # Check if all Turns have been calculated
+            for playerTurnCount in playerTurnCountArray:
+                IterationsDone = True
+                if playerTurnCount <= 4:
+                    IterationsDone = False
+        if alive == 0:
+            return False
+        return (iterations / alive) > 0.7
 
     def speedUp(self):
         """Accelerate one speed"""
@@ -135,14 +210,16 @@ class Player(object):
         nextPlayground = copy.deepcopy(playground)
 
         # Spieler und eigenen Spieler virtuell weiter bewegen
+        alive = 0
         for _ in range(speedchange):
+            alive = (alive + 1) if self.simulateNextTurn(nextPlayground, self.id, None, 1) else alive
             nextPlayground.players[self.id - 1].speedUp()
-            for player in playground.players:
+            for player in nextPlayground.players:
                 nextPlayground.movePlayer(player.id - 1)
             nextPlayground.addTurn()
 
         # Prüfen, ob virtuelle Bewegung eigenen Spieler schadet
-        if nextPlayground.players[self.id - 1].active:
+        if alive is speedchange:
             temp_maxval, temp_maxvalX, temp_maxvalY, temp_tempCS = self.findFurthestField(
                 nextPlayground, self.speed + speedchange)
 
@@ -186,12 +263,8 @@ class Player(object):
         if self.nextTurn is not None:
             # TODO Nächten Zug überprüfen auf andere Umgebungsbedingungen
             if self.nextTurn == "speed_up":
-                nextPlayground = copy.deepcopy(playground)
-                nextPlayground.players[self.id - 1].speedUp()
-                # Richtig advanced -> Jeden möglichen Zug anderer Spieler auch noch prüfen und weitesten Weg nehmen
-                for player in nextPlayground.players:
-                    nextPlayground.movePlayer(player.id - 1)
-                if nextPlayground.players[self.id - 1].active:
+
+                if self.simulateNextTurn(playground, self.id, None, 1):
                     self.choosenTurn = copy.deepcopy(self.nextTurn)
                     self.nextTurn = None
                     return
@@ -251,12 +324,7 @@ class Player(object):
                         freeMapValues[maxFreePlaceIndex]) + " Pixels. Slowing down to maximize Livetime!")
 
                     # Prüfen, ob der nächste SpeedDown uns töten würde. Wenn nicht -> Slow Down
-                    nextPlayground = copy.deepcopy(playground)
-                    nextPlayground.players[self.id - 1].speedDown()
-                    # Richtig advanced -> Jeden möglichen Zug anderer Spieler auch noch prüfen und weitesten Weg nehmen
-                    for player in nextPlayground.players:
-                        nextPlayground.movePlayer(player.id - 1)
-                    if nextPlayground.players[self.id - 1].active:
+                    if self.simulateNextTurn(playground, self.id, None, -1):
                         self.speedDown()
                         return
                 # Da wir uns im größten freien Bereich befinden -> Zeit schinden

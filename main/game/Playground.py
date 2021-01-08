@@ -82,6 +82,17 @@ class Playground(object):
         # print("[" + str(player.id) + "] Free Blocks towards " + direction.name + ": " + str(blocksFree))
         return blocksFree
 
+    def getPlayerForId(self, id):
+        """
+        Returns the Player for the given Id by iterating over all players
+        :param id: The id of the Player to return
+        :return: The Player or None if none matches the given id
+        """
+        for player in self.players:
+            if player.id == id:
+                return player
+        return None
+
     def movePlayer(self, id):
         # read speed,direction, position and activity of player
         # determine whether player would colide with a wall
