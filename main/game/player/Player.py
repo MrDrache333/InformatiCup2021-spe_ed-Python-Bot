@@ -78,6 +78,15 @@ class Player(object):
 
     def simulateNextTurn(self, playground: Playground, playerId, directionOfLooking: DirectionOfLooking = None,
                          speedChange=0):
+        """
+        Simulates if the next Turn could possibly kill us by checking every possible Combination of all Players in a
+        10 Block Radius for the next Turn.
+        :param playground: The Playground to simulate the Game on
+        :param playerId: The Id of the Player to Simulate
+        :param directionOfLooking: The new direction of looking if set, to be used
+        :param speedChange: The Speedchange relative to the current Speed
+        :return: If the Chance to be alive is over 70%
+        """
         if directionOfLooking is not None and speedChange != 0:
             print("Invalid Parameters")
             return None
