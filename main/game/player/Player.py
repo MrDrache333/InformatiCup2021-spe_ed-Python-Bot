@@ -223,11 +223,7 @@ class Player(object):
                     nextDirection = DirectionOfLooking.UP
 
                 # Simulate Turn
-                nextPlayground = copy.deepcopy(playground)
-                nextPlayground.players[self.id - 1].turnDirectionOfLooking(nextDirection)
-                for player in nextPlayground.players:
-                    nextPlayground.movePlayer(player.id - 1)
-                if nextPlayground.players[self.id - 1].active:
+                if self.simulateNextTurn(playground, self.id, nextDirection):
                     self.turnDirectionOfLooking(nextDirection)
                     return
             self.path = None

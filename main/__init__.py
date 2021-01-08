@@ -16,8 +16,6 @@ from game.player.DirectionOfLooking import DirectionOfLooking
 
 sys.setrecursionlimit(1000000)
 
-ONLINE = True
-
 
 class Game(object):
 
@@ -49,8 +47,8 @@ class Game(object):
 
         print("Your are Player " + str(data[0]['you']))
 
-    async def playOffline(self):
-        with open('spe_ed-1603447830516.json') as f:
+    async def playOffline(self, PlaygroundPath):
+        with open(PlaygroundPath) as f:
             data = json.load(f)
 
         self.width = data[0]['width']
@@ -203,10 +201,21 @@ def sleep(secs):
             exit()
 
 
-docker = os.environ["Docker"] == "True"
+docker = False
+ONLINE = True
+OfflinePath = ""
+try:
+    docker = os.environ["Docker"] == "True"
+    ONLINE = os.environ["Online"] == "True"
+    if not ONLINE:
+        OfflinePath = os.environ["Playground"]
+    else:
+        url = os.environ["URL"]
+        key = os.environ["KEY"]
+except KeyError as e:
+    print("Please set the needed environment variables. Please take a look at our "
+          "documentation to ensure the proper use of our program")
 if ONLINE:
-    url = os.environ["URL"]
-    key = os.environ["KEY"]
 
     print("API-SERVER-URL: " + url)
     print("API-KEY: " + key)
@@ -237,7 +246,7 @@ if ONLINE:
 else:
     game = Game(docker)
     try:
-        asyncio.get_event_loop().run_until_complete(game.playOffline())
+        asyncio.get_event_loop().run_until_complete(game.playOffline(OfflinePath))
         while True:
             time.sleep(1)
     except KeyboardInterrupt:
