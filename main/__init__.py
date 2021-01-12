@@ -1,4 +1,5 @@
 import asyncio
+import copy
 import json
 import logging
 import os
@@ -30,6 +31,8 @@ class Game(object):
         self.playground = None
         self.playgroundPresenter = None
         self.printedStatistics = False
+        self.gameStartTime = 0
+        self.oldData = None
         if docker:
             os.environ["SDL_VIDEODRIVER"] = "dummy"
 
@@ -54,7 +57,6 @@ class Game(object):
         self.width = data[0]['width']
         self.height = data[0]['height']
 
-        self.printInfo(data)
         self.playground = Playground(self.interpreter.getCellsFromLoadedJson(data),
                                      self.interpreter.getPlayersFromLoadedJson(data))
         # Den eigenen Spieler heraussuchen
@@ -62,7 +64,8 @@ class Game(object):
         self.playgroundPresenter = PlaygroundPresenter(self.playground, self.width, self.height)
         self.playgroundPresenter.generateGameField()
         running = True
-
+        self.printInfo(data)
+        self.gameStartTime = time.time()
         while running:
             self.clock.tick(60)
 
@@ -89,8 +92,12 @@ class Game(object):
             for player in self.playground.players:
                 if player.active:
                     active += 1
+                    print("Spieler " + str(player.id))
                     player.tryToSurvive(self.playground)
-                    # print("API-Zug: " + player.choosenTurn)
+                    print("Zug: " + player.choosenTurn)
+                    if player.turnSetFrom != "unset":
+                        print("Zug entschieden von " + player.turnSetFrom)
+                    print("")
                     player.fitness += 1
             if active == 0 and not self.printedStatistics:
                 self.printStatistics()
@@ -114,10 +121,13 @@ class Game(object):
         logger.addHandler(logging.StreamHandler())
 
         async with websockets.connect(f"{self.URL}?key={self.KEY}") as websocket:
-            print("Mit Server verbunden. Warte in Lobby...Dies kann bis zu 5 Min. dauern!", flush=True)
+            print("Connected to server. Waiting in lobby...This can take up to 5 min.!", flush=True)
             self.clock.tick(1000)
             while True:
                 state_json = await websocket.recv()
+                if self.gameStartTime == 0:
+                    self.gameStartTime = time.time()
+                startTime = time.time_ns()
                 data = json.loads(state_json)
                 data = [data]
 
@@ -142,8 +152,18 @@ class Game(object):
                     if player.active:
                         player.fitness += 1
 
+                if self.oldData is not None:
+                    for player in self.oldData:
+                        if player.active != self.playground.players[player.id - 1].active:
+                            print("The Player " + str(player.id) + "[" + self.playgroundPresenter.getColorName(
+                                player.id) + "]" + " died!" + (" <-- WE" if self.ownPlayer.id == player.id else ""))
+                            print()
+
                 if self.ownPlayer.active and data[0]['running']:
                     self.ownPlayer.tryToSurvive(self.playground)
+                    print("Turn: " + self.ownPlayer.choosenTurn)
+                    if self.ownPlayer.turnSetFrom != "unset":
+                        print("Choosen by " + self.ownPlayer.turnSetFrom)
 
                 self.playground.addTurn()
 
@@ -153,7 +173,10 @@ class Game(object):
                 if self.ownPlayer.active and data[0]['running']:
                     action = self.ownPlayer.choosenTurn
                     action_json = json.dumps({"action": action})
+                    print("Our turn took " + str((time.time_ns() - startTime) // 1000000) + " milliseconds!")
+                    print("")
                     await websocket.send(action_json)
+                self.oldData = copy.deepcopy(self.playground.players)
 
     def saveImage(self, path):
         try:
@@ -169,6 +192,9 @@ class Game(object):
         players = sorted(self.playground.players, key=lambda p: p.fitness, reverse=True)
 
         print("---------Spiel Vorbei---------")
+        print("Das Spiel ging " + str(round(time.time() - game.gameStartTime, 1)) + " Sekunden!")
+        print("Im Durchschnitt dauerte ein Zug " + str(
+            round(float((time.time() - game.gameStartTime) / players[0].fitness), 2)) + " Sekunden")
         if self.ownPlayer.active:
             print("Wir haben gewonnen !!!     PS: Weil wir einfach Boss sind ;)")
             # Screenshot des Spielfeldes speichern
@@ -204,14 +230,16 @@ def sleep(secs):
 docker = False
 ONLINE = True
 OfflinePath = ""
+url = ""
+key = ""
 try:
-    docker = os.environ["Docker"] == "True"
     ONLINE = os.environ["Online"] == "True"
     if not ONLINE:
         OfflinePath = os.environ["Playground"]
     else:
         url = os.environ["URL"]
         key = os.environ["KEY"]
+    docker = os.environ["Docker"] == "True"
 except KeyError as e:
     print("Please set the needed environment variables. Please take a look at our "
           "documentation to ensure the proper use of our program")
@@ -234,10 +262,12 @@ if ONLINE:
                 print(e)
         except websockets.ConnectionClosedOK as e:
             if e.code == 1000:
+                print("Server Closed with Code: 1000 OK")
                 game.printStatistics()
                 sleep(5)
         except websockets.ConnectionClosedError as e:
             if e.code == 1006:
+                print("Server Closed with Code: 1006 ERROR")
                 game.printStatistics()
                 sleep(5)
         except KeyboardInterrupt:

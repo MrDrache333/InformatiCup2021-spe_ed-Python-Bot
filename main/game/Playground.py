@@ -1,3 +1,4 @@
+import copy
 import logging
 import sys
 
@@ -55,9 +56,10 @@ class Playground(object):
                     return i + 1
         return -1
 
-    def countBlocksInStraightLine(self, player, direction: DirectionOfLooking) -> int:
+    def countBlocksInStraightLine(self, ownplayer, direction: DirectionOfLooking) -> int:
         """Returns the amount of cells that are free in a direction of looking from the position of the given player.
         Returns zero if there is an obstacle directly adjacent to the player"""
+        player = copy.deepcopy(ownplayer)
         nextX, nextY = direction.value
         currentX, currentY = player.x, player.y
 
