@@ -32,14 +32,6 @@ class PlaygroundPresenter(object):
         6: "Purple"
     }
 
-    def getColorName(self, id):
-        """
-        Returns the color of a player
-        :param id: Player ID
-        :return: colorname
-        """
-        return colorNames[id]
-
     def __init__(self, playground: Playground, width, height):
         self.playground = playground
         self.displayWidth = width * blockwidth

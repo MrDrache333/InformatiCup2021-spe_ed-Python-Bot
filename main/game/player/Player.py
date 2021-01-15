@@ -332,6 +332,7 @@ class Player(object):
         return False
 
     def tryToFollowPath(self, playground):
+
         # Teste nächsten Pfadpunkt einmal und prüfe, ob noch lebend. -> Wenn ja, dann übernehmen.
         if self.path is None or len(self.path) == 0:
             return False
@@ -367,7 +368,7 @@ class Player(object):
         return False
 
     def tryToSurvive(self, playground):
-        """Different strategies to keep the player alive"""
+        """Executes diffrent strategies on diffrent conditions to keep the player alive"""
         self.choosenTurn = "change_nothing"
         self.turnSetFrom = "unset"
         if self.nextTurn is not None:
@@ -952,6 +953,8 @@ class Player(object):
                     return False
 
     def moveToFurthestField(self, playground, maxvalX, maxvalY):
+        """Moves the player on a calculated path to the defined coordinates using the A* algorithm. If no path is
+        found returns false """
         logger.disabled = False
 
         if not self.isCoordinateFree(maxvalX, maxvalY, playground):
@@ -996,7 +999,7 @@ class Player(object):
         return True
 
     def fallBackPlan(self, playground):
-
+        """Calculates the distance to all walls in the cardinal directions, and turns to the one with the most distance"""
         # Prüfe wie viele Blöcke in jeder Richtung frei sind
         # FreeMap erstellen
         freeBlocks = [playground.countBlocksInStraightLine(self, DirectionOfLooking.UP),

@@ -155,8 +155,7 @@ class Game(object):
                 if self.oldData is not None:
                     for player in self.oldData:
                         if player.active != self.playground.players[player.id - 1].active:
-                            print("The Player " + str(player.id) + "[" + self.playgroundPresenter.getColorName(
-                                player.id) + "]" + " died!" + (" <-- WE" if self.ownPlayer.id == player.id else ""))
+                            print("The Player " + str(player.id) + "[" + self.playgroundPresenter.colorNames[player.id] + "]" + " died!" + (" <-- WE" if self.ownPlayer.id == player.id else ""))
                             print()
 
                 if self.ownPlayer.active and data[0]['running']:
@@ -211,8 +210,8 @@ class Game(object):
 
         for player in players:
             print("Spieler " + str(player.id) + ": " + str(player.fitness) + " Status: " + str(
-                "Lebend" if player.active else "Gestorben") + " Farbe: " + self.playgroundPresenter.getColorName(
-                player.id) + ("  <---WIR" if self.ownPlayer.id == player.id else ""))
+                "Lebend" if player.active else "Gestorben") + " Farbe: " + self.playgroundPresenter.colorNames[player.id]
+                  + ("  <---WIR" if self.ownPlayer.id == player.id else ""))
         print("-------------------------------")
 
 
