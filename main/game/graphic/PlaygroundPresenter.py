@@ -74,18 +74,21 @@ class PlaygroundPresenter(object):
         py.display.set_caption("Spe_ed")
         py.display.set_icon(pygame.image.load("Lightning_McQueen.png"))
 
-    def drawPath(self, path, playerid):
+    def drawPath(self, path, player):
         """
         Draws the path of a player each round when a player moves
         :param path: previous path of a player
         :param playerid: id of the player
         """
         pathcoords = copy.deepcopy(path)
-        if pathcoords is not None and len(pathcoords) >= 2:
-            for i in range(len(pathcoords)):
-                pathcoords[i] = [pathcoords[i][0] * blockwidth + (blockwidth / 2),
-                                 pathcoords[i][1] * blockwidth + blockwidth / 2]
-            py.draw.lines(self.gameWindow, playerColors[int(playerid)], False, pathcoords, width=3)
+        if pathcoords is not None and len(pathcoords) >= 1:
+            if pathcoords[0][0] != player.x or pathcoords[0][1] != player.y:
+                pathcoords.insert(0, (player.x, player.y))
+            if len(pathcoords) >= 2:
+                for i in range(len(pathcoords)):
+                    pathcoords[i] = [pathcoords[i][0] * blockwidth + (blockwidth / 2),
+                                     pathcoords[i][1] * blockwidth + blockwidth / 2]
+                py.draw.lines(self.gameWindow, playerColors[int(player.id)], False, pathcoords, width=3)
 
     def updateGameField(self):
         """
@@ -129,6 +132,6 @@ class PlaygroundPresenter(object):
             currentXOfCube = 0
             currentYOfCube += heightOfCube
         for player in self.playground.players:
-            self.drawPath(player.path, player.id)
+            self.drawPath(player.path, player)
 
         py.display.flip()
