@@ -796,7 +796,8 @@ class Player(object):
             rightXYOfPlayer = self.x + directionRightOfPlayer.value[0] * self.speed, self.y + \
                               directionRightOfPlayer.value[1] * self.speed
 
-            if playground.coordinateSystem[self.y + directionBehindPlayerLeft.value[1] * self.speed][
+            if checkIfCoordinateIsInCoordinateSystem(self.x + directionBehindPlayerLeft.value[0] * self.speed,
+                self.y + directionBehindPlayerLeft.value[1] * self.speed, playground.coordinateSystem) and playground.coordinateSystem[self.y + directionBehindPlayerLeft.value[1] * self.speed][
                 self.x + directionBehindPlayerLeft.value[0] * self.speed] != 0 \
                     and FreePlaceFinder.getAmountOfFreePlacesForCoordinate(freePlaceMap, leftXYOfPlayer[0],
                                                                            leftXYOfPlayer[1], freePlaceValues) \
@@ -808,7 +809,8 @@ class Player(object):
                     return
 
             # check if there is a wall right behind the player, and there is more space than on the left
-            elif playground.coordinateSystem[self.y + directionBehindPlayerRight.value[1] * self.speed][
+            elif checkIfCoordinateIsInCoordinateSystem(self.x + directionBehindPlayerRight.value[0] * self.speed,
+                self.y + directionBehindPlayerRight.value[1] * self.speed, playground.coordinateSystem) and playground.coordinateSystem[self.y + directionBehindPlayerRight.value[1] * self.speed][
                 self.x + directionBehindPlayerRight.value[0] * self.speed] != 0 \
                     and FreePlaceFinder.getAmountOfFreePlacesForCoordinate(freePlaceMap, leftXYOfPlayer[0],
                                                                            leftXYOfPlayer[1], freePlaceValues) \
