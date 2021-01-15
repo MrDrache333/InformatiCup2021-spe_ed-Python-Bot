@@ -368,7 +368,8 @@ class Player(object):
         return False
 
     def tryToSurvive(self, playground):
-        """Executes diffrent strategies on diffrent conditions to keep the player alive"""
+        """Executes diffrent strategies on diffrent conditions to keep the player alive using the playground as the
+        provided playfield """
         self.choosenTurn = "change_nothing"
         self.turnSetFrom = "unset"
         if self.nextTurn is not None:
