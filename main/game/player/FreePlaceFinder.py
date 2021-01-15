@@ -30,6 +30,11 @@ def generateFreePlaceMap(coordinatesystem):
 
 
 def convertFindFurthestFieldMapToFreePlaceFormat(inputMap):
+    """
+    Converts map into a type for an other function to use it
+    :param inputMap: tempCS from findFurthestField
+    :return: converted map
+    """
     outputMap = copy.deepcopy(inputMap)
     for y in range(len(outputMap)):
         for x in range(len(outputMap[0])):
@@ -38,6 +43,16 @@ def convertFindFurthestFieldMapToFreePlaceFormat(inputMap):
 
 
 def findNearestCoordinateOnFurthestFieldMap(freeMap, moveMap, maxFreePlaceIndex, speed, ownx, owny):
+    """
+    Finds the nearest reachable coordinate in the next bigger area
+    :param freeMap: Map with free places/areas
+    :param moveMap: Map with maximum moves from players current position
+    :param maxFreePlaceIndex: How many areas exist
+    :param speed: speed of the player
+    :param ownx: x position of the player
+    :param owny: y position of the player
+    :return: nearest minimal coordinate
+    """
     minimalValue = None
     minimalCoord = None
 
@@ -178,6 +193,15 @@ def getFreePlaceValues(freePlaceMap):
 
 
 def getBiggestArea(freePlaceValues, place=1):
+    """
+    Returns the biggest requested area from the freeMap.
+    If place is 1, the biggest will be returned
+    If place is 2, the second biggest will be returned
+    Etc
+    :param freePlaceValues: Whole map with free places
+    :param place: x biggest area (1./2./3./...)
+    :return: index of the biggest area
+    """
     if freePlaceValues is None or len(freePlaceValues) > place <= 0:
         return
     maximum = max(freePlaceValues)

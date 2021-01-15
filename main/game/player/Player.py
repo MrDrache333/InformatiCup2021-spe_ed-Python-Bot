@@ -170,10 +170,12 @@ class Player(object):
                         playgroundPlayer.speedUp()
 
             # Check if there is space in the Next Turn
-            freeBlocks = [nextPlayground.countBlocksInStraightLine(nextPlayground.players[playerId - 1], DirectionOfLooking.UP),
-                          nextPlayground.countBlocksInStraightLine(nextPlayground.players[playerId - 1], DirectionOfLooking.RIGHT),
-                          nextPlayground.countBlocksInStraightLine(nextPlayground.players[playerId - 1], DirectionOfLooking.DOWN),
-                          nextPlayground.countBlocksInStraightLine(nextPlayground.players[playerId - 1], DirectionOfLooking.LEFT)]
+            freeBlocks = [
+                nextPlayground.countBlocksInStraightLine(nextPlayground.players[playerId - 1], DirectionOfLooking.UP),
+                nextPlayground.countBlocksInStraightLine(nextPlayground.players[playerId - 1],
+                                                         DirectionOfLooking.RIGHT),
+                nextPlayground.countBlocksInStraightLine(nextPlayground.players[playerId - 1], DirectionOfLooking.DOWN),
+                nextPlayground.countBlocksInStraightLine(nextPlayground.players[playerId - 1], DirectionOfLooking.LEFT)]
 
             # Move every player and check if own player is alive and next turn has possible Moves
             nextPlayground.movePlayer()
@@ -280,9 +282,12 @@ class Player(object):
                 nearestCoordinateOnFurthestFieldMap = FreePlaceFinder.findNearestCoordinateOnFurthestFieldMap(freeMap,
                                                                                                               moveMap,
                                                                                                               maxFreePlaceIndex + 1,
-                                                                                                              nextPlayground.players[self.id - 1].speed,
-                                                                                                              nextPlayground.players[self.id - 1].x,
-                                                                                                              nextPlayground.players[self.id - 1].y)
+                                                                                                              nextPlayground.players[
+                                                                                                                  self.id - 1].speed,
+                                                                                                              nextPlayground.players[
+                                                                                                                  self.id - 1].x,
+                                                                                                              nextPlayground.players[
+                                                                                                                  self.id - 1].y)
 
                 if nearestCoordinateOnFurthestFieldMap is not None:
                     # Neuen Pfad berechnen
@@ -291,7 +296,8 @@ class Player(object):
                                    nextPlayground.getTurn())
                     self.path = finder.solve(nearestCoordinateOnFurthestFieldMap)
 
-                    if self.path is not None and maxFreePlaceIndex is not None and ownFreePlaceIndex is not None and (freeMapValues[maxFreePlaceIndex] / freeMapValues[
+                    if self.path is not None and maxFreePlaceIndex is not None and ownFreePlaceIndex is not None and (
+                            freeMapValues[maxFreePlaceIndex] / freeMapValues[
                         ownFreePlaceIndex]) > 1.3:
 
                         # Check if still alive after next Turn in new Area
@@ -330,7 +336,8 @@ class Player(object):
         if self.path is None or len(self.path) == 0:
             return False
         nextCoord = self.path.pop(0)
-        while nextCoord[0] == self.x and nextCoord[1] == self.y or (abs(nextCoord[0] - self.x) != self.speed and abs(nextCoord[1] - self.y) != self.speed):
+        while nextCoord[0] == self.x and nextCoord[1] == self.y or (
+                abs(nextCoord[0] - self.x) != self.speed and abs(nextCoord[1] - self.y) != self.speed):
             if len(self.path) > 0:
                 nextCoord = self.path.pop(0)
             else:
@@ -393,7 +400,7 @@ class Player(object):
         ownFreePlaceIndex = FreePlaceFinder.getRelativeFreePlaceIndexForCoordinate(freeMap, self.x, self.y)
 
         for freePlaceAreaCount in range(len(freeMapValues)):
-            maxFreePlaceIndex = FreePlaceFinder.getBiggestArea(freeMapValues, freePlaceAreaCount+1)
+            maxFreePlaceIndex = FreePlaceFinder.getBiggestArea(freeMapValues, freePlaceAreaCount + 1)
             # If we are currently in biggest Area -> Skip
             if ownFreePlaceIndex == maxFreePlaceIndex:
                 break
@@ -407,7 +414,8 @@ class Player(object):
                     # Prüfen, ob jemand mit gleicher Geschwindigkeit neben uns läuft -> Beschleunigen um nicht eingekesselt zu werden
                     shouldEscape = False
                     for player in playground.players:
-                        if player.id != self.id and (abs(player.x - self.x) == 1 or abs(player.y - self.y) == 1) and player.speed == self.speed and player.directionOfLooking == self.directionOfLooking:
+                        if player.id != self.id and (abs(player.x - self.x) == 1 or abs(
+                                player.y - self.y) == 1) and player.speed == self.speed and player.directionOfLooking == self.directionOfLooking:
                             shouldEscape = True
                     if shouldEscape and self.simulateNextTurn(playground, self.id, None, 1):
                         self.speedUp()
@@ -416,16 +424,17 @@ class Player(object):
                     self.rideAlongSideWall(playground)
                     return
                 else:
-                    print("Not in " + str(freePlaceAreaCount+1) + ". Biggest Area!")
+                    print("Not in " + str(freePlaceAreaCount + 1) + ". Biggest Area!")
                     # Wenn wir uns nicht im größten freien Bereich befinden
                     moveMap = FreePlaceFinder.convertFindFurthestFieldMapToFreePlaceFormat(tempCS)
                     # Prüfen, ob wir mit der aktuellen Geschwindigkeit in den größten freien Bereich kommen würden
-                    nearestCoordinateOnFurthestFieldMap = FreePlaceFinder.findNearestCoordinateOnFurthestFieldMap(freeMap,
-                                                                                                                  moveMap,
-                                                                                                                  maxFreePlaceIndex + 1,
-                                                                                                                  self.speed,
-                                                                                                                  self.x,
-                                                                                                                  self.y)
+                    nearestCoordinateOnFurthestFieldMap = FreePlaceFinder.findNearestCoordinateOnFurthestFieldMap(
+                        freeMap,
+                        moveMap,
+                        maxFreePlaceIndex + 1,
+                        self.speed,
+                        self.x,
+                        self.y)
 
                     if nearestCoordinateOnFurthestFieldMap is not None:
                         if self.moveToFurthestField(playground, nearestCoordinateOnFurthestFieldMap[0],
@@ -438,39 +447,66 @@ class Player(object):
                         if self.speed < 10:
                             # Prüfen ob eine Geschwindigkeitsänderung was bringt
                             for i in range(1, 5):
-                                if ((self.speed == 1 and i > 1) or self.speed != 1) and self.doesSpeedUpMakeSense(playground, i):
-                                    print("Found way to Area with " + str(freeMapValues[maxFreePlaceIndex] - freeMapValues[ownFreePlaceIndex]) + " more free Pixels!")
+                                if ((self.speed == 1 and i > 1) or self.speed != 1) and self.doesSpeedUpMakeSense(
+                                        playground, i):
+                                    print("Found way to Area with " + str(
+                                        freeMapValues[maxFreePlaceIndex] - freeMapValues[
+                                            ownFreePlaceIndex]) + " more free Pixels!")
                                     return
 
                             # Check if a specific turn opens the possibility to jump into biggest field
                             possibleTurns = []
                             if self.directionOfLooking == DirectionOfLooking.UP:
-                                if DirectionOfLooking.UP not in possibleTurns and self.simulateNextTurn(playground, self.id, DirectionOfLooking.UP):
+                                if DirectionOfLooking.UP not in possibleTurns and self.simulateNextTurn(playground,
+                                                                                                        self.id,
+                                                                                                        DirectionOfLooking.UP):
                                     possibleTurns.append(DirectionOfLooking.UP)
-                                if DirectionOfLooking.LEFT not in possibleTurns and self.simulateNextTurn(playground, self.id, DirectionOfLooking.LEFT):
+                                if DirectionOfLooking.LEFT not in possibleTurns and self.simulateNextTurn(playground,
+                                                                                                          self.id,
+                                                                                                          DirectionOfLooking.LEFT):
                                     possibleTurns.append(DirectionOfLooking.LEFT)
-                                if DirectionOfLooking.RIGHT not in possibleTurns and self.simulateNextTurn(playground, self.id, DirectionOfLooking.RIGHT):
+                                if DirectionOfLooking.RIGHT not in possibleTurns and self.simulateNextTurn(playground,
+                                                                                                           self.id,
+                                                                                                           DirectionOfLooking.RIGHT):
                                     possibleTurns.append(DirectionOfLooking.RIGHT)
                             elif self.directionOfLooking == DirectionOfLooking.LEFT:
-                                if DirectionOfLooking.LEFT not in possibleTurns and self.simulateNextTurn(playground, self.id, DirectionOfLooking.LEFT):
+                                if DirectionOfLooking.LEFT not in possibleTurns and self.simulateNextTurn(playground,
+                                                                                                          self.id,
+                                                                                                          DirectionOfLooking.LEFT):
                                     possibleTurns.append(DirectionOfLooking.LEFT)
-                                if DirectionOfLooking.UP not in possibleTurns and self.simulateNextTurn(playground, self.id, DirectionOfLooking.UP):
+                                if DirectionOfLooking.UP not in possibleTurns and self.simulateNextTurn(playground,
+                                                                                                        self.id,
+                                                                                                        DirectionOfLooking.UP):
                                     possibleTurns.append(DirectionOfLooking.UP)
-                                if DirectionOfLooking.DOWN not in possibleTurns and self.simulateNextTurn(playground, self.id, DirectionOfLooking.DOWN):
+                                if DirectionOfLooking.DOWN not in possibleTurns and self.simulateNextTurn(playground,
+                                                                                                          self.id,
+                                                                                                          DirectionOfLooking.DOWN):
                                     possibleTurns.append(DirectionOfLooking.DOWN)
                             elif self.directionOfLooking == DirectionOfLooking.RIGHT:
-                                if DirectionOfLooking.RIGHT not in possibleTurns and self.simulateNextTurn(playground, self.id, DirectionOfLooking.RIGHT):
+                                if DirectionOfLooking.RIGHT not in possibleTurns and self.simulateNextTurn(playground,
+                                                                                                           self.id,
+                                                                                                           DirectionOfLooking.RIGHT):
                                     possibleTurns.append(DirectionOfLooking.RIGHT)
-                                if DirectionOfLooking.UP not in possibleTurns and self.simulateNextTurn(playground, self.id, DirectionOfLooking.UP):
+                                if DirectionOfLooking.UP not in possibleTurns and self.simulateNextTurn(playground,
+                                                                                                        self.id,
+                                                                                                        DirectionOfLooking.UP):
                                     possibleTurns.append(DirectionOfLooking.UP)
-                                if DirectionOfLooking.DOWN not in possibleTurns and self.simulateNextTurn(playground, self.id, DirectionOfLooking.DOWN):
+                                if DirectionOfLooking.DOWN not in possibleTurns and self.simulateNextTurn(playground,
+                                                                                                          self.id,
+                                                                                                          DirectionOfLooking.DOWN):
                                     possibleTurns.append(DirectionOfLooking.DOWN)
                             elif self.directionOfLooking == DirectionOfLooking.DOWN:
-                                if DirectionOfLooking.DOWN not in possibleTurns and self.simulateNextTurn(playground, self.id, DirectionOfLooking.DOWN):
+                                if DirectionOfLooking.DOWN not in possibleTurns and self.simulateNextTurn(playground,
+                                                                                                          self.id,
+                                                                                                          DirectionOfLooking.DOWN):
                                     possibleTurns.append(DirectionOfLooking.DOWN)
-                                if DirectionOfLooking.LEFT not in possibleTurns and self.simulateNextTurn(playground, self.id, DirectionOfLooking.LEFT):
+                                if DirectionOfLooking.LEFT not in possibleTurns and self.simulateNextTurn(playground,
+                                                                                                          self.id,
+                                                                                                          DirectionOfLooking.LEFT):
                                     possibleTurns.append(DirectionOfLooking.LEFT)
-                                if DirectionOfLooking.RIGHT not in possibleTurns and self.simulateNextTurn(playground, self.id, DirectionOfLooking.RIGHT):
+                                if DirectionOfLooking.RIGHT not in possibleTurns and self.simulateNextTurn(playground,
+                                                                                                           self.id,
+                                                                                                           DirectionOfLooking.RIGHT):
                                     possibleTurns.append(DirectionOfLooking.RIGHT)
 
                             for dir in possibleTurns:
@@ -479,10 +515,11 @@ class Player(object):
                                 nextPlayground.movePlayer()
                                 nextPlayground.addTurn()
                                 for i in range(1, 5):
-                                    if ((nextPlayground.players[self.id - 1].speed == 1 and i > 1) or nextPlayground.players[self.id - 1].speed != 1) and self.doesSpeedUpMakeSense(nextPlayground, i, False):
+                                    if ((nextPlayground.players[self.id - 1].speed == 1 and i > 1) or
+                                        nextPlayground.players[self.id - 1].speed != 1) and self.doesSpeedUpMakeSense(
+                                            nextPlayground, i, False):
                                         self.turnDirectionOfLooking(dir)
                                         return
-
 
         if len(freeMapValues) > 1:
             print("  cant get out!")
@@ -543,8 +580,8 @@ class Player(object):
 
         if distanceOfNearestWall == 0:
             if (
-                playground.countBlocksInStraightLine(self, self.directionOfLooking)
-                != 0
+                    playground.countBlocksInStraightLine(self, self.directionOfLooking)
+                    != 0
             ):
                 # the player is adjacent to a wall and not looking at it. Commence plan.
                 # if the player would hit a wall, change direction
@@ -568,10 +605,10 @@ class Player(object):
                         tempY = currentY + direction.value[1]
                         # check if coordinate is within system
                         if (
-                            checkIfCoordinateIsInCoordinateSystem(
-                                tempX, tempY, playground.coordinateSystem
-                            )
-                            and playground.coordinateSystem[tempY][tempX] != 0
+                                checkIfCoordinateIsInCoordinateSystem(
+                                    tempX, tempY, playground.coordinateSystem
+                                )
+                                and playground.coordinateSystem[tempY][tempX] != 0
                         ):
                             isGapOneCellWide += 1
 
@@ -700,7 +737,16 @@ class Player(object):
                     # turn in another direction
                     setOfDirections.remove(directionOfClosestWall)
                     for dir in setOfDirections:
-                        if self.simulateNextTurn(playground, self.id, dir) and FreePlaceFinder.getAmountOfFreePlacesForCoordinate(freePlaceMap, self.x + dir.value[0], self.y + dir.value[1], freePlaceValues) >= FreePlaceFinder.getAmountOfFreePlacesForCoordinate(freePlaceMap, self.x + self.directionOfLooking.value[0], self.y + self.directionOfLooking.value[1], freePlaceValues):
+                        if self.simulateNextTurn(playground, self.id,
+                                                 dir) and FreePlaceFinder.getAmountOfFreePlacesForCoordinate(
+                                freePlaceMap, self.x + dir.value[0], self.y + dir.value[1],
+                                freePlaceValues) >= FreePlaceFinder.getAmountOfFreePlacesForCoordinate(freePlaceMap,
+                                                                                                       self.x +
+                                                                                                       self.directionOfLooking.value[
+                                                                                                           0], self.y +
+                                                                                                               self.directionOfLooking.value[
+                                                                                                                   1],
+                                                                                                       freePlaceValues):
                             self.turnDirectionOfLooking(dir)
                             return
                 return
@@ -711,14 +757,14 @@ class Player(object):
                     for dir in setOfDirections:
                         if self.simulateNextTurn(playground, self.id,
                                                  dir) and FreePlaceFinder.getAmountOfFreePlacesForCoordinate(
-                                freePlaceMap, self.x + dir.value[0], self.y + dir.value[1],
-                                freePlaceValues) >= FreePlaceFinder.getAmountOfFreePlacesForCoordinate(freePlaceMap,
-                                                                                                      self.x +
-                                                                                                      self.directionOfLooking.value[
-                                                                                                          0], self.y +
-                                                                                                              self.directionOfLooking.value[
-                                                                                                                  1],
-                                                                                                      freePlaceValues):
+                            freePlaceMap, self.x + dir.value[0], self.y + dir.value[1],
+                            freePlaceValues) >= FreePlaceFinder.getAmountOfFreePlacesForCoordinate(freePlaceMap,
+                                                                                                   self.x +
+                                                                                                   self.directionOfLooking.value[
+                                                                                                       0], self.y +
+                                                                                                           self.directionOfLooking.value[
+                                                                                                               1],
+                                                                                                   freePlaceValues):
                             self.turnDirectionOfLooking(dir)
                             return
                 else:

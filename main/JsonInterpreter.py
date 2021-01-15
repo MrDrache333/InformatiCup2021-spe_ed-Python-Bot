@@ -7,9 +7,19 @@ class JsonInterpreter(object):
         pass
 
     def getCellsFromLoadedJson(self, file):
+        """
+        Returns all cells from json file
+        :param file: json file
+        :return: cells
+        """
         return file[0]['cells']
 
     def getPlayersFromLoadedJson(self, file):
+        """
+        Returns all player from json file
+        :param file: json file
+        :return: players
+        """
         players = []
 
         for p in file[0]['players']:

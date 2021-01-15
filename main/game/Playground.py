@@ -16,6 +16,11 @@ class Playground(object):
         self.turn = 1
 
     def update(self, coordinateSystem, players):
+        """
+        Updates the playground
+        :param coordinateSystem: all coordinates
+        :param players: all players
+        """
         self.coordinateSystem = coordinateSystem
         for player in self.players:
             player.x = players[player.id - 1].x
@@ -25,21 +30,38 @@ class Playground(object):
             player.directionOfLooking = players[player.id - 1].directionOfLooking
 
     def killPlayer(self, player):
+        """
+        Player must have run into something so he dies.
+        :param player: player that dies
+        """
         logger.debug("Player: " + str(player.id) + " died at X: " + str(player.x) + " and Y: " + str(player.y))
         player.die()
 
     def addTurn(self):
+        """
+        Adds one each turn to the turn counter, to keep track when a jump takes place
+        """
         if self.turn == 6:
             self.turn = 1
         else:
             self.turn += 1
 
     def getTurn(self):
+        """
+        Returns the current turn counter
+        :return: turn counter
+        """
         return self.turn
 
     def lookInInStraightLine(self, player, direction: DirectionOfLooking, howFarToLook) -> int:
-        """Returns how far away a wall is within a given range the range :param howFarToLook in the direction defined
-        by :param direction. Returns -1 if there is no wall within the given Range """
+        """
+        Returns how far away a wall is within a given range in the direction defined
+        by :param direction. Returns -1 if there is no wall within the given Range
+        :param player: player
+        :param direction: direction to look
+        :param howFarToLook: amount of blocks to check
+        :return: amount of free blocks in the direction
+        """
         nextX, nextY = direction.value
         currentX, currentY = player.x, player.y
 
@@ -57,8 +79,13 @@ class Playground(object):
         return -1
 
     def countBlocksInStraightLine(self, ownplayer, direction: DirectionOfLooking) -> int:
-        """Returns the amount of cells that are free in a direction of looking from the position of the given player.
-        Returns zero if there is an obstacle directly adjacent to the player"""
+        """
+        Returns the amount of cells that are free in a direction of looking from the position of the given player.
+        Returns zero if there is an obstacle directly adjacent to the player
+        :param ownplayer: player
+        :param direction: direction in that the blocks shall be counted
+        :return: amount of free blocks
+        """
         player = copy.deepcopy(ownplayer)
         nextX, nextY = direction.value
         currentX, currentY = player.x, player.y
@@ -96,6 +123,9 @@ class Playground(object):
         return None
 
     def movePlayer(self):
+        """
+        Move all player in game
+        """
         # read speed,direction, position and activity of player
         # determine whether player would colide with a wall
         # move player to new position

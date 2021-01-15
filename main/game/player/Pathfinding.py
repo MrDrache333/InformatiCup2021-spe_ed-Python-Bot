@@ -3,6 +3,9 @@ import heapq
 
 
 class Cell(object):
+    """
+    A rectangle in the gamefield, adressed by a x and y coordinate
+    """
     def __init__(self, x, y, reachable):
         self.reachable = reachable
         self.x = x
@@ -24,9 +27,13 @@ class Cell(object):
 class AStar(object):
     def __init__(self, coordinateSystem, x, y, speed, currentTurn):
         """
+        Implementation of the A* algorithm
+        In this case the algorithm will check different speeds and also a gap each sixth turn
         :param coordinateSystem: CoordinateSystem
         :param x: Start X
         :param y: Start Y
+        :param speed: Player speed
+        :param currentTurn: Turn the player makes current
         """
         self.speed = speed
         self.opened = []
@@ -48,20 +55,29 @@ class AStar(object):
         self.start.turn = copy.deepcopy(currentTurn)
 
     def getCell(self, x, y):
+        """
+        Returns cell on x,y position
+        :param x: x coordinate
+        :param y: y coordinate
+        :return: cell
+        """
         return self.cells[y * self.grid_width + x]
 
     def get_heuristic(self, cell: Cell):
-        """Compute the heuristic value H for a cell.
+        """
+        Compute the heuristic value H for a cell.
         Distance between this cell and the ending cell multiply by 10.
-        @returns heuristic value H
+        :param cell: cell to compute heuristics for
+        :return: heuristic value H
         """
         return 10 * (abs(cell.x - self.end.x) + abs(cell.y - self.end.y))
 
     def get_adjacent_cells(self, cell: Cell):
-        """Returns adjacent cells to a cell.
+        """
+        Returns adjacent cells to a cell.
         Clockwise starting from the one on the right.
-        @param cell get adjacent cells for this cell
-        @returns adjacent cells list.
+        :param cell: cell get adjacent cells for this cell
+        :return: adjacent cells list.
         """
 
         cells = []
@@ -113,9 +129,10 @@ class AStar(object):
         return path
 
     def update_cell(self, adj, cell: Cell):
-        """Update adjacent cell.
-        @param adj adjacent cell to current cell
-        @param cell current cell being processed
+        """
+        Update adjacent cell.
+        :param adj: adjacent cell to current cell
+        :param cell: current cell being processed
         """
         adj.g = cell.g + 10
         adj.h = self.get_heuristic(adj)
@@ -123,8 +140,10 @@ class AStar(object):
         adj.f = adj.h + adj.g
 
     def solve(self, end):
-        """Solve maze, find path to ending cell.
-        @returns path or None if not found.
+        """
+        Solve maze, find path to ending cell.
+        :param end: end position
+        :return: path or None if not found.
         """
         if end == self.start:
             return []

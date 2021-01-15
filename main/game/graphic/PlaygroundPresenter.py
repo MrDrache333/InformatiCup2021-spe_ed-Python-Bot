@@ -33,6 +33,11 @@ class PlaygroundPresenter(object):
     }
 
     def getColorName(self, id):
+        """
+        Returns the color of a player
+        :param id: Player ID
+        :return: colorname
+        """
         return colorNames[id]
 
     def __init__(self, playground: Playground, width, height):
@@ -42,12 +47,25 @@ class PlaygroundPresenter(object):
         self.gameWindow = py.display.set_mode((self.displayWidth, self.displayHeight))
 
     def update(self, playground: Playground):
+        """
+        Updates the playground
+        :param playground: the playground to update
+        :return: the updated playground
+        """
         self.playground = playground
 
     def getPlayground(self):
+        """
+        :returns the playground
+        :return: playground
+        """
         return self.playground
 
     def generateGameField(self):
+        """
+        Generates the game field
+        :return: game field
+        """
         self.updateGameField()
 
         # pygame.display.flip()
@@ -57,6 +75,11 @@ class PlaygroundPresenter(object):
         py.display.set_icon(pygame.image.load("Lightning_McQueen.png"))
 
     def drawPath(self, path, playerid):
+        """
+        Draws the path of a player each round when a player moves
+        :param path: previous path of a player
+        :param playerid: id of the player
+        """
         pathcoords = copy.deepcopy(path)
         if pathcoords is not None and len(pathcoords) >= 2:
             for i in range(len(pathcoords)):
@@ -65,7 +88,9 @@ class PlaygroundPresenter(object):
             py.draw.lines(self.gameWindow, playerColors[int(playerid)], False, pathcoords, width=3)
 
     def updateGameField(self):
-        """Draws rectangles in different colors to different players"""
+        """
+        Updates the game field by drawing rectangles in different colors for different players
+        """
         # fill screen with a white blankspace
         self.gameWindow.fill((40, 40, 40))
         white = (255, 255, 255)
