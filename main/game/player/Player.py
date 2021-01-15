@@ -463,7 +463,7 @@ class Player(object):
                 # Prüfen, ob jemand mit gleicher Geschwindigkeit neben uns läuft -> Beschleunigen um nicht eingekesselt zu werden
                 shouldEscape = False
                 for player in playground.players:
-                    if player.id != self.id and (abs(player.x - self.x) == 1 or abs(
+                    if player.id != self.id and player.active and (abs(player.x - self.x) == 1 or abs(
                             player.y - self.y) == 1) and player.speed == self.speed and player.directionOfLooking == self.directionOfLooking:
                         shouldEscape = True
                 if shouldEscape and self.simulateNextTurn(playground, self.id, None, 1):
@@ -1122,35 +1122,14 @@ class Player(object):
         """
         # Prüfe wie viele Blöcke in jeder Richtung frei sind
         # FreeMap erstellen
-        freeBlocks = [playground.countBlocksInStraightLine(self, DirectionOfLooking.UP),
-                      playground.countBlocksInStraightLine(self, DirectionOfLooking.RIGHT),
-                      playground.countBlocksInStraightLine(self, DirectionOfLooking.DOWN),
-                      playground.countBlocksInStraightLine(self, DirectionOfLooking.LEFT)]
 
-        # Ändere Kurs, zur Richtung wo am meisten Blöcke frei sind
-        if self.speed > 1 and max(freeBlocks) < self.speed:
-            logger.debug("[" + str(self.id) + "] I slow down")
-            if self.simulateNextTurn(playground, self.id, None, -1):
-                self.speedDown()
-        elif freeBlocks.index(max(freeBlocks)) == 0:  # UP
-            logger.debug("[" + str(self.id) + "] I try to turn Up")
-            if self.simulateNextTurn(playground, self.id, DirectionOfLooking.UP):
-                self.turnDirectionOfLooking(DirectionOfLooking.UP)
-        # try right
-        elif freeBlocks.index(max(freeBlocks)) == 1:  # RIGHT
-            logger.debug("[" + str(self.id) + "] I try to turn Right")
-            if self.simulateNextTurn(playground, self.id, DirectionOfLooking.RIGHT):
-                self.turnDirectionOfLooking(DirectionOfLooking.RIGHT)
-        # try down
-        elif freeBlocks.index(max(freeBlocks)) == 2:  # DOWN
-            logger.debug("[" + str(self.id) + "] I try to turn Down")
-            if self.simulateNextTurn(playground, self.id, DirectionOfLooking.DOWN):
-                self.turnDirectionOfLooking(DirectionOfLooking.DOWN)
-        # try left
-        elif freeBlocks.index(max(freeBlocks)) == 3:  # LEFT
-            logger.debug("[" + str(self.id) + "] I try to turn Left")
-            if self.simulateNextTurn(playground, self.id, DirectionOfLooking.LEFT):
-                self.turnDirectionOfLooking(DirectionOfLooking.LEFT)
+        freePlaceMap = FreePlaceFinder.generateFreePlaceMap(playground.coordinateSystem)
+        freePlaceValues = FreePlaceFinder.getFreePlaceValues(freePlaceMap)
+
+        freeBlocks = [FreePlaceFinder.getAmountOfFreePlacesForCoordinate(freePlaceMap, self.x + DirectionOfLooking.UP.value[0], self.y + DirectionOfLooking.UP.value[1], freePlaceValues),
+                      FreePlaceFinder.getAmountOfFreePlacesForCoordinate(freePlaceMap, self.x + DirectionOfLooking.RIGHT.value[0], self.y + DirectionOfLooking.RIGHT.value[1], freePlaceValues),
+                      FreePlaceFinder.getAmountOfFreePlacesForCoordinate(freePlaceMap, self.x + DirectionOfLooking.DOWN.value[0], self.y + DirectionOfLooking.DOWN.value[1], freePlaceValues),
+                      FreePlaceFinder.getAmountOfFreePlacesForCoordinate(freePlaceMap, self.x + DirectionOfLooking.LEFT.value[0], self.y + DirectionOfLooking.LEFT.value[1], freePlaceValues)]
 
         setOfDirections = [DirectionOfLooking.UP, DirectionOfLooking.RIGHT, DirectionOfLooking.DOWN,
                            DirectionOfLooking.LEFT]
@@ -1159,3 +1138,23 @@ class Player(object):
             if self.simulateNextTurn(playground, self.id, dir):
                 self.turnDirectionOfLooking(dir)
                 return
+
+        # Ändere Kurs, zur Richtung wo am meisten Blöcke frei sind
+        if self.speed > 1 and max(freeBlocks) < self.speed:
+            logger.debug("[" + str(self.id) + "] I slow down")
+            self.speedDown()
+        elif freeBlocks.index(max(freeBlocks)) == 0:  # UP
+            logger.debug("[" + str(self.id) + "] I try to turn Up")
+            self.turnDirectionOfLooking(DirectionOfLooking.UP)
+        # try right
+        elif freeBlocks.index(max(freeBlocks)) == 1:  # RIGHT
+            logger.debug("[" + str(self.id) + "] I try to turn Right")
+            self.turnDirectionOfLooking(DirectionOfLooking.RIGHT)
+        # try down
+        elif freeBlocks.index(max(freeBlocks)) == 2:  # DOWN
+            logger.debug("[" + str(self.id) + "] I try to turn Down")
+            self.turnDirectionOfLooking(DirectionOfLooking.DOWN)
+        # try left
+        elif freeBlocks.index(max(freeBlocks)) == 3:  # LEFT
+            logger.debug("[" + str(self.id) + "] I try to turn Left")
+            self.turnDirectionOfLooking(DirectionOfLooking.LEFT)
