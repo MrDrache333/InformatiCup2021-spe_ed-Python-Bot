@@ -97,8 +97,7 @@ class Game(object):
                     print("Spieler " + str(player.id))
                     player.tryToSurvive(self.playground)
                     print("Zug: " + player.choosenTurn)
-                    if player.turnSetFrom != "unset":
-                        print("Zug entschieden von " + player.turnSetFrom)
+                    print("Zug entschieden von " + player.turnSetFrom)
                     print("")
                     player.fitness += 1
             if active == 0 and not self.printedStatistics:
@@ -156,14 +155,13 @@ class Game(object):
                 if self.oldData is not None:
                     for player in self.oldData:
                         if player.active != self.playground.players[player.id - 1].active:
-                            print("The Player " + str(player.id) + "[" + self.playgroundPresenter.colorNames[player.id] + "]" + " died!" + (" <-- WE" if self.ownPlayer.id == player.id else ""))
+                            print("The Player " + str(player.id) + "[" + self.playgroundPresenter.getColorName(player.id) + "]" + " died!" + (" <-- WE" if self.ownPlayer.id == player.id else ""))
                             print()
 
                 if self.ownPlayer.active and data[0]['running']:
                     self.ownPlayer.tryToSurvive(self.playground)
                     print("Turn: " + self.ownPlayer.choosenTurn)
-                    if self.ownPlayer.turnSetFrom != "unset":
-                        print("Choosen by " + self.ownPlayer.turnSetFrom)
+                    print("Choosen by " + self.ownPlayer.turnSetFrom)
 
                 self.playground.addTurn()
 
@@ -189,6 +187,7 @@ class Game(object):
     def saveGameFieldBeforeDeath(self, path):
         if self.oldStateJson is None:
             print("No GameField JSon will be stored.")
+            return
         try:
             with open(path, "w") as text_file:
                 n = text_file.write("[" + self.oldStateJson + "]")
@@ -227,7 +226,7 @@ class Game(object):
 
         for player in players:
             print("Spieler " + str(player.id) + ": " + str(player.fitness) + " Status: " + str(
-                "Lebend" if player.active else "Gestorben") + " Farbe: " + self.playgroundPresenter.colorNames[player.id]
+                "Lebend" if player.active else "Gestorben") + " Farbe: " + self.playgroundPresenter.getColorName(player.id)
                   + ("  <---WIR" if self.ownPlayer.id == player.id else ""))
         print("-------------------------------")
 
@@ -250,15 +249,33 @@ url = ""
 key = ""
 try:
     ONLINE = os.environ["Online"] == "True"
-    if not ONLINE:
+except KeyError:
+    print("Online Parameter is not set. DEFAULT=True")
+
+if not ONLINE:
+    try:
         OfflinePath = os.environ["Playground"]
-    else:
+    except KeyError:
+        print("Playground Parameter is not set but Online was set to FALSE")
+        print("Please set the needed environment variables. Please take a look at our "
+              "documentation to ensure the proper use of our program")
+        exit(-1)
+else:
+    try:
         url = os.environ["URL"]
         key = os.environ["KEY"]
+    except KeyError:
+        print("URL or KEY Parameter is not set but Online was set to TRUE")
+        print("Please set the needed environment variables. Please take a look at our "
+              "documentation to ensure the proper use of our program")
+        exit(-1)
+try:
     docker = os.environ["Docker"] == "True"
-except KeyError as e:
-    print("Please set the needed environment variables. Please take a look at our "
-          "documentation to ensure the proper use of our program")
+except KeyError:
+    print("Docker Parameter is not set. DEFAULT=FALSE")
+
+
+
 if ONLINE:
 
     print("API-SERVER-URL: " + url)

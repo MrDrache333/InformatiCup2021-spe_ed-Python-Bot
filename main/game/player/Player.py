@@ -143,10 +143,45 @@ class Player(object):
         playerTurnCountArray = [0 for _ in nearestPlayers]
         if not playerTurnCountArray:
             currentPlayground.movePlayer()
-            freeBlocks = [currentPlayground.countBlocksInStraightLine(player, DirectionOfLooking.UP),
-                          currentPlayground.countBlocksInStraightLine(player, DirectionOfLooking.RIGHT),
-                          currentPlayground.countBlocksInStraightLine(player, DirectionOfLooking.DOWN),
-                          currentPlayground.countBlocksInStraightLine(player, DirectionOfLooking.LEFT)]
+            freePlaceMap = FreePlaceFinder.generateFreePlaceMap(playground.coordinateSystem)
+            freePlaceValues = FreePlaceFinder.getFreePlaceValues(freePlaceMap)
+
+            freeBlocks = [FreePlaceFinder.getAmountOfFreePlacesForCoordinate(freePlaceMap,
+                                                                             currentPlayground.players[playerId - 1].x +
+                                                                             DirectionOfLooking.UP.value[
+                                                                                 0] * currentPlayground.players[
+                                                                                 playerId - 1].speed,
+                                                                             currentPlayground.players[playerId - 1].y +
+                                                                             DirectionOfLooking.UP.value[
+                                                                                 1] * currentPlayground.players[
+                                                                                 playerId - 1].speed, freePlaceValues),
+                          FreePlaceFinder.getAmountOfFreePlacesForCoordinate(freePlaceMap,
+                                                                             currentPlayground.players[playerId - 1].x +
+                                                                             DirectionOfLooking.RIGHT.value[
+                                                                                 0] * currentPlayground.players[
+                                                                                 playerId - 1].speed,
+                                                                             currentPlayground.players[playerId - 1].y +
+                                                                             DirectionOfLooking.RIGHT.value[
+                                                                                 1] * currentPlayground.players[
+                                                                                 playerId - 1].speed, freePlaceValues),
+                          FreePlaceFinder.getAmountOfFreePlacesForCoordinate(freePlaceMap,
+                                                                             currentPlayground.players[playerId - 1].x +
+                                                                             DirectionOfLooking.DOWN.value[
+                                                                                 0] * currentPlayground.players[
+                                                                                 playerId - 1].speed,
+                                                                             currentPlayground.players[playerId - 1].y +
+                                                                             DirectionOfLooking.DOWN.value[
+                                                                                 1] * currentPlayground.players[
+                                                                                 playerId - 1].speed, freePlaceValues),
+                          FreePlaceFinder.getAmountOfFreePlacesForCoordinate(freePlaceMap,
+                                                                             currentPlayground.players[playerId - 1].x +
+                                                                             DirectionOfLooking.LEFT.value[
+                                                                                 0] * currentPlayground.players[
+                                                                                 playerId - 1].speed,
+                                                                             currentPlayground.players[playerId - 1].y +
+                                                                             DirectionOfLooking.LEFT.value[
+                                                                                 1] * currentPlayground.players[
+                                                                                 playerId - 1].speed, freePlaceValues)]
 
             return currentPlayground.players[playerId - 1].active and max(freeBlocks) > 0
 
@@ -157,9 +192,9 @@ class Player(object):
         # Iteration Cout
         iterations = 0
         while not IterationsDone:
-            nextPlayground = copy.deepcopy(playground)
-            for nearestPlayer in nearestPlayers:
-                playgroundPlayer = currentPlayground.getPlayerForId(nearestPlayer.id)
+            nextPlayground = copy.deepcopy(currentPlayground)
+            for nearestPlayerIndex in range(len(nearestPlayers)):
+                playgroundPlayer = nextPlayground.players[nearestPlayers[nearestPlayerIndex].id - 1]
                 if playgroundPlayer is not None:
                     """Turns:
                     0: Go Left
@@ -168,7 +203,7 @@ class Player(object):
                     3: Slow Down
                     4: Speed Up
                     """
-                    if playerTurnCountArray == 0:
+                    if playerTurnCountArray[nearestPlayerIndex] == 0:
                         if playgroundPlayer.directionOfLooking == DirectionOfLooking.UP:
                             playgroundPlayer.turnDirectionOfLooking(DirectionOfLooking.LEFT)
                         elif playgroundPlayer.directionOfLooking == DirectionOfLooking.DOWN:
@@ -177,7 +212,7 @@ class Player(object):
                             playgroundPlayer.turnDirectionOfLooking(DirectionOfLooking.DOWN)
                         elif playgroundPlayer.directionOfLooking == DirectionOfLooking.RIGHT:
                             playgroundPlayer.turnDirectionOfLooking(DirectionOfLooking.UP)
-                    elif playerTurnCountArray == 1:
+                    elif playerTurnCountArray[nearestPlayerIndex] == 1:
                         if playgroundPlayer.directionOfLooking == DirectionOfLooking.UP:
                             playgroundPlayer.turnDirectionOfLooking(DirectionOfLooking.RIGHT)
                         elif playgroundPlayer.directionOfLooking == DirectionOfLooking.DOWN:
@@ -186,11 +221,13 @@ class Player(object):
                             playgroundPlayer.turnDirectionOfLooking(DirectionOfLooking.UP)
                         elif playgroundPlayer.directionOfLooking == DirectionOfLooking.RIGHT:
                             playgroundPlayer.turnDirectionOfLooking(DirectionOfLooking.DOWN)
-                    elif playerTurnCountArray == 3:
+                    elif playerTurnCountArray[nearestPlayerIndex] == 3:
                         playgroundPlayer.speedDown()
-                    elif playerTurnCountArray == 4:
+                    elif playerTurnCountArray[nearestPlayerIndex] == 4:
                         playgroundPlayer.speedUp()
 
+            # Move every player and check if own player is alive and next turn has possible Moves
+            nextPlayground.movePlayer()
             # Check if there is space in the Next Turn
             freeBlocks = [
                 nextPlayground.countBlocksInStraightLine(nextPlayground.players[playerId - 1], DirectionOfLooking.UP),
@@ -199,9 +236,8 @@ class Player(object):
                 nextPlayground.countBlocksInStraightLine(nextPlayground.players[playerId - 1], DirectionOfLooking.DOWN),
                 nextPlayground.countBlocksInStraightLine(nextPlayground.players[playerId - 1], DirectionOfLooking.LEFT)]
 
-            # Move every player and check if own player is alive and next turn has possible Moves
-            nextPlayground.movePlayer()
-            if nextPlayground.players[playerId - 1].active and max(freeBlocks) > 0:
+            if nextPlayground.players[playerId - 1].active and max(freeBlocks) / nextPlayground.players[
+                playerId - 1].speed > 0.5:
                 alive += 1
 
             # Count up the Iterations
@@ -222,7 +258,7 @@ class Player(object):
                     IterationsDone = False
         if alive == 0:
             return False
-        return (iterations / alive) > 0.8
+        return (alive / iterations) > 0.8
 
     def speedUp(self):
         """
@@ -463,8 +499,8 @@ class Player(object):
                 # Prüfen, ob jemand mit gleicher Geschwindigkeit neben uns läuft -> Beschleunigen um nicht eingekesselt zu werden
                 shouldEscape = False
                 for player in playground.players:
-                    if player.id != self.id and player.active and (abs(player.x - self.x) == 1 or abs(
-                            player.y - self.y) == 1) and player.speed == self.speed and player.directionOfLooking == self.directionOfLooking:
+                    if player.id != self.id and player.active and ((abs(player.x - self.x) == 1 and abs(
+                            player.y - self.y) == 1)) and player.directionOfLooking == self.directionOfLooking:
                         shouldEscape = True
                 if shouldEscape and self.simulateNextTurn(playground, self.id, None, 1):
                     self.speedUp()
@@ -624,7 +660,8 @@ class Player(object):
         freePlaceMap = FreePlaceFinder.generateFreePlaceMap(playground.coordinateSystem)
         freePlaceValues = FreePlaceFinder.getFreePlaceValues(freePlaceMap)
 
-        directionOfLookinXY = self.x + self.directionOfLooking.value[0], self.y + self.directionOfLooking.value[1]
+        directionOfLookinXY = self.x + self.directionOfLooking.value[0] * self.speed, self.y + \
+                              self.directionOfLooking.value[1] * self.speed
         lookDirectionAlongsideWallLeftXY = self.x + lookDirectionAlongSideWallLeft.value[0], self.y + \
                                            lookDirectionAlongSideWallLeft.value[1]
         lookDirectionAlongSideWallRightXY = self.x + lookDirectionAlongSideWallRight.value[0], self.y + \
@@ -642,26 +679,25 @@ class Player(object):
                     # not enough space in direction of player. change direction
                     oppositeDirectionOfPlayerLookingDirection = setOfDirections[
                         (setOfDirections.index(self.directionOfLooking) + 1) % 4]
-                    self.turnDirectionOfLooking(oppositeDirectionOfPlayerLookingDirection)
+                    if self.simulateNextTurn(playground, self.id, oppositeDirectionOfPlayerLookingDirection):
+                        self.turnDirectionOfLooking(oppositeDirectionOfPlayerLookingDirection)
                 else:
                     # if the player would move into a one wide gap, change direction
 
                     # go one field forward look left and right
                     currentX, currentY = self.x, self.y
-                    currentX += self.directionOfLooking.value[0]
-                    currentY += self.directionOfLooking.value[1]
+                    currentX += self.directionOfLooking.value[0] * self.speed
+                    currentY += self.directionOfLooking.value[1] * self.speed
 
                     isGapOneCellWide = 0
                     for direction in freeBlocks:
-                        tempX = currentX + direction.value[0]
-                        tempY = currentY + direction.value[1]
+                        tempX = currentX + direction.value[0] * self.speed
+                        tempY = currentY + direction.value[1] * self.speed
                         # check if coordinate is within system
-                        if (
-                                checkIfCoordinateIsInCoordinateSystem(
-                                    tempX, tempY, playground.coordinateSystem
-                                )
-                                and playground.coordinateSystem[tempY][tempX] != 0
-                        ):
+                        if checkIfCoordinateIsInCoordinateSystem(tempX, tempY, playground.coordinateSystem):
+                            if (playground.coordinateSystem[tempY][tempX] != 0):
+                                isGapOneCellWide += 1
+                        else:
                             isGapOneCellWide += 1
 
                     if isGapOneCellWide >= 2:
@@ -714,8 +750,9 @@ class Player(object):
                                 self.turnDirectionOfLooking(lookDirectionAlongSideWallRight)
                                 return
                     else:
-                        self.speedDown()
-                    return
+                        if self.simulateNextTurn(playground, self.id, None, -1):
+                            self.speedDown()
+                            return
             else:
                 # player is adjacent to wall and looking into it. Player has to change his direction of looking
                 # Change direction of looking to the direction with the most space available
@@ -754,11 +791,13 @@ class Player(object):
                 (setOfDirectionsWithDiagonals.index(self.directionOfLooking) + 6) % 8]
             directionRightOfPlayer = setOfDirectionsWithDiagonals[
                 (setOfDirectionsWithDiagonals.index(self.directionOfLooking) + 2) % 8]
-            leftXYOfPlayer = self.x + directionLeftOfPlayer.value[0], self.y + directionLeftOfPlayer.value[1]
-            rightXYOfPlayer = self.x + directionRightOfPlayer.value[0], self.y + directionRightOfPlayer.value[1]
+            leftXYOfPlayer = self.x + directionLeftOfPlayer.value[0] * self.speed, self.y + directionLeftOfPlayer.value[
+                1] * self.speed
+            rightXYOfPlayer = self.x + directionRightOfPlayer.value[0] * self.speed, self.y + \
+                              directionRightOfPlayer.value[1] * self.speed
 
-            if playground.coordinateSystem[self.y + directionBehindPlayerLeft.value[1]][
-                self.x + directionBehindPlayerLeft.value[0]] != 0 \
+            if playground.coordinateSystem[self.y + directionBehindPlayerLeft.value[1] * self.speed][
+                self.x + directionBehindPlayerLeft.value[0] * self.speed] != 0 \
                     and FreePlaceFinder.getAmountOfFreePlacesForCoordinate(freePlaceMap, leftXYOfPlayer[0],
                                                                            leftXYOfPlayer[1], freePlaceValues) \
                     >= FreePlaceFinder.getAmountOfFreePlacesForCoordinate(freePlaceMap, rightXYOfPlayer[0],
@@ -769,8 +808,8 @@ class Player(object):
                     return
 
             # check if there is a wall right behind the player, and there is more space than on the left
-            elif playground.coordinateSystem[self.y + directionBehindPlayerRight.value[1]][
-                self.x + directionBehindPlayerRight.value[0]] != 0 \
+            elif playground.coordinateSystem[self.y + directionBehindPlayerRight.value[1] * self.speed][
+                self.x + directionBehindPlayerRight.value[0] * self.speed] != 0 \
                     and FreePlaceFinder.getAmountOfFreePlacesForCoordinate(freePlaceMap, leftXYOfPlayer[0],
                                                                            leftXYOfPlayer[1], freePlaceValues) \
                     <= FreePlaceFinder.getAmountOfFreePlacesForCoordinate(freePlaceMap, rightXYOfPlayer[0],
@@ -791,13 +830,14 @@ class Player(object):
                     for dir in setOfDirections:
                         if self.simulateNextTurn(playground, self.id,
                                                  dir) and FreePlaceFinder.getAmountOfFreePlacesForCoordinate(
-                            freePlaceMap, self.x + dir.value[0], self.y + dir.value[1],
+                            freePlaceMap, self.x + dir.value[0] * self.speed, self.y + dir.value[1] * self.speed,
                             freePlaceValues) >= FreePlaceFinder.getAmountOfFreePlacesForCoordinate(freePlaceMap,
                                                                                                    self.x +
                                                                                                    self.directionOfLooking.value[
-                                                                                                       0], self.y +
-                                                                                                           self.directionOfLooking.value[
-                                                                                                               1],
+                                                                                                       0] * self.speed,
+                                                                                                   self.y +
+                                                                                                   self.directionOfLooking.value[
+                                                                                                       1] * self.speed,
                                                                                                    freePlaceValues):
                             self.turnDirectionOfLooking(dir)
                             return
@@ -809,13 +849,14 @@ class Player(object):
                     for dir in setOfDirections:
                         if self.simulateNextTurn(playground, self.id,
                                                  dir) and FreePlaceFinder.getAmountOfFreePlacesForCoordinate(
-                            freePlaceMap, self.x + dir.value[0], self.y + dir.value[1],
+                            freePlaceMap, self.x + dir.value[0] * self.speed, self.y + dir.value[1] * self.speed,
                             freePlaceValues) >= FreePlaceFinder.getAmountOfFreePlacesForCoordinate(freePlaceMap,
                                                                                                    self.x +
                                                                                                    self.directionOfLooking.value[
-                                                                                                       0], self.y +
-                                                                                                           self.directionOfLooking.value[
-                                                                                                               1],
+                                                                                                       0] * self.speed,
+                                                                                                   self.y +
+                                                                                                   self.directionOfLooking.value[
+                                                                                                       1] * self.speed,
                                                                                                    freePlaceValues):
                             self.turnDirectionOfLooking(dir)
                             return
@@ -1126,12 +1167,29 @@ class Player(object):
         freePlaceMap = FreePlaceFinder.generateFreePlaceMap(playground.coordinateSystem)
         freePlaceValues = FreePlaceFinder.getFreePlaceValues(freePlaceMap)
 
-        freeBlocks = [FreePlaceFinder.getAmountOfFreePlacesForCoordinate(freePlaceMap, self.x + DirectionOfLooking.UP.value[0], self.y + DirectionOfLooking.UP.value[1], freePlaceValues),
-                      FreePlaceFinder.getAmountOfFreePlacesForCoordinate(freePlaceMap, self.x + DirectionOfLooking.RIGHT.value[0], self.y + DirectionOfLooking.RIGHT.value[1], freePlaceValues),
-                      FreePlaceFinder.getAmountOfFreePlacesForCoordinate(freePlaceMap, self.x + DirectionOfLooking.DOWN.value[0], self.y + DirectionOfLooking.DOWN.value[1], freePlaceValues),
-                      FreePlaceFinder.getAmountOfFreePlacesForCoordinate(freePlaceMap, self.x + DirectionOfLooking.LEFT.value[0], self.y + DirectionOfLooking.LEFT.value[1], freePlaceValues)]
+        freeBlocks = [FreePlaceFinder.getAmountOfFreePlacesForCoordinate(freePlaceMap,
+                                                                         self.x + DirectionOfLooking.UP.value[
+                                                                             0] * self.speed,
+                                                                         self.y + DirectionOfLooking.UP.value[
+                                                                             1] * self.speed, freePlaceValues),
+                      FreePlaceFinder.getAmountOfFreePlacesForCoordinate(freePlaceMap,
+                                                                         self.x + DirectionOfLooking.RIGHT.value[
+                                                                             0] * self.speed,
+                                                                         self.y + DirectionOfLooking.RIGHT.value[
+                                                                             1] * self.speed, freePlaceValues),
+                      FreePlaceFinder.getAmountOfFreePlacesForCoordinate(freePlaceMap,
+                                                                         self.x + DirectionOfLooking.DOWN.value[
+                                                                             0] * self.speed,
+                                                                         self.y + DirectionOfLooking.DOWN.value[
+                                                                             1] * self.speed, freePlaceValues),
+                      FreePlaceFinder.getAmountOfFreePlacesForCoordinate(freePlaceMap,
+                                                                         self.x + DirectionOfLooking.LEFT.value[
+                                                                             0] * self.speed,
+                                                                         self.y + DirectionOfLooking.LEFT.value[
+                                                                             1] * self.speed, freePlaceValues)]
 
-        setOfDirections = [DirectionOfLooking.UP, DirectionOfLooking.RIGHT, DirectionOfLooking.DOWN,
+        setOfDirections = [self.directionOfLooking, DirectionOfLooking.UP, DirectionOfLooking.RIGHT,
+                           DirectionOfLooking.DOWN,
                            DirectionOfLooking.LEFT]
 
         for dir in setOfDirections:

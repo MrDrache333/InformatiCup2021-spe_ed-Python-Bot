@@ -32,6 +32,9 @@ class PlaygroundPresenter(object):
         6: "Purple"
     }
 
+    def getColorName(self, id):
+        return colorNames[id]
+
     def __init__(self, playground: Playground, width, height):
         self.playground = playground
         self.displayWidth = width * blockwidth
@@ -39,26 +42,12 @@ class PlaygroundPresenter(object):
         self.gameWindow = py.display.set_mode((self.displayWidth, self.displayHeight))
 
     def update(self, playground: Playground):
-        """
-        Updates the playground
-        :param playground: the playground to update
-        :return: the updated playground
-        """
         self.playground = playground
 
     def getPlayground(self):
-        """
-        Returns the playground
-        :returns the playground
-        :return: playground
-        """
         return self.playground
 
     def generateGameField(self):
-        """
-        Generates the game field
-        :return: game field
-        """
         self.updateGameField()
 
         # pygame.display.flip()
@@ -67,26 +56,16 @@ class PlaygroundPresenter(object):
         py.display.set_caption("Spe_ed")
         py.display.set_icon(pygame.image.load("Lightning_McQueen.png"))
 
-    def drawPath(self, path, player):
-        """
-        Draws the path of a player each round when a player moves
-        :param path: previous path of a player
-        :param playerid: id of the player
-        """
+    def drawPath(self, path, playerid):
         pathcoords = copy.deepcopy(path)
-        if pathcoords is not None and len(pathcoords) >= 1:
-            if pathcoords[0][0] != player.x or pathcoords[0][1] != player.y:
-                pathcoords.insert(0, (player.x, player.y))
-            if len(pathcoords) >= 2:
-                for i in range(len(pathcoords)):
-                    pathcoords[i] = [pathcoords[i][0] * blockwidth + (blockwidth / 2),
-                                     pathcoords[i][1] * blockwidth + blockwidth / 2]
-                py.draw.lines(self.gameWindow, playerColors[int(player.id)], False, pathcoords, width=3)
+        if pathcoords is not None and len(pathcoords) >= 2:
+            for i in range(len(pathcoords)):
+                pathcoords[i] = [pathcoords[i][0] * blockwidth + (blockwidth / 2),
+                                 pathcoords[i][1] * blockwidth + blockwidth / 2]
+            py.draw.lines(self.gameWindow, playerColors[int(playerid)], False, pathcoords, width=3)
 
     def updateGameField(self):
-        """
-        Updates the game field by drawing rectangles in different colors for different players
-        """
+        """Draws rectangles in different colors to different players"""
         # fill screen with a white blankspace
         self.gameWindow.fill((40, 40, 40))
         white = (255, 255, 255)
@@ -125,6 +104,6 @@ class PlaygroundPresenter(object):
             currentXOfCube = 0
             currentYOfCube += heightOfCube
         for player in self.playground.players:
-            self.drawPath(player.path, player)
+            self.drawPath(player.path, player.id)
 
         py.display.flip()

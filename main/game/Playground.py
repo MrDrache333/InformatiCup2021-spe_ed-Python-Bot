@@ -150,10 +150,13 @@ class Playground(object):
                     xCoordinateOfPlayer += nextX
                     yCoordinateOfPlayer += nextY
 
-                    for playerCoord in range(len(allPlayerCoordinates)):
-                        if allPlayerCoordinates[playerCoord][0] == xCoordinateOfPlayer and allPlayerCoordinates[playerCoord][1] == yCoordinateOfPlayer:
+                    for allPlayerCoordinate in allPlayerCoordinates:
+                        if (
+                            allPlayerCoordinate[0][0] == xCoordinateOfPlayer
+                            and allPlayerCoordinate[0][1] == yCoordinateOfPlayer
+                        ):
                             died = True
-                            self.killPlayer(self.players[playerCoord].id)
+                            self.killPlayer(self.players[self.coordinateSystem[yCoordinateOfPlayer][xCoordinateOfPlayer] - 1])
                             self.coordinateSystem[yCoordinateOfPlayer][xCoordinateOfPlayer] = -1
 
                     playerCoordinates.append((xCoordinateOfPlayer, yCoordinateOfPlayer))
