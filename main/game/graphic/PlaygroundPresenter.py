@@ -48,6 +48,7 @@ class PlaygroundPresenter(object):
 
     def getPlayground(self):
         """
+        Returns the playground
         :returns the playground
         :return: playground
         """
