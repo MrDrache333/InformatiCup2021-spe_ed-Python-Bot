@@ -37,6 +37,10 @@ class Game(object):
             os.environ["SDL_VIDEODRIVER"] = "dummy"
 
     def printInfo(self, data):
+        """
+        Prints the converted json data
+        :param data: data loaded out of json
+        """
         print("Playfield: " + str(self.width) + " x " + str(self.height))
 
         for p in data[0]['players']:
@@ -51,6 +55,10 @@ class Game(object):
         print("Your are Player " + str(data[0]['you']))
 
     async def playOffline(self, PlaygroundPath):
+        """
+        Run the simulation offline with x players with the same strategy
+        :param PlaygroundPath: Path to the playground json file
+        """
         with open(PlaygroundPath) as f:
             data = json.load(f)
 
@@ -115,7 +123,9 @@ class Game(object):
                     pygame.quit()
 
     async def playOnline(self):
-
+        """
+        Run the simulation offline with x players with the same strategy
+        """
         logger = logging.getLogger('websockets')
         logger.setLevel(logging.ERROR)
         logger.addHandler(logging.StreamHandler())
@@ -155,7 +165,8 @@ class Game(object):
                 if self.oldData is not None:
                     for player in self.oldData:
                         if player.active != self.playground.players[player.id - 1].active:
-                            print("The Player " + str(player.id) + "[" + self.playgroundPresenter.colorNames[player.id] + "]" + " died!" + (" <-- WE" if self.ownPlayer.id == player.id else ""))
+                            print("The Player " + str(player.id) + "[" + self.playgroundPresenter.colorNames[
+                                player.id] + "]" + " died!" + (" <-- WE" if self.ownPlayer.id == player.id else ""))
                             print()
 
                 if self.ownPlayer.active and data[0]['running']:
@@ -178,12 +189,20 @@ class Game(object):
                 self.oldData = copy.deepcopy(self.playground.players)
 
     def saveImage(self, path):
+        """
+        Saves an image of the game after a win/draw/loose
+        :param path: path to the save location
+        """
         try:
             pygame.image.save(game.playgroundPresenter.gameWindow, path)
         except pygame.error:
             print("Konnte kein Bild speichern in \"" + path + "\"")
 
     def printStatistics(self):
+        """
+        Prints statistics of the played game
+        How long did it take, who won?
+        """
         if self.playground is None or self.playground.players is None:
             print("Playground must not be None!")
             return
@@ -210,12 +229,17 @@ class Game(object):
 
         for player in players:
             print("Spieler " + str(player.id) + ": " + str(player.fitness) + " Status: " + str(
-                "Lebend" if player.active else "Gestorben") + " Farbe: " + self.playgroundPresenter.colorNames[player.id]
+                "Lebend" if player.active else "Gestorben") + " Farbe: " + self.playgroundPresenter.colorNames[
+                      player.id]
                   + ("  <---WIR" if self.ownPlayer.id == player.id else ""))
         print("-------------------------------")
 
 
 def sleep(secs):
+    """
+    Wait for x seconds
+    :param secs: seconds
+    """
     for i in range(secs, 0, -1):
         if i <= 3 or i % 10 == 0:
             print("Warte " + str(i) + " Sekunden, bis zum erneuten Start!", flush=True)
