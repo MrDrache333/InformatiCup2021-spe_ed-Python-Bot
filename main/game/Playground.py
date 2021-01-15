@@ -95,48 +95,63 @@ class Playground(object):
                 return player
         return None
 
-    def movePlayer(self, id):
+    def movePlayer(self):
         # read speed,direction, position and activity of player
         # determine whether player would colide with a wall
         # move player to new position
         # create walls where the player moved
         # move on to the next player
         logger.disabled = True
-        player = self.players[id]
-        if player.active:
-            xCoordinateOfPlayer = player.x
-            yCoordinateOfPlayer = player.y
-            speedOfPlayer = player.speed
-            directionOfPlayer = player.directionOfLooking
+        allPlayerCoordinates = []
+        for player in self.players:
+            if player.active:
+                died = False
+                xCoordinateOfPlayer = player.x
+                yCoordinateOfPlayer = player.y
+                speedOfPlayer = player.speed
+                directionOfPlayer = player.directionOfLooking
 
-            nextX, nextY = directionOfPlayer.value
+                nextX, nextY = directionOfPlayer.value
 
-            # draws a line for each speed point
-            for speed in range(1, speedOfPlayer + 1):
+                playerCoordinates = []
+                # draws a line for each speed point
+                for speed in range(1, speedOfPlayer + 1):
 
-                xCoordinateOfPlayer += nextX
-                yCoordinateOfPlayer += nextY
+                    xCoordinateOfPlayer += nextX
+                    yCoordinateOfPlayer += nextY
 
-                #   6. turn & not the last move position (head) &
-                if self.turn == 6 and speed != 1 and speed != speedOfPlayer:
-                    logger.debug("Ima skip dat field (Speed:" + str(speedOfPlayer) + ")")
-                else:
-                    # determine whether player would collide with a wall
-                    # determine whether coordinates are within coordinatesystem
-                    if (0 <= xCoordinateOfPlayer < len(self.coordinateSystem[0]) and
-                            0 <= yCoordinateOfPlayer < len(self.coordinateSystem)):
-                        if self.coordinateSystem[yCoordinateOfPlayer][xCoordinateOfPlayer] == 0:
-                            # Player did not collide with wall
+                    for playerCoord in range(len(allPlayerCoordinates)):
+                        if allPlayerCoordinates[playerCoord][0] == xCoordinateOfPlayer and allPlayerCoordinates[playerCoord][1] == yCoordinateOfPlayer:
+                            died = True
+                            self.killPlayer(self.players[playerCoord].id)
+                            self.coordinateSystem[yCoordinateOfPlayer][xCoordinateOfPlayer] = -1
 
-                            # update player coords
-                            player.x = xCoordinateOfPlayer
-                            player.y = yCoordinateOfPlayer
+                    playerCoordinates.append((xCoordinateOfPlayer, yCoordinateOfPlayer))
 
-                            # update coordinate system
-                            self.coordinateSystem[yCoordinateOfPlayer][xCoordinateOfPlayer] = int(player.id)
-                        else:
-                            self.killPlayer(player)
-                            break
+                    #   6. turn & not the last move position (head) &
+                    if self.turn == 6 and speed != 1 and speed != speedOfPlayer:
+                        logger.debug("Ima skip dat field (Speed:" + str(speedOfPlayer) + ")")
                     else:
-                        self.killPlayer(player)
-                        break
+                        # determine whether player would collide with a wall
+                        # determine whether coordinates are within coordinatesystem
+                        if (0 <= xCoordinateOfPlayer < len(self.coordinateSystem[0]) and
+                                0 <= yCoordinateOfPlayer < len(self.coordinateSystem)):
+                            if self.coordinateSystem[yCoordinateOfPlayer][xCoordinateOfPlayer] == 0:
+                                # Player did not collide with wall
+
+                                # update player coords
+                                player.x = xCoordinateOfPlayer
+                                player.y = yCoordinateOfPlayer
+
+                                # update coordinate system
+                                if not died:
+                                    self.coordinateSystem[yCoordinateOfPlayer][xCoordinateOfPlayer] = int(player.id)
+                            else:
+                                died = True
+                                break
+                        else:
+                            died = True
+                            break
+                allPlayerCoordinates.append(playerCoordinates)
+                if died:
+                    self.killPlayer(player)

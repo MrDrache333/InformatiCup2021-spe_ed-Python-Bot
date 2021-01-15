@@ -67,7 +67,8 @@ class Game(object):
         self.printInfo(data)
         self.gameStartTime = time.time()
         while running:
-            self.clock.tick(60)
+            self.clock.tick(20)
+            # time.sleep(0.5)
 
             # Benutzereingabe prüfen
             keys = pygame.key.get_pressed()
@@ -103,8 +104,7 @@ class Game(object):
                 self.printStatistics()
                 self.printedStatistics = True
             else:
-                for player in self.playground.players:
-                    self.playground.movePlayer(player.id - 1)
+                self.playground.movePlayer()
                 self.playgroundPresenter.playground = self.playground
                 self.playground.addTurn()
                 self.playgroundPresenter.updateGameField()

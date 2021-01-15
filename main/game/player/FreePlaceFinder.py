@@ -175,3 +175,18 @@ def getFreePlaceValues(freePlaceMap):
                 else:
                     values.append(1)
     return values
+
+
+def getBiggestArea(freePlaceValues, place=1):
+    if freePlaceValues is None or len(freePlaceValues) > place <= 0:
+        return
+    maximum = max(freePlaceValues)
+    newIndex = freePlaceValues.index(maximum)
+    for _ in range(1, place):
+        currentMax = 0
+        for value in freePlaceValues:
+            if maximum > value > currentMax:
+                currentMax = value
+                newIndex = freePlaceValues.index(value)
+        maximum = currentMax
+    return newIndex
