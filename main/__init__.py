@@ -33,6 +33,7 @@ class Game(object):
         self.printedStatistics = False
         self.gameStartTime = 0
         self.oldData = None
+        self.oldStateJson = None
         if docker:
             os.environ["SDL_VIDEODRIVER"] = "dummy"
 
@@ -175,13 +176,27 @@ class Game(object):
                     print("Our turn took " + str((time.time_ns() - startTime) // 1000000) + " milliseconds!")
                     print("")
                     await websocket.send(action_json)
+                    self.oldStateJson = copy.deepcopy(state_json)
                 self.oldData = copy.deepcopy(self.playground.players)
+
 
     def saveImage(self, path):
         try:
             pygame.image.save(game.playgroundPresenter.gameWindow, path)
         except pygame.error:
             print("Konnte kein Bild speichern in \"" + path + "\"")
+
+    def saveGameFieldBeforeDeath(self, path):
+        if self.oldStateJson is None:
+            print("No GameField JSon will be stored.")
+        try:
+            with open(path, "w") as text_file:
+                n = text_file.write("[" + self.oldStateJson + "]")
+            if n != len(self.oldStateJson):
+                print("Could not completely write GameField in \"" + path + "\"")
+        except Exception as e:
+            print("Could not store GameField in \"" + path + "\"")
+
 
     def printStatistics(self):
         if self.playground is None or self.playground.players is None:
@@ -202,10 +217,12 @@ class Game(object):
             print("Unentschieden. Ihr deppen seid einfach ineinander gerasselt. Zwei Dumme, ein Gedanke...")
             # Screenshot des Spielfeldes speichern
             self.saveImage("results/draw/result_" + str(datetime.timestamp(datetime.now())) + ".jpg")
+            self.saveGameFieldBeforeDeath("results/draw/result_" + str(datetime.timestamp(datetime.now())) + ".json")
         else:
             print("Haben leider verloren... :/ Alles Hacker hier...")
             # Screenshot des Spielfeldes speichern
             self.saveImage("results/lost/result_" + str(datetime.timestamp(datetime.now())) + ".jpg")
+            self.saveGameFieldBeforeDeath("results/lost/result_" + str(datetime.timestamp(datetime.now())) + ".json")
         print("---------Statistiken---------")
 
         for player in players:
