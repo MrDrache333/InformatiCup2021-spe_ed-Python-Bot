@@ -938,7 +938,8 @@ class Player(object):
                         maxvalX = j
                         maxvalY = i
                         if (maxvalX % speed != currentPlayer.x % speed) or (maxvalY % speed != currentPlayer.y % speed):
-                            logger.debug("Maximal entfernte gegebenen Koordinate ist NICHT erreichbar!")
+                            logger.debug("")
+                            logger.debug("Maximum distant given coordinate is NOT reachable!")
                         else:
                             logger.debug(
                                 "Max Val (" + str(maxval) + ") at [" + str(maxvalX) + ", " + str(maxvalY) + "]")
@@ -950,13 +951,13 @@ class Player(object):
                         maxvalX = j
                         maxvalY = i
                         if (maxvalX % speed != currentPlayer.x % speed) or (maxvalY % speed != currentPlayer.y % speed):
-                            logger.debug("Maximal entfernte gegebenen Koordinate ist NICHT erreichbar!")
+                            logger.debug("Maximum distant given coordinate is NOT reachable!")
                         else:
                             logger.debug(
                                 "Max Val (" + str(maxval) + ") at [" + str(maxvalX) + ", " + str(maxvalY) + "]")
                             return maxval, maxvalX, maxvalY, tempCS
 
-        logger.debug("[" + str(currentPlayer.id) + "]: Konnte keinen Punkt finden.")
+        logger.debug("[" + str(currentPlayer.id) + "]: Could not find a field.")
         for c in tempCS:
             logger.debug("")
             for d in c:
@@ -1125,21 +1126,21 @@ class Player(object):
         """
 
         if not self.isCoordinateFree(maxvalX, maxvalY, playground):
-            logger.debug("Maximal entfernte gegebenen Koordinate ist bereits belegt!")
+            logger.debug("Maximum distant given coordinate is already occupied!")
             return False
         if (maxvalX % self.speed != self.x % self.speed) or (maxvalY % self.speed != self.y % self.speed):
-            logger.debug("Maximal entfernte gegebenen Koordinate ist NICHT erreichbar!")
+            logger.debug("Maximum distant given coordinate is NOT reachable!")
             return False
 
         finder = AStar(playground.coordinateSystem, self.x, self.y, self.speed, playground.getTurn())
         self.path = finder.solve((maxvalX, maxvalY))
 
         if self.path is not None and len(self.path) > 0:
-            logger.debug("Neuer Pfad:" + str(self.path))
+            logger.debug("New path:" + str(self.path))
             # self.printMatrix(tempCS)
         else:
             logger.debug(
-                "Nix Pfad gefunden :/ von " + str(self.x) + ":" + str(self.y) + " nach " + str(maxvalX) + ":" + str(
+                "No path found :/ from " + str(self.x) + ":" + str(self.y) + " to " + str(maxvalX) + ":" + str(
                     maxvalY))
             return False
 
