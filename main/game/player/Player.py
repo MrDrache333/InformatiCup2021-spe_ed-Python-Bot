@@ -185,11 +185,11 @@ class Player(object):
 
             return currentPlayground.players[playerId - 1].active and max(freeBlocks) > 0
 
-        # Iterate over all possible Combinations of enemy Turns
+        # Iterate over all possible combinations of enemy turns
         IterationsDone = False
-        # Alive Iterations
+        # Alive iterations
         alive = 0
-        # Iteration Cout
+        # Iteration count
         iterations = 0
         while not IterationsDone:
             nextPlayground = copy.deepcopy(currentPlayground)
@@ -329,7 +329,7 @@ class Player(object):
 
         if nextPlayground.players[self.id - 1].speed + speedchange < 3:
             return False
-        # Spieler und eigenen Spieler virtuell weiter bewegen
+        # Create new playground and move all players, to look how the new playground would look like
         alive = 0
 
         # Create FreePlaceMap
@@ -342,12 +342,12 @@ class Player(object):
             nextPlayground.movePlayer()
             nextPlayground.addTurn()
 
-        # Prüfen, ob virtuelle Bewegung eigenen Spieler schadet
+        # Check if player is still alive in new playground
         if alive is speedchange:
             maxval, maxvalX, maxvalY, tempCS = self.findFurthestField(
                 nextPlayground, nextPlayground.players[self.id - 1].speed)
 
-            # Iteriere über größtes feld, prüfe ob punkt erreichbar, merke, siehe nächsten bis alle fertig
+            # Iterate over all bigger areas and check if they are reachable
             ownFreePlaceIndex = FreePlaceFinder.getRelativeFreePlaceIndexForCoordinate(freeMap, nextPlayground.players[
                 self.id - 1].x, nextPlayground.players[self.id - 1].y)
 
@@ -369,7 +369,7 @@ class Player(object):
                                                                                                                   self.id - 1].y)
 
                 if nearestCoordinateOnFurthestFieldMap is not None:
-                    # Neuen Pfad berechnen
+                    # Calculate new path
                     finder = AStar(nextPlayground.coordinateSystem, nextPlayground.players[self.id - 1].x,
                                    nextPlayground.players[self.id - 1].y, nextPlayground.players[self.id - 1].speed,
                                    nextPlayground.getTurn())
@@ -399,7 +399,7 @@ class Player(object):
                             if changePlayer:
                                 self.speedUp()
                             self.followPath = True
-                            # Falls Doppelsprung -> nächsten Zug als SpeedUp festlegen
+                            # If double jump -> mark next turn as speedUp
                             if speedchange > 1:
                                 self.nextTurn = ""
                                 for _ in range(speedchange):
@@ -417,7 +417,7 @@ class Player(object):
         :param playground: playground of the game
         :return: if the path can be followed
         """
-        # Teste nächsten Pfadpunkt einmal und prüfe, ob noch lebend. -> Wenn ja, dann übernehmen.
+        # Check if we're next waypoint still alive
         if self.path is None or len(self.path) == 0:
             return False
         nextCoord = self.path.pop(0)
@@ -429,7 +429,7 @@ class Player(object):
                 print("FEHLER")
                 return False
 
-        # Neuen Pfad berechnen
+        # Calculate new path
         finder = AStar(playground.coordinateSystem, playground.players[self.id - 1].x,
                        playground.players[self.id - 1].y, playground.players[self.id - 1].speed,
                        playground.getTurn())
@@ -445,7 +445,7 @@ class Player(object):
             elif nextCoord[1] < playground.players[self.id - 1].y:
                 nextDirection = DirectionOfLooking.UP
 
-            # Simulate Turn
+            # Simulate turn
             if self.simulateNextTurn(playground, self.id, nextDirection):
                 self.turnDirectionOfLooking(nextDirection)
                 return True

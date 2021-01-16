@@ -66,8 +66,6 @@ class PlaygroundPresenter(object):
         """
         self.updateGameField()
 
-        # pygame.display.flip()
-
         # setting title and favicon
         py.display.set_caption("Spe_ed")
         py.display.set_icon(pygame.image.load("Lightning_McQueen.png"))
