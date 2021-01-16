@@ -121,6 +121,10 @@ class AStar(object):
         return cells
 
     def get_path(self):
+        """
+        Iterates over all parents from the end-coordinate, to get the full path as one array
+        :return: The Path as an tuple Array
+        """
         cell = self.end
         path = [(cell.x, cell.y)]
         while cell.parent is not self.start and cell.parent is not None:

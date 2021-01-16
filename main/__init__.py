@@ -130,17 +130,21 @@ class Game(object):
         logger.setLevel(logging.ERROR)
         logger.addHandler(logging.StreamHandler())
 
+        # Wait for the Client to connect to server
         async with websockets.connect(f"{self.URL}?key={self.KEY}") as websocket:
             print("Connected to server. Waiting in lobby...This can take up to 5 min.!", flush=True)
             self.clock.tick(1000)
             while True:
+                # Wait for the servers response
                 state_json = await websocket.recv()
                 if self.gameStartTime == 0:
                     self.gameStartTime = time.time()
+                # Store the current time to calculate the time needed for a turn
                 startTime = time.time_ns()
                 data = json.loads(state_json)
                 data = [data]
 
+                # If game was just created, create needed objects too
                 if self.playground is None:
                     self.width = data[0]['width']
                     self.height = data[0]['height']
@@ -162,6 +166,7 @@ class Game(object):
                     if player.active:
                         player.fitness += 1
 
+                # Compare if a player died from last round
                 if self.oldData is not None:
                     for player in self.oldData:
                         if player.active != self.playground.players[player.id - 1].active:
@@ -169,6 +174,7 @@ class Game(object):
                                 player.id) + "]" + " died!" + (" <-- WE" if self.ownPlayer.id == player.id else ""))
                             print()
 
+                # If our player is active and the game is running, try to Survive
                 if self.ownPlayer.active and data[0]['running']:
                     self.ownPlayer.tryToSurvive(self.playground)
                     print("Turn: " + self.ownPlayer.choosenTurn)
@@ -179,6 +185,7 @@ class Game(object):
                 self.playgroundPresenter.update(self.playground)
                 self.playgroundPresenter.updateGameField()
 
+                # If game is running an we're still active, print out our Turn, duration and send choosen turn to server
                 if self.ownPlayer.active and data[0]['running']:
                     action = self.ownPlayer.choosenTurn
                     action_json = json.dumps({"action": action})
@@ -187,7 +194,6 @@ class Game(object):
                     await websocket.send(action_json)
                     self.oldStateJson = copy.deepcopy(state_json)
                 self.oldData = copy.deepcopy(self.playground.players)
-
 
     def saveImage(self, path):
         """
@@ -200,6 +206,11 @@ class Game(object):
             print("Konnte kein Bild speichern in \"" + path + "\"")
 
     def saveGameFieldBeforeDeath(self, path):
+        """
+        Saves the current gamefield as a file to debug them later
+        :param path: The path where to store the file
+        :return: Nothing
+        """
         if self.oldStateJson is None:
             print("No GameField JSon will be stored.")
             return
@@ -208,9 +219,8 @@ class Game(object):
                 n = text_file.write("[" + self.oldStateJson + "]")
             if n != len(self.oldStateJson):
                 print("Could not completely write GameField in \"" + path + "\"")
-        except Exception as e:
+        except Exception:
             print("Could not store GameField in \"" + path + "\"")
-
 
     def printStatistics(self):
         """
@@ -246,7 +256,7 @@ class Game(object):
         for player in players:
             print("Spieler " + str(player.id) + ": " + str(player.fitness) + " Status: " + str(
                 "Lebend" if player.active else "Gestorben") + " Farbe: " + self.playgroundPresenter.getColorName(
-                      player.id)
+                player.id)
                   + ("  <---WIR" if self.ownPlayer.id == player.id else ""))
         print("-------------------------------")
 
@@ -297,8 +307,6 @@ try:
     docker = os.environ["Docker"] == "True"
 except KeyError:
     print("Docker Parameter is not set. DEFAULT=FALSE")
-
-
 
 if ONLINE:
 

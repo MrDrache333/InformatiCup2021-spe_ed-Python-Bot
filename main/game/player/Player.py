@@ -121,6 +121,7 @@ class Player(object):
             return None
         currentPlayground = copy.deepcopy(playground)
 
+        # Turn our player to the choosen direction
         if speedChange != 0:
             if speedChange < 0:
                 currentPlayground.players[playerId - 1].speedDown()
@@ -146,6 +147,7 @@ class Player(object):
             freePlaceMap = FreePlaceFinder.generateFreePlaceMap(playground.coordinateSystem)
             freePlaceValues = FreePlaceFinder.getFreePlaceValues(freePlaceMap)
 
+            # Calculate the available space after the choosen turn
             freeBlocks = [FreePlaceFinder.getAmountOfFreePlacesForCoordinate(freePlaceMap,
                                                                              currentPlayground.players[playerId - 1].x +
                                                                              DirectionOfLooking.UP.value[
@@ -193,6 +195,7 @@ class Player(object):
         iterations = 0
         while not IterationsDone:
             nextPlayground = copy.deepcopy(currentPlayground)
+            # Iterate over all possible playerturns
             for nearestPlayerIndex in range(len(nearestPlayers)):
                 playgroundPlayer = nextPlayground.players[nearestPlayers[nearestPlayerIndex].id - 1]
                 if playgroundPlayer is not None:
@@ -203,6 +206,7 @@ class Player(object):
                     3: Slow Down
                     4: Speed Up
                     """
+                    # Change player direction based on the number in array
                     if playerTurnCountArray[nearestPlayerIndex] == 0:
                         if playgroundPlayer.directionOfLooking == DirectionOfLooking.UP:
                             playgroundPlayer.turnDirectionOfLooking(DirectionOfLooking.LEFT)
@@ -258,6 +262,7 @@ class Player(object):
                     IterationsDone = False
         if alive == 0:
             return False
+        # Calculate the chance to be alive. Must be over 80% to count as a Good Choice
         return (alive / iterations) > 0.8
 
     def speedUp(self):
@@ -336,6 +341,7 @@ class Player(object):
         freeMap = FreePlaceFinder.generateFreePlaceMap(nextPlayground.coordinateSystem)
         freeMapValues = FreePlaceFinder.getFreePlaceValues(freeMap)
 
+        # Simulate the choosen count speedUps one after another
         for _ in range(speedchange):
             alive = (alive + 1) if self.simulateNextTurn(nextPlayground, self.id, None, 1) else alive
             nextPlayground.players[self.id - 1].speedUp()
@@ -358,6 +364,7 @@ class Player(object):
                 if ownFreePlaceIndex == maxFreePlaceIndex:
                     break
 
+                # Calculate the nearest Coordinate in the Bigger Area if exist
                 nearestCoordinateOnFurthestFieldMap = FreePlaceFinder.findNearestCoordinateOnFurthestFieldMap(freeMap,
                                                                                                               moveMap,
                                                                                                               maxFreePlaceIndex + 1,
@@ -394,6 +401,7 @@ class Player(object):
                         elif nearestCoordinateOnFurthestFieldMap[1] > self.path[len(self.path) - 2][1]:
                             nextAreaPlayground.players[self.id - 1].directionOfLooking = DirectionOfLooking.DOWN
 
+                        # Simulates if there is a possible turn in the new Area
                         if self.simulateNextTurn(nextAreaPlayground, self.id,
                                                  nextAreaPlayground.players[self.id - 1].directionOfLooking):
                             if changePlayer:
@@ -429,7 +437,7 @@ class Player(object):
                 print("FEHLER")
                 return False
 
-        # Calculate new path
+        # Calculate the new Path
         finder = AStar(playground.coordinateSystem, playground.players[self.id - 1].x,
                        playground.players[self.id - 1].y, playground.players[self.id - 1].speed,
                        playground.getTurn())
@@ -458,10 +466,12 @@ class Player(object):
         :param playground: playfield
         :return: none
         """
+        # Reset turns to make
         self.choosenTurn = "change_nothing"
         self.turnSetFrom = "unset"
+
+        # Check if the player should make a specific turn to follow a pre-calculated Path
         if self.nextTurn is not None:
-            # TODO Nächten Zug überprüfen auf andere Umgebungsbedingungen
             if "speed_up" in self.nextTurn:
 
                 if self.simulateNextTurn(playground, self.id, None, 1):
@@ -471,8 +481,7 @@ class Player(object):
                         self.nextTurn = None
                     return
                 else:
-                    logger.disabled = False
-                    logger.debug("[" + str(self.id) + "]: Cancled double speedUp")
+                    logger.debug("[" + str(self.id) + "]: Cancled speedUp")
                     self.nextTurn = None
 
         if self.followPath and self.path is not None and len(self.path) > 0:
@@ -481,22 +490,20 @@ class Player(object):
         self.followPath = False
         self.path = None
 
-        # Strategie: Weit entferntestes Feld finden
+        # Find all possible moves with current speed
         _, _, _, tempCS = self.findFurthestField(playground, self.speed)
 
-        # FreeMap erstellen
+        # Create freeMap
         freeMap = FreePlaceFinder.generateFreePlaceMap(playground.coordinateSystem)
         freeMapValues = FreePlaceFinder.getFreePlaceValues(freeMap)
         ownFreePlaceIndex = FreePlaceFinder.getRelativeFreePlaceIndexForCoordinate(freeMap, self.x, self.y)
         maxFreePlaceIndex = FreePlaceFinder.getBiggestArea(freeMapValues)
 
-        # Wenn keine Fehler beim erstellen der FreePlaceMap auftreten
+        # If there where no errors creating the FreeplaceMap
         if freeMapValues is not None and ownFreePlaceIndex is not None and maxFreePlaceIndex is not None:
-            # Wenn wir uns bereits in dem größten freien Platz befinden
+            # If we're allready in biggest Area
             if freeMapValues[ownFreePlaceIndex] == freeMapValues[maxFreePlaceIndex]:
-                # Da wir uns im größten freien Bereich befinden -> Zeit schinden
-
-                # Prüfen, ob jemand mit gleicher Geschwindigkeit neben uns läuft -> Beschleunigen um nicht eingekesselt zu werden
+                # Check if some user is direct near us in the same direction and could so possibly cut off our way to success
                 shouldEscape = False
                 for player in playground.players:
                     if player.id != self.id and player.active and ((abs(player.x - self.x) == 1 and abs(
@@ -505,14 +512,13 @@ class Player(object):
                 if shouldEscape and self.simulateNextTurn(playground, self.id, None, 1):
                     self.speedUp()
                     return
-
+                # We're alone...so just ride along side the wall
                 self.rideAlongSideWall(playground)
                 return
             else:
                 print("Not in Biggest Area!")
-                # Wenn wir uns nicht im größten freien Bereich befinden
                 moveMap = FreePlaceFinder.convertFindFurthestFieldMapToFreePlaceFormat(tempCS)
-                # Prüfen, ob wir mit der aktuellen Geschwindigkeit in den größten freien Bereich kommen würden
+                # Calc the nearest coordinate in the bigger Area, if exist
                 nearestCoordinateOnFurthestFieldMap = FreePlaceFinder.findNearestCoordinateOnFurthestFieldMap(freeMap,
                                                                                                               moveMap,
                                                                                                               maxFreePlaceIndex + 1,
@@ -526,10 +532,9 @@ class Player(object):
                         print("  Found way out! Folllowing new path.")
                         return
                 else:
-                    # Wenn wir den größtmöglichen freien Bereich nicht erreichen können mit der aktuellen geschwindigkeit
-                    # Wenn die Maximalgeschwindigkeit noch nicht erreicht ist
+                    # If the current speed is slower then the maximum speed
                     if self.speed < 10:
-                        # Prüfen ob eine Geschwindigkeitsänderung was bringt
+                        # Check if a speedup is able to bring us to one bigger Area
                         for i in range(1, 5):
                             if ((self.speed == 1 and i > 1) or self.speed != 1) and self.doesSpeedUpMakeSense(
                                     playground, i):
@@ -797,8 +802,10 @@ class Player(object):
                               directionRightOfPlayer.value[1] * self.speed
 
             if checkIfCoordinateIsInCoordinateSystem(self.x + directionBehindPlayerLeft.value[0] * self.speed,
-                self.y + directionBehindPlayerLeft.value[1] * self.speed, playground.coordinateSystem) and playground.coordinateSystem[self.y + directionBehindPlayerLeft.value[1] * self.speed][
-                self.x + directionBehindPlayerLeft.value[0] * self.speed] != 0 \
+                                                     self.y + directionBehindPlayerLeft.value[1] * self.speed,
+                                                     playground.coordinateSystem) and \
+                    playground.coordinateSystem[self.y + directionBehindPlayerLeft.value[1] * self.speed][
+                        self.x + directionBehindPlayerLeft.value[0] * self.speed] != 0 \
                     and FreePlaceFinder.getAmountOfFreePlacesForCoordinate(freePlaceMap, leftXYOfPlayer[0],
                                                                            leftXYOfPlayer[1], freePlaceValues) \
                     >= FreePlaceFinder.getAmountOfFreePlacesForCoordinate(freePlaceMap, rightXYOfPlayer[0],
@@ -810,8 +817,10 @@ class Player(object):
 
             # check if there is a wall right behind the player, and there is more space than on the left
             elif checkIfCoordinateIsInCoordinateSystem(self.x + directionBehindPlayerRight.value[0] * self.speed,
-                self.y + directionBehindPlayerRight.value[1] * self.speed, playground.coordinateSystem) and playground.coordinateSystem[self.y + directionBehindPlayerRight.value[1] * self.speed][
-                self.x + directionBehindPlayerRight.value[0] * self.speed] != 0 \
+                                                       self.y + directionBehindPlayerRight.value[1] * self.speed,
+                                                       playground.coordinateSystem) and \
+                    playground.coordinateSystem[self.y + directionBehindPlayerRight.value[1] * self.speed][
+                        self.x + directionBehindPlayerRight.value[0] * self.speed] != 0 \
                     and FreePlaceFinder.getAmountOfFreePlacesForCoordinate(freePlaceMap, leftXYOfPlayer[0],
                                                                            leftXYOfPlayer[1], freePlaceValues) \
                     <= FreePlaceFinder.getAmountOfFreePlacesForCoordinate(freePlaceMap, rightXYOfPlayer[0],
@@ -1114,7 +1123,6 @@ class Player(object):
         :param maxvalY: y position of the furthest field
         :return: if method was successful
         """
-        logger.disabled = False
 
         if not self.isCoordinateFree(maxvalX, maxvalY, playground):
             logger.debug("Maximal entfernte gegebenen Koordinate ist bereits belegt!")
