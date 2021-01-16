@@ -6,6 +6,7 @@ class Cell(object):
     """
     A rectangle in the gamefield, adressed by a x and y coordinate
     """
+
     def __init__(self, x, y, reachable):
         self.reachable = reachable
         self.x = x
@@ -17,6 +18,11 @@ class Cell(object):
         self.f = 0
 
     def setTurn(self, turn):
+        """
+        Tell the cell in which turn the player is to calculate when a jump will be executed
+        :param turn: turn in which a player is in the specific cell
+        :return: self
+        """
         self.turn = turn
         return self
 
@@ -48,9 +54,9 @@ class AStar(object):
                 self.cells.append(Cell(x_, y_, self.coordinateSystem[y_][x_] == 0 or (y_ == y and x_ == x)))
                 self.coordinateSystem[y_][x_] = 1 if self.coordinateSystem[y_][x_] != 0 else 0
 
-        #print("A* Coords")
-        #for y_ in range(self.grid_height):
-            #print(self.coordinateSystem[y_])
+        # print("A* Coords")
+        # for y_ in range(self.grid_height):
+        # print(self.coordinateSystem[y_])
         self.start = self.getCell(x, y)
         self.start.turn = copy.deepcopy(currentTurn)
 

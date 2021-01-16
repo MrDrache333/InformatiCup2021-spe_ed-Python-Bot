@@ -33,6 +33,11 @@ class PlaygroundPresenter(object):
     }
 
     def getColorName(self, id):
+        """
+        Return name of a color id
+        :param id: id of the color
+        :return: color name
+        """
         return colorNames[id]
 
     def __init__(self, playground: Playground, width, height):
@@ -42,12 +47,23 @@ class PlaygroundPresenter(object):
         self.gameWindow = py.display.set_mode((self.displayWidth, self.displayHeight))
 
     def update(self, playground: Playground):
+        """
+        Updates the playground
+        :param playground: playground to update
+        """
         self.playground = playground
 
     def getPlayground(self):
+        """
+        Returns the current playground
+        :return: the current playground
+        """
         return self.playground
 
     def generateGameField(self):
+        """
+        Generates visual gamefield, which will be updated each round
+        """
         self.updateGameField()
 
         # pygame.display.flip()
@@ -57,6 +73,11 @@ class PlaygroundPresenter(object):
         py.display.set_icon(pygame.image.load("Lightning_McQueen.png"))
 
     def drawPath(self, path, playerid):
+        """
+        Displays the path of a player on the gamefield
+        :param path: Path of the player
+        :param playerid: id of the player
+        """
         pathcoords = copy.deepcopy(path)
         if pathcoords is not None and len(pathcoords) >= 2:
             for i in range(len(pathcoords)):
@@ -65,7 +86,9 @@ class PlaygroundPresenter(object):
             py.draw.lines(self.gameWindow, playerColors[int(playerid)], False, pathcoords, width=3)
 
     def updateGameField(self):
-        """Draws rectangles in different colors to different players"""
+        """
+        Draws rectangles in different colors to different players
+        """
         # fill screen with a white blankspace
         self.gameWindow.fill((40, 40, 40))
         white = (255, 255, 255)
