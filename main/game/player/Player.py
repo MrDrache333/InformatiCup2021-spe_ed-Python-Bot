@@ -1096,21 +1096,21 @@ class Player(object):
         """
 
         if not self.isCoordinateFree(maxvalX, maxvalY, playground):
-            logger.info("Maximal entfernte gegebenen Koordinate ist bereits belegt!")
+            logger.info("Maximum distant given coordinate is already occupied!")
             return False
         if (maxvalX % self.speed != self.x % self.speed) or (maxvalY % self.speed != self.y % self.speed):
-            logger.info("Maximal entfernte gegebenen Koordinate ist NICHT erreichbar!")
+            logger.info("Maximum distant given coordinate is NOT reachable!")
             return False
 
         finder = AStar(playground.coordinateSystem, self.x, self.y, self.speed, playground.getTurn())
         self.path = finder.solve((maxvalX, maxvalY))
 
         if self.path is not None and len(self.path) > 0:
-            logger.info("Neuer Pfad:" + str(self.path))
+            logger.info("New path:" + str(self.path))
             # self.printMatrix(tempCS)
         else:
             logger.info(
-                "Nix Pfad gefunden :/ von " + str(self.x) + ":" + str(self.y) + " nach " + str(maxvalX) + ":" + str(
+                "No path found :/ from " + str(self.x) + ":" + str(self.y) + " to " + str(maxvalX) + ":" + str(
                     maxvalY))
             return False
 
