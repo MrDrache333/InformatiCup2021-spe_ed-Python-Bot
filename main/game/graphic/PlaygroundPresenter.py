@@ -120,11 +120,15 @@ class PlaygroundPresenter(object):
                                      self.playground.coordinateSystem[i][i2]],
                                  (currentXOfCube, currentYOfCube, widthOfCube, heightOfCube))
 
+
                 currentXOfCube += widthOfCube
 
             currentXOfCube = 0
             currentYOfCube += heightOfCube
         for player in self.playground.players:
             self.drawPath(player.path, player.id)
+            py.draw.rect(self.gameWindow, (0, 0, 0), (player.x * widthOfCube + widthOfCube / 2 - widthOfCube / 4,
+                                                      player.y * heightOfCube + heightOfCube / 2 - heightOfCube / 4,
+                                                      widthOfCube / 2, heightOfCube / 2))
 
         py.display.flip()

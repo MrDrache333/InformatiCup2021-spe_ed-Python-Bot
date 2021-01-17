@@ -10,9 +10,8 @@ from game.player import FreePlaceFinder
 from game.player.DirectionOfLooking import DirectionOfLooking
 from game.player.Pathfinding import AStar
 
-logging.basicConfig(stream=sys.stderr, level=logging.DEBUG)
+logging.basicConfig(stream=sys.stderr, level=logging.INFO)
 logger = logging.getLogger()
-logger.disabled = True
 
 
 def checkIfCoordinateIsInCoordinateSystem(givenX, givenY, coordinateSystem):
@@ -40,7 +39,7 @@ def printMatrix(matrix):
             ((str(x) if len(str(x)) == 2 else "0" + str(x)) + " ") for x in y
         )
 
-        print(line)
+        logger.info(line)
 
 
 class Player(object):
@@ -74,7 +73,7 @@ class Player(object):
         :param directionOfLooking: direction to change to
         """
         if directionOfLooking.value == self.directionOfLooking.value * -1:
-            logging.debug(
+            logging.info(
                 'Cant change direction, reason: Input direction is in opposite or same direction as previous one ')
         else:
             if self.directionOfLooking == DirectionOfLooking.UP:
@@ -117,7 +116,7 @@ class Player(object):
 
         # Check input Parameters
         if directionOfLooking is not None and speedChange != 0:
-            print("Invalid Parameters")
+            logger.info("Invalid Parameters")
             return None
         currentPlayground = copy.deepcopy(playground)
 
@@ -269,9 +268,7 @@ class Player(object):
         """
         Accelerate one speed
         """
-        if self.speed == 10:
-            logging.debug('Cant accelerate, reason: I Am Speed! (Speed = 10)')
-        else:
+        if self.speed < 10:
             self.choosenTurn = "speed_up"
             self.speed += 1
             curframe = inspect.currentframe()
@@ -283,9 +280,7 @@ class Player(object):
         """
         Decelerates one speed
         """
-        if self.speed == 1:
-            logging.debug('Cant decelerate, reason: Don\'t stop me now! (Speed =1 )')
-        else:
+        if self.speed > 1:
             self.choosenTurn = "slow_down"
             self.speed -= 1
             curframe = inspect.currentframe()
@@ -304,7 +299,7 @@ class Player(object):
         :param speed: speed of the player
         """
         if id != self.id:
-            logging.debug('No matching ID of player')
+            logging.info('No matching ID of player')
         else:
             self.x = x
             self.y = y
@@ -434,7 +429,7 @@ class Player(object):
             if len(self.path) > 0:
                 nextCoord = self.path.pop(0)
             else:
-                print("FEHLER")
+                logger.info("FEHLER")
                 return False
 
         # Calculate the new Path
@@ -481,7 +476,7 @@ class Player(object):
                         self.nextTurn = None
                     return
                 else:
-                    logger.debug("[" + str(self.id) + "]: Cancled speedUp")
+                    logger.info("[" + str(self.id) + "]: Cancled speedUp")
                     self.nextTurn = None
 
         if self.followPath and self.path is not None and len(self.path) > 0:
@@ -506,8 +501,10 @@ class Player(object):
                 # Check if some user is direct near us in the same direction and could so possibly cut off our way to success
                 shouldEscape = False
                 for player in playground.players:
-                    if player.id != self.id and player.active and ((abs(player.x - self.x) == 1 and abs(
-                            player.y - self.y) == 1)) and player.directionOfLooking == self.directionOfLooking:
+                    if player.id != self.id and player.active and ((abs(player.x - self.x) <= 2 and abs(
+                            player.y - self.y) <= 4) or (abs(player.y - self.y) <= 2 and abs(
+                        player.x - self.x) <= 4)) and player.directionOfLooking == self.directionOfLooking and (
+                            self.speed <= player.speed + 2 < 10):
                         shouldEscape = True
                 if shouldEscape and self.simulateNextTurn(playground, self.id, None, 1):
                     self.speedUp()
@@ -516,7 +513,7 @@ class Player(object):
                 self.rideAlongSideWall(playground)
                 return
             else:
-                print("Not in Biggest Area!")
+                logger.info("Not in Biggest Area!")
                 moveMap = FreePlaceFinder.convertFindFurthestFieldMapToFreePlaceFormat(tempCS)
                 # Calc the nearest coordinate in the bigger Area, if exist
                 nearestCoordinateOnFurthestFieldMap = FreePlaceFinder.findNearestCoordinateOnFurthestFieldMap(freeMap,
@@ -529,7 +526,7 @@ class Player(object):
                 if nearestCoordinateOnFurthestFieldMap is not None:
                     if self.moveToFurthestField(playground, nearestCoordinateOnFurthestFieldMap[0],
                                                 nearestCoordinateOnFurthestFieldMap[1]):
-                        print("  Found way out! Folllowing new path.")
+                        logger.info("  Found way out! Folllowing new path.")
                         return
                 else:
                     # If the current speed is slower then the maximum speed
@@ -538,7 +535,7 @@ class Player(object):
                         for i in range(1, 5):
                             if ((self.speed == 1 and i > 1) or self.speed != 1) and self.doesSpeedUpMakeSense(
                                     playground, i):
-                                print("Found way to Area with " + str(
+                                logger.info("Found way to Area with " + str(
                                     freeMapValues[maxFreePlaceIndex] - freeMapValues[
                                         ownFreePlaceIndex]) + " more free Pixels!")
                                 return
@@ -611,7 +608,7 @@ class Player(object):
                                     return
 
         if len(freeMapValues) > 1:
-            print("  cant get out!")
+            logger.info("  cant get out!")
         self.rideAlongSideWall(playground)
         return
 
@@ -633,7 +630,6 @@ class Player(object):
         # 6. ride alongside wall
         # 7. If next wallpiece is straight, reduce speed
         # 8. Go to 4.
-        logger.debug("Ride alongside wall")
 
         freeBlocks = {DirectionOfLooking.UP: playground.countBlocksInStraightLine(self, DirectionOfLooking.UP),
                       DirectionOfLooking.RIGHT: playground.countBlocksInStraightLine(self, DirectionOfLooking.RIGHT),
@@ -887,7 +883,6 @@ class Player(object):
         :param speed: current speed
         :return: coordinates and map with possible moves to the furthest coordinate
         """
-        logger.disabled = True
         currentPlayer = playground.players[self.id - 1]
 
         global newNodes
@@ -897,21 +892,19 @@ class Player(object):
         count = 10
         turn = playground.getTurn()
 
-        # So lange zu prüfende Knoten verfügbar sind
+        # While there are nodes to check
         while currentNodes:
 
-            # Iteriere über alle anliegenden Knoten
+            # Check neighbors
             while currentNodes:
                 x = currentNodes[0][0]
                 y = currentNodes[0][1]
-                logger.debug("CurrentNodes Entry: [" + str(x) + ", " + str(y) + "]")
                 currentPlayer.checkAllNodesSurround(tempCS, x, y, count, turn, speed)
                 currentNodes.remove(currentNodes[0])
 
-            # Füge neu entdeckte Knoten hinzu nachdem alle aktuellen Knoten geprüft wurden
+            # Add all new nodes to the array
             while newNodes:
                 currentNodes.append(newNodes[0])
-                logger.debug(" -- " + str(newNodes[0]) + " -> currentNodes")
                 newNodes.remove(newNodes[0])
 
             count += 1
@@ -921,15 +914,7 @@ class Player(object):
             else:
                 turn = 1
 
-            logger.debug("---------------")
-            for c in tempCS:
-                logger.debug(c)
-
-        logger.debug("---------------")
-        for c in tempCS:
-            logger.debug(c)
-
-        # Maximalen Wert im Koordinatensystem suchen und zurück geben
+        # Find max Path an return
         maxval = np.amax(tempCS)
         if maxval >= 10:
             for (i, row) in enumerate(tempCS):
@@ -937,11 +922,10 @@ class Player(object):
                     if value == maxval:
                         maxvalX = j
                         maxvalY = i
-                        if (maxvalX % speed != currentPlayer.x % speed) or (maxvalY % speed != currentPlayer.y % speed):
-                            logger.debug("Maximal entfernte gegebenen Koordinate ist NICHT erreichbar!")
-                        else:
-                            logger.debug(
-                                "Max Val (" + str(maxval) + ") at [" + str(maxvalX) + ", " + str(maxvalY) + "]")
+                        if (
+                                maxvalX % speed == currentPlayer.x % speed
+                                and maxvalY % speed == currentPlayer.y % speed
+                        ):
                             return maxval, maxvalX, maxvalY, tempCS
             maxval -= 1
             for (i, row) in enumerate(tempCS):
@@ -949,22 +933,10 @@ class Player(object):
                     if value == maxval:
                         maxvalX = j
                         maxvalY = i
-                        if (maxvalX % speed != currentPlayer.x % speed) or (maxvalY % speed != currentPlayer.y % speed):
-                            logger.debug("Maximal entfernte gegebenen Koordinate ist NICHT erreichbar!")
-                        else:
-                            logger.debug(
-                                "Max Val (" + str(maxval) + ") at [" + str(maxvalX) + ", " + str(maxvalY) + "]")
+                        if not ((maxvalX % speed != currentPlayer.x % speed) or (
+                                maxvalY % speed != currentPlayer.y % speed)):
                             return maxval, maxvalX, maxvalY, tempCS
 
-        logger.debug("[" + str(currentPlayer.id) + "]: Konnte keinen Punkt finden.")
-        for c in tempCS:
-            logger.debug("")
-            for d in c:
-                if 10 > d >= 0:
-                    logger.debug(" " + str(d) + ", ", end='')
-                else:
-                    logger.debug(str(d) + ", ", end='')
-        logger.debug("")
         return 0, 0, 0, tempCS
 
     def checkAllNodesSurround(self, tempCS, x, y, count, turn, speed):
@@ -1105,7 +1077,6 @@ class Player(object):
             if tempCS[checkY][checkX] == 0 or (jump and tempCS[checkY][checkX] < 10):
                 if count != -1:  # dont update temp coordinate system if -1 is given
                     tempCS[checkY][checkX] = count
-                # logger.debug("New Node Entry: [" + str(checkX) + ", " + str(checkY) + "]")
                 if add:
                     newNodes.append((checkX, checkY))
                 return True
@@ -1125,20 +1096,20 @@ class Player(object):
         """
 
         if not self.isCoordinateFree(maxvalX, maxvalY, playground):
-            logger.debug("Maximal entfernte gegebenen Koordinate ist bereits belegt!")
+            logger.info("Maximal entfernte gegebenen Koordinate ist bereits belegt!")
             return False
         if (maxvalX % self.speed != self.x % self.speed) or (maxvalY % self.speed != self.y % self.speed):
-            logger.debug("Maximal entfernte gegebenen Koordinate ist NICHT erreichbar!")
+            logger.info("Maximal entfernte gegebenen Koordinate ist NICHT erreichbar!")
             return False
 
         finder = AStar(playground.coordinateSystem, self.x, self.y, self.speed, playground.getTurn())
         self.path = finder.solve((maxvalX, maxvalY))
 
         if self.path is not None and len(self.path) > 0:
-            logger.debug("Neuer Pfad:" + str(self.path))
+            logger.info("Neuer Pfad:" + str(self.path))
             # self.printMatrix(tempCS)
         else:
-            logger.debug(
+            logger.info(
                 "Nix Pfad gefunden :/ von " + str(self.x) + ":" + str(self.y) + " nach " + str(maxvalX) + ":" + str(
                     maxvalY))
             return False
@@ -1146,22 +1117,18 @@ class Player(object):
         firstPathX = self.path[1][0]
         firstPathY = self.path[1][1]
 
-        logger.debug(
+        logger.info(
             "I'm at [" + str(self.x) + ", " + str(self.y) + "] ant want to go to [" + str(firstPathX) + ", " + str(
                 firstPathY) + "]")
 
         if firstPathX > self.x:
             self.turnDirectionOfLooking(DirectionOfLooking.RIGHT)
-            logger.debug("Turn right")
         elif firstPathX < self.x:
             self.turnDirectionOfLooking(DirectionOfLooking.LEFT)
-            logger.debug("Turn left")
         elif firstPathY > self.y:
             self.turnDirectionOfLooking(DirectionOfLooking.DOWN)
-            logger.debug("Turn down")
         elif firstPathY < self.y:
             self.turnDirectionOfLooking(DirectionOfLooking.UP)
-            logger.debug("Turn up")
 
         return True
 
@@ -1171,12 +1138,12 @@ class Player(object):
         :param playground: playfield
         :return: none
         """
-        # Prüfe wie viele Blöcke in jeder Richtung frei sind
-        # FreeMap erstellen
 
+        # Create FreePlaceMap
         freePlaceMap = FreePlaceFinder.generateFreePlaceMap(playground.coordinateSystem)
         freePlaceValues = FreePlaceFinder.getFreePlaceValues(freePlaceMap)
 
+        # Check how many free Pixels are left in each direction
         freeBlocks = [FreePlaceFinder.getAmountOfFreePlacesForCoordinate(freePlaceMap,
                                                                          self.x + DirectionOfLooking.UP.value[
                                                                              0] * self.speed,
@@ -1198,6 +1165,7 @@ class Player(object):
                                                                          self.y + DirectionOfLooking.LEFT.value[
                                                                              1] * self.speed, freePlaceValues)]
 
+        # Check if we're alive in each direction
         setOfDirections = [self.directionOfLooking, DirectionOfLooking.UP, DirectionOfLooking.RIGHT,
                            DirectionOfLooking.DOWN,
                            DirectionOfLooking.LEFT]
@@ -1207,22 +1175,22 @@ class Player(object):
                 self.turnDirectionOfLooking(dir)
                 return
 
-        # Ändere Kurs, zur Richtung wo am meisten Blöcke frei sind
+        # Turn to the direction with most free space
         if self.speed > 1 and max(freeBlocks) < self.speed:
-            logger.debug("[" + str(self.id) + "] I slow down")
+            logger.info("[" + str(self.id) + "] I slow down")
             self.speedDown()
         elif freeBlocks.index(max(freeBlocks)) == 0:  # UP
-            logger.debug("[" + str(self.id) + "] I try to turn Up")
+            logger.info("[" + str(self.id) + "] I try to turn Up")
             self.turnDirectionOfLooking(DirectionOfLooking.UP)
         # try right
         elif freeBlocks.index(max(freeBlocks)) == 1:  # RIGHT
-            logger.debug("[" + str(self.id) + "] I try to turn Right")
+            logger.info("[" + str(self.id) + "] I try to turn Right")
             self.turnDirectionOfLooking(DirectionOfLooking.RIGHT)
         # try down
         elif freeBlocks.index(max(freeBlocks)) == 2:  # DOWN
-            logger.debug("[" + str(self.id) + "] I try to turn Down")
+            logger.info("[" + str(self.id) + "] I try to turn Down")
             self.turnDirectionOfLooking(DirectionOfLooking.DOWN)
         # try left
         elif freeBlocks.index(max(freeBlocks)) == 3:  # LEFT
-            logger.debug("[" + str(self.id) + "] I try to turn Left")
+            logger.info("[" + str(self.id) + "] I try to turn Left")
             self.turnDirectionOfLooking(DirectionOfLooking.LEFT)

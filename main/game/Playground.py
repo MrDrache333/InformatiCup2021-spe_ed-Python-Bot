@@ -4,9 +4,8 @@ import sys
 
 from game.player.DirectionOfLooking import DirectionOfLooking
 
-logging.basicConfig(stream=sys.stderr, level=logging.DEBUG)
+logging.basicConfig(stream=sys.stderr, level=logging.INFO)
 logger = logging.getLogger()
-logger.disabled = True
 
 
 class Playground(object):
@@ -34,7 +33,6 @@ class Playground(object):
         Player must have run into something so he dies.
         :param player: player that dies
         """
-        logger.debug("Player: " + str(player.id) + " died at X: " + str(player.x) + " and Y: " + str(player.y))
         player.die()
 
     def addTurn(self):
@@ -108,7 +106,6 @@ class Playground(object):
                         blockIsFree = False
                     else:
                         blocksFree += 1
-        # print("[" + str(player.id) + "] Free Blocks towards " + direction.name + ": " + str(blocksFree))
         return blocksFree
 
     def getPlayerForId(self, id):
@@ -131,7 +128,6 @@ class Playground(object):
         # move player to new position
         # create walls where the player moved
         # move on to the next player
-        logger.disabled = True
         allPlayerCoordinates = []
         for player in self.players:
             if player.active:
@@ -162,9 +158,7 @@ class Playground(object):
                     playerCoordinates.append((xCoordinateOfPlayer, yCoordinateOfPlayer))
 
                     #   6. turn & not the last move position (head) &
-                    if self.turn == 6 and speed != 1 and speed != speedOfPlayer:
-                        logger.debug("Ima skip dat field (Speed:" + str(speedOfPlayer) + ")")
-                    else:
+                    if not (self.turn == 6 and speed != 1 and speed != speedOfPlayer):
                         # determine whether player would collide with a wall
                         # determine whether coordinates are within coordinatesystem
                         if (0 <= xCoordinateOfPlayer < len(self.coordinateSystem[0]) and

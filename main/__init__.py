@@ -13,9 +13,61 @@ import websockets as websockets
 from JsonInterpreter import JsonInterpreter
 from game.Playground import Playground
 from game.graphic.PlaygroundPresenter import PlaygroundPresenter
-from game.player.DirectionOfLooking import DirectionOfLooking
+
+logging.basicConfig(stream=sys.stderr, level=logging.INFO)
+logger = logging.getLogger()
 
 sys.setrecursionlimit(1000000)
+
+
+def createFolderIfNotExist(path):
+    path = path[0: path.rindex('/')]
+    if not os.path.isdir(path):
+        try:
+            os.makedirs(path)
+            return True
+        except Exception:
+            logger.error("Could not create Folder \"" + path + "\"")
+            return False
+    return False
+
+
+def saveGameFieldBeforeDeath(path, json):
+    """
+    Saves the current Gamefield as a file to debug them later
+    :param json: The JSON String to store
+    :param path: The path where to store the file
+    :return: Nothing
+    """
+    if json is None:
+        logger.info("JOSN is None: No GameField JSon will be stored.")
+        return
+    try:
+        created = createFolderIfNotExist(path)
+        if created:
+            with open(path, "w") as text_file:
+                n = text_file.write("[" + json + "]")
+            if n != len(json):
+                logger.info("Could not completely write GameField in \"" + path + "\"")
+                return False
+            else:
+                return True
+        else:
+            return False
+    except Exception:
+        logger.info("Could not store GameField in \"" + path + "\"")
+
+
+def saveImage(path):
+    """
+    Saves an image of the game after a win/draw/loose
+    :param path: path to the save location
+    """
+    try:
+        if createFolderIfNotExist(path):
+            pygame.image.save(game.playgroundPresenter.gameWindow, path)
+    except pygame.error:
+        logger.info("Can't store image at \"" + path + "\"")
 
 
 class Game(object):
@@ -42,18 +94,18 @@ class Game(object):
         Prints the converted json data
         :param data: data loaded out of json
         """
-        print("Playfield: " + str(self.width) + " x " + str(self.height))
+        logger.info("Playfield: " + str(self.width) + " x " + str(self.height))
 
         for p in data[0]['players']:
             if data[0]['players'][p]['active']:
-                print("Player " + p + " is on [" + str(data[0]['players'][p]['x']) + "] [" + str(
+                logger.info("Player " + p + " is on [" + str(data[0]['players'][p]['x']) + "] [" + str(
                     data[0]['players'][p]['y']) + "], looking " + str(
                     data[0]['players'][p]['direction']) + " at speed " + str(
                     data[0]['players'][p]['speed']))
             else:
-                print("Player " + p + " is out.")
+                logger.info("Player " + p + " is out.")
 
-        print("Your are Player " + str(data[0]['you']))
+        logger.info("Your are Player " + str(data[0]['you']))
 
     async def playOffline(self, PlaygroundPath):
         """
@@ -77,24 +129,9 @@ class Game(object):
         self.gameStartTime = time.time()
         while running:
             self.clock.tick(20)
-            # time.sleep(0.5)
 
-            # Benutzereingabe prüfen
+            # Check if pressed Key to interrupt
             keys = pygame.key.get_pressed()
-            if self.ownPlayer.active:
-                if keys[pygame.K_UP] or keys[pygame.K_w]:
-                    self.ownPlayer.turnDirectionOfLooking(DirectionOfLooking.UP)
-                elif keys[pygame.K_DOWN] or keys[pygame.K_s]:
-                    self.ownPlayer.turnDirectionOfLooking(DirectionOfLooking.DOWN)
-                elif keys[pygame.K_LEFT] or keys[pygame.K_a]:
-                    self.ownPlayer.turnDirectionOfLooking(DirectionOfLooking.LEFT)
-                elif keys[pygame.K_RIGHT] or keys[pygame.K_d]:
-                    self.ownPlayer.turnDirectionOfLooking(DirectionOfLooking.RIGHT)
-                elif keys[pygame.K_RSHIFT] or keys[pygame.K_LSHIFT]:
-                    print("Speed Up!")
-                    self.ownPlayer.speedUp()
-                elif keys[pygame.K_RCTRL] or keys[pygame.K_LCTRL]:
-                    self.ownPlayer.speedDown()
             if keys[pygame.K_q]:
                 pygame.quit()
 
@@ -102,11 +139,11 @@ class Game(object):
             for player in self.playground.players:
                 if player.active:
                     active += 1
-                    print("Spieler " + str(player.id))
+                    logger.info("Player " + str(player.id))
                     player.tryToSurvive(self.playground)
-                    print("Zug: " + player.choosenTurn)
-                    print("Zug entschieden von " + player.turnSetFrom)
-                    print("")
+                    logger.info("Turn: " + player.choosenTurn)
+                    logger.info("Chosen by " + player.turnSetFrom)
+                    logger.info("")
                     player.fitness += 1
             if active == 0 and not self.printedStatistics:
                 self.printStatistics()
@@ -126,13 +163,13 @@ class Game(object):
         """
         Run the simulation offline with x players with the same strategy
         """
-        logger = logging.getLogger('websockets')
-        logger.setLevel(logging.ERROR)
-        logger.addHandler(logging.StreamHandler())
+        wslogger = logging.getLogger('websockets')
+        wslogger.setLevel(logging.ERROR)
+        wslogger.addHandler(logging.StreamHandler())
 
         # Wait for the Client to connect to server
         async with websockets.connect(f"{self.URL}?key={self.KEY}") as websocket:
-            print("Connected to server. Waiting in lobby...This can take up to 5 min.!", flush=True)
+            logger.info("Connected to server. Waiting in lobby...This can take up to 5 min.!")
             self.clock.tick(1000)
             while True:
                 # Wait for the servers response
@@ -153,7 +190,7 @@ class Game(object):
                     self.playground = Playground(self.interpreter.getCellsFromLoadedJson(data),
                                                  self.interpreter.getPlayersFromLoadedJson(data))
 
-                    # Den eigenen Spieler heraussuchen
+                    # Get own player out of the Data
                     self.ownPlayer = self.playground.players[int(data[0]['you']) - 1]
                 else:
                     self.playground.update(self.interpreter.getCellsFromLoadedJson(data),
@@ -170,57 +207,32 @@ class Game(object):
                 if self.oldData is not None:
                     for player in self.oldData:
                         if player.active != self.playground.players[player.id - 1].active:
-                            print("The Player " + str(player.id) + "[" + self.playgroundPresenter.getColorName(
+                            logger.info("The Player " + str(player.id) + "[" + self.playgroundPresenter.getColorName(
                                 player.id) + "]" + " died!" + (" <-- WE" if self.ownPlayer.id == player.id else ""))
-                            print()
+                            logger.info("")
 
                 # If our player is active and the game is running, try to Survive
                 if self.ownPlayer.active and data[0]['running']:
                     self.ownPlayer.tryToSurvive(self.playground)
-                    print("Turn: " + self.ownPlayer.choosenTurn)
-                    print("Choosen by " + self.ownPlayer.turnSetFrom)
+                    logger.info("Turn: " + self.ownPlayer.choosenTurn)
+                    logger.info("Chosen by " + self.ownPlayer.turnSetFrom)
 
                 self.playground.addTurn()
 
                 self.playgroundPresenter.update(self.playground)
                 self.playgroundPresenter.updateGameField()
 
+                self.oldData = copy.deepcopy(self.playground.players)
                 # If game is running an we're still active, print out our Turn, duration and send choosen turn to server
                 if self.ownPlayer.active and data[0]['running']:
                     action = self.ownPlayer.choosenTurn
                     action_json = json.dumps({"action": action})
-                    print("Our turn took " + str((time.time_ns() - startTime) // 1000000) + " milliseconds!")
-                    print("")
+                    logger.info("Our turn took " + str((time.time_ns() - startTime) // 1000000) + " milliseconds!")
+                    logger.info("")
                     await websocket.send(action_json)
                     self.oldStateJson = copy.deepcopy(state_json)
-                self.oldData = copy.deepcopy(self.playground.players)
-
-    def saveImage(self, path):
-        """
-        Saves an image of the game after a win/draw/loose
-        :param path: path to the save location
-        """
-        try:
-            pygame.image.save(game.playgroundPresenter.gameWindow, path)
-        except pygame.error:
-            print("Konnte kein Bild speichern in \"" + path + "\"")
-
-    def saveGameFieldBeforeDeath(self, path):
-        """
-        Saves the current gamefield as a file to debug them later
-        :param path: The path where to store the file
-        :return: Nothing
-        """
-        if self.oldStateJson is None:
-            print("No GameField JSon will be stored.")
-            return
-        try:
-            with open(path, "w") as text_file:
-                n = text_file.write("[" + self.oldStateJson + "]")
-            if n != len(self.oldStateJson):
-                print("Could not completely write GameField in \"" + path + "\"")
-        except Exception:
-            print("Could not store GameField in \"" + path + "\"")
+                else:
+                    return
 
     def printStatistics(self):
         """
@@ -228,37 +240,39 @@ class Game(object):
         How long did it take, who won?
         """
         if self.playground is None or self.playground.players is None:
-            print("Playground must not be None!")
+            logger.info("Playground must not be None!")
             return
-        # Sortiere die Spieler anhand Ihrer Fitness
+        # Sort playes based on their fitness value
         players = sorted(self.playground.players, key=lambda p: p.fitness, reverse=True)
 
-        print("---------Spiel Vorbei---------")
-        print("Das Spiel ging " + str(round(time.time() - game.gameStartTime, 1)) + " Sekunden!")
-        print("Im Durchschnitt dauerte ein Zug " + str(
-            round(float((time.time() - game.gameStartTime) / players[0].fitness), 2)) + " Sekunden")
+        logger.info("---------Game OVER---------")
+        logger.info("The game lasts " + str(round(time.time() - game.gameStartTime, 1)) + " Seconds!")
+        logger.info("Average turntime was about " + str(
+            round(float((time.time() - game.gameStartTime) / players[0].fitness), 2)) + " Seconds")
         if self.ownPlayer.active:
-            print("Wir haben gewonnen !!!     PS: Weil wir einfach Boss sind ;)")
-            # Screenshot des Spielfeldes speichern
-            self.saveImage("results/won/result_" + str(datetime.timestamp(datetime.now())) + ".jpg")
+            logger.info("WE WON !!!     PS: Because we can ;)")
+            # Store Scrrenshot of the Gamefield
+            saveImage("results/won/result_" + str(datetime.timestamp(datetime.now())) + ".jpg")
         elif self.ownPlayer.fitness == players[0].fitness:
-            print("Unentschieden. Ihr deppen seid einfach ineinander gerasselt. Zwei Dumme, ein Gedanke...")
-            # Screenshot des Spielfeldes speichern
-            self.saveImage("results/draw/result_" + str(datetime.timestamp(datetime.now())) + ".jpg")
-            self.saveGameFieldBeforeDeath("results/draw/result_" + str(datetime.timestamp(datetime.now())) + ".json")
+            logger.info("It's a draw. Your tried your best...but hey...he died too")
+            # Store Scrrenshot of the Gamefield
+            saveImage("results/draw/result_" + str(datetime.timestamp(datetime.now())) + ".jpg")
+            saveGameFieldBeforeDeath("results/draw/result_" + str(datetime.timestamp(datetime.now())) + ".json",
+                                     self.oldStateJson)
         else:
-            print("Haben leider verloren... :/ Alles Hacker hier...")
-            # Screenshot des Spielfeldes speichern
-            self.saveImage("results/lost/result_" + str(datetime.timestamp(datetime.now())) + ".jpg")
-            self.saveGameFieldBeforeDeath("results/lost/result_" + str(datetime.timestamp(datetime.now())) + ".json")
-        print("---------Statistiken---------")
+            logger.info("We lost... :/ Maybe they're hacking...")
+            # Store Scrrenshot of the Gamefield
+            saveImage("results/lost/result_" + str(datetime.timestamp(datetime.now())) + ".jpg")
+            saveGameFieldBeforeDeath("results/lost/result_" + str(datetime.timestamp(datetime.now())) + ".json",
+                                     self.oldStateJson)
+        logger.info("---------Stats---------")
 
         for player in players:
-            print("Spieler " + str(player.id) + ": " + str(player.fitness) + " Status: " + str(
-                "Lebend" if player.active else "Gestorben") + " Farbe: " + self.playgroundPresenter.getColorName(
+            logger.info("Player " + str(player.id) + ": " + str(player.fitness) + " State: " + str(
+                "ALIVE" if player.active else "DEAD") + " Color: " + self.playgroundPresenter.getColorName(
                 player.id)
-                  + ("  <---WIR" if self.ownPlayer.id == player.id else ""))
-        print("-------------------------------")
+                        + ("  <---WE" if self.ownPlayer.id == player.id else ""))
+        logger.info("-------------------------------")
 
 
 def sleep(secs):
@@ -268,11 +282,11 @@ def sleep(secs):
     """
     for i in range(secs, 0, -1):
         if i <= 3 or i % 10 == 0:
-            print("Warte " + str(i) + " Sekunden, bis zum erneuten Start!", flush=True)
+            logger.info("WAIT " + str(i) + " SECONDS TO START AGAIN!")
         try:
             time.sleep(1)
         except KeyboardInterrupt:
-            print("---Programm wurde unterbrochen!---")
+            logger.info("---PROGRAM INTERRUPTED!---")
             exit()
 
 
@@ -284,59 +298,60 @@ key = ""
 try:
     ONLINE = os.environ["Online"] == "True"
 except KeyError:
-    print("Online Parameter is not set. DEFAULT=True")
+    logger.info("Online Parameter is not set. DEFAULT=True")
 
 if not ONLINE:
     try:
         OfflinePath = os.environ["Playground"]
     except KeyError:
-        print("Playground Parameter is not set but Online was set to FALSE")
-        print("Please set the needed environment variables. Please take a look at our "
-              "documentation to ensure the proper use of our program")
+        logger.info("Playground Parameter is not set but Online was set to FALSE")
+        logger.info("Please set the needed environment variables. Please take a look at our "
+                    "documentation to ensure the proper use of our program")
         exit(-1)
 else:
     try:
         url = os.environ["URL"]
         key = os.environ["KEY"]
     except KeyError:
-        print("URL or KEY Parameter is not set but Online was set to TRUE")
-        print("Please set the needed environment variables. Please take a look at our "
-              "documentation to ensure the proper use of our program")
+        logger.info("URL or KEY Parameter is not set but Online was set to TRUE")
+        logger.info("Please set the needed environment variables. Please take a look at our "
+                    "documentation to ensure the proper use of our program")
         exit(-1)
 try:
     docker = os.environ["Docker"] == "True"
 except KeyError:
-    print("Docker Parameter is not set. DEFAULT=FALSE")
+    logger.info("Docker Parameter is not set. DEFAULT=FALSE")
 
 if ONLINE:
 
-    print("API-SERVER-URL: " + url)
-    print("API-KEY: " + key)
-    print("DOCKER: " + str(docker))
+    logger.info("API-SERVER-URL: " + url)
+    logger.info("API-KEY: " + key)
+    logger.info("DOCKER: " + str(docker))
 
     while True:
-        # TODO Auslagern in Parameterübergabe beim Programstart
         game = Game(docker, url, key)
         try:
             asyncio.get_event_loop().run_until_complete(game.playOnline())
+            game.printStatistics()
+            sleep(5)
         except websockets.InvalidStatusCode as e:
             if e.status_code == 429:
-                print("Zu viele Anfragen in zu kurzer Zeit!")
+                logger.info("TOO MANY REQUESTS")
                 sleep(30)
             else:
-                print(e)
+                logger.debug(e)
         except websockets.ConnectionClosedOK as e:
             if e.code == 1000:
-                print("Server Closed with Code: 1000 OK")
+                logger.debug("Server Closed with Code: 1000 OK")
                 game.printStatistics()
                 sleep(5)
         except websockets.ConnectionClosedError as e:
             if e.code == 1006:
-                print("Server Closed with Code: 1006 ERROR")
+                logger.debug("Server Closed with Code: 1006 ERROR")
                 game.printStatistics()
                 sleep(5)
         except KeyboardInterrupt:
-            print("\n---Programm wurde unterbrochen!---")
+            logger.info("\n---Programm wurde unterbrochen!---")
             exit()
 else:
     game = Game(docker)
@@ -345,4 +360,4 @@ else:
         while True:
             time.sleep(1)
     except KeyboardInterrupt:
-        print("\n---Programm wurde unterbrochen!---")
+        logger.info("\n---Programm wurde unterbrochen!---")
